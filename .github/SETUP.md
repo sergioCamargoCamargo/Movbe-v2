@@ -48,17 +48,20 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ### CI/CD Pipeline (`ci-cd.yml`)
 
 - **Triggers:**
-  - Push a `main`/`dev` 
+
+  - Push a `main`/`dev`
   - Pull Requests hacia `main`/`dev`
 
 - **Jobs ejecutados:**
+
   1. **Quality Check:** Linting, formato y type checking
   2. **Build:** Compilación de la aplicación
   3. **Deploy Production:** Deploy a producción (rama `main`)
-  4. **Deploy Development:** Deploy a desarrollo (rama `dev`) 
+  4. **Deploy Development:** Deploy a desarrollo (rama `dev`)
   5. **Deploy Preview:** Deploy temporal (Pull Requests)
 
 - **Ambientes de deployment:**
+
   - 🟢 **Production:** `main` → Vercel Production Environment
   - 🟡 **Development:** `dev` → Vercel Preview Environment
   - 🔵 **Preview:** PRs → Vercel Preview temporal con comentario
@@ -71,14 +74,17 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ## Uso
 
 1. **Desarrollo en rama `dev`:**
+
    - Push a `dev` → Deploy automático al ambiente de desarrollo
    - URL de desarrollo se comenta en el commit
 
 2. **Testing con Pull Requests:**
+
    - Crea PR desde cualquier rama → Deploy temporal de preview
    - URL de preview se comenta en el PR
 
 3. **Producción:**
+
    - Merge a `main` → Deploy automático a producción
    - Ambiente estable para usuarios finales
 
