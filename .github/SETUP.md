@@ -11,6 +11,7 @@ Para que los workflows funcionen correctamente, necesitas configurar estos secre
 Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de GitHub y agrega:
 
 #### 1. Vercel Configuration
+
 - `VERCEL_TOKEN`: Tu token de acceso de Vercel
   - Ve a [Vercel Settings → Tokens](https://vercel.com/account/tokens)
   - Crea un nuevo token con scope "Full Account"
@@ -22,6 +23,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
   - O ve a Project Settings → General en Vercel Dashboard
 
 #### 2. Firebase Configuration
+
 - `NEXT_PUBLIC_FIREBASE_API_KEY`: Tu Firebase API Key
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`: Tu Firebase Auth Domain
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`: Tu Firebase Project ID
@@ -32,6 +34,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ### Configuración de Vercel
 
 1. **Conecta tu repositorio a Vercel:**
+
    - Ve a [Vercel Dashboard](https://vercel.com/dashboard)
    - Importa tu repositorio de GitHub
    - Configura las variables de entorno en Vercel Dashboard
@@ -43,6 +46,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ## Workflows Disponibles
 
 ### 1. CI Pipeline (`ci.yml`)
+
 - **Trigger:** Push a `main`/`dev` y Pull Requests
 - **Acciones:**
   - Linting con ESLint
@@ -51,12 +55,14 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
   - Build de la aplicación
 
 ### 2. Deploy to Vercel (`deploy.yml`)
+
 - **Trigger:** Push a `main` (después de CI exitoso)
 - **Acciones:**
   - Deploy automático a producción en Vercel
   - Deploy de preview para Pull Requests
 
 ### 3. CI/CD Complete (`ci-cd.yml`)
+
 - **Workflow completo que combina:**
   - Quality checks (lint, format, type)
   - Build
@@ -67,6 +73,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ## Uso
 
 1. **Para desarrollo:**
+
    - Crea una rama desde `dev`
    - Haz tus cambios
    - Crea un Pull Request hacia `main`
@@ -80,6 +87,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 ## Configuración Local
 
 1. Copia `.env.example` a `.env.local`:
+
    ```bash
    cp .env.example .env.local
    ```
@@ -87,6 +95,7 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
 2. Llena las variables de entorno con tus valores de Firebase
 
 3. Instala dependencias:
+
    ```bash
    npm install
    ```
