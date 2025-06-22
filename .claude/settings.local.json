@@ -12,7 +12,8 @@
       "Bash(rm:*)",
       "Bash(npm run format:*)",
       "Bash(npm run lint:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": []
   }
