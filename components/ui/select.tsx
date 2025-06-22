@@ -1,14 +1,8 @@
 'use client'
 
-<<<<<<< HEAD
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import * as React from 'react'
-=======
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
-import * as React from "react"
->>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

@@ -1,16 +1,9 @@
 'use client'
 
-<<<<<<< HEAD
 import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import * as React from 'react'
-=======
-import * as SheetPrimitive from "@radix-ui/react-dialog"
-import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
-import * as React from "react"
->>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

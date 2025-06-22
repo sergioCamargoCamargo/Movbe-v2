@@ -1,6 +1,13 @@
 {
   "permissions": {
-    "allow": ["Bash(git add:*)", "Bash(git rebase:*)", "Bash(git restore:*)"],
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run lint)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)"
+    ],
     "deny": []
   }
 }

@@ -1,14 +1,8 @@
 'use client'
 
-<<<<<<< HEAD
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { Check, ChevronRight, Circle } from 'lucide-react'
 import * as React from 'react'
-=======
-import * as ContextMenuPrimitive from "@radix-ui/react-context-menu"
-import { Check, ChevronRight, Circle } from "lucide-react"
-import * as React from "react"
->>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

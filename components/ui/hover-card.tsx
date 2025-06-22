@@ -1,12 +1,7 @@
 'use client'
 
-<<<<<<< HEAD
 import * as HoverCardPrimitive from '@radix-ui/react-hover-card'
 import * as React from 'react'
-=======
-import * as HoverCardPrimitive from "@radix-ui/react-hover-card"
-import * as React from "react"
->>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 
