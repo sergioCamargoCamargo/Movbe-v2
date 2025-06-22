@@ -1,6 +1,5 @@
 'use client'
 
-import { sendPasswordResetEmail } from 'firebase/auth'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -17,7 +16,6 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { auth } from '@/lib/firebase'
 
 export default function RecoveryPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -31,9 +29,8 @@ export default function RecoveryPage() {
     setError('')
 
     try {
-      const formData = new FormData(event.currentTarget)
-      const email = formData.get('email') as string
-      await sendPasswordResetEmail(auth, email)
+      // Aquí iría la lógica de recuperación
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulación
       setSuccess(true)
     } catch {
       setError('Error al enviar el correo de recuperación')

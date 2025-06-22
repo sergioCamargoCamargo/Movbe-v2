@@ -1,12 +1,7 @@
 'use client'
 
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  GithubAuthProvider,
-} from 'firebase/auth'
-import { Eye, EyeOff, Github, ChromeIcon as Google } from 'lucide-react'
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { Eye, EyeOff, ChromeIcon as Google } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -23,7 +18,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { auth } from '@/lib/firebase'
+import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -41,10 +36,19 @@ export default function LoginPage() {
       const email = formData.get('email') as string
       const password = formData.get('password') as string
 
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+
+      if (!userCredential.user.emailVerified) {
+        setError(
+          'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.'
+        )
+        await auth.signOut() // Sign out the unverified user
+        return
+      }
+
       router.push('/')
-    } catch {
-      setError('Credenciales inválidas')
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -55,24 +59,13 @@ export default function LoginPage() {
     setError('')
     try {
       const provider = new GoogleAuthProvider()
+      provider.setCustomParameters({
+        prompt: 'select_account',
+      })
       await signInWithPopup(auth, provider)
       router.push('/')
-    } catch {
-      setError('Error al iniciar sesión con Google')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  async function handleGithubLogin() {
-    setIsLoading(true)
-    setError('')
-    try {
-      const provider = new GithubAuthProvider()
-      await signInWithPopup(auth, provider)
-      router.push('/')
-    } catch {
-      setError('Error al iniciar sesión con GitHub')
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -143,16 +136,16 @@ export default function LoginPage() {
                   <span className='bg-background px-2 text-muted-foreground'>O continúa con</span>
                 </div>
               </div>
-              <div className='grid grid-cols-2 gap-4'>
-                <Button variant='outline' disabled={isLoading} onClick={handleGoogleLogin}>
-                  <Google className='mr-2 h-4 w-4' />
-                  Google
-                </Button>
-                <Button variant='outline' disabled={isLoading} onClick={handleGithubLogin}>
-                  <Github className='mr-2 h-4 w-4' />
-                  Github
-                </Button>
-              </div>
+              <Button
+                variant='outline'
+                disabled={isLoading}
+                onClick={handleGoogleLogin}
+                type='button'
+                className='w-full'
+              >
+                <Google className='mr-2 h-4 w-4' />
+                Continuar con Google
+              </Button>
             </div>
           </CardContent>
         </form>

@@ -5,9 +5,12 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'YourTube',
+  title: 'Movbe',
   description: 'Your video platform',
   generator: 'v0.dev',
+  icons: {
+    icon: '/logo_black.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

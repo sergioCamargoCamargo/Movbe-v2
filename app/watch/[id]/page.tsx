@@ -29,6 +29,8 @@ export default function WatchPage() {
   const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const carousel = carouselRef.current
+
     const handleScroll = () => {
       const st = window.pageYOffset || document.documentElement.scrollTop
       if (st > lastScrollTop.current) {
@@ -47,22 +49,22 @@ export default function WatchPage() {
     }
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (carouselRef.current && !carouselRef.current.contains(e.relatedTarget as Node)) {
+      if (carousel && !carousel.contains(e.relatedTarget as Node)) {
         setShowRecommendations(false)
       }
     }
 
     window.addEventListener('scroll', handleScroll)
     window.addEventListener('mousemove', handleMouseMove)
-    if (carouselRef.current) {
-      carouselRef.current.addEventListener('mouseleave', handleMouseLeave)
+    if (carousel) {
+      carousel.addEventListener('mouseleave', handleMouseLeave)
     }
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('mousemove', handleMouseMove)
-      if (carouselRef.current) {
-        carouselRef.current.removeEventListener('mouseleave', handleMouseLeave)
+      if (carousel) {
+        carousel.removeEventListener('mouseleave', handleMouseLeave)
       }
     }
   }, [])

@@ -2,6 +2,7 @@
 
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth'
 import { Bell, Menu, Mic, Search, Upload, User } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -44,6 +45,7 @@ export default function Header({
       // Error handled silently
     }
   }
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-background border-b transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
@@ -52,7 +54,22 @@ export default function Header({
         <Button variant='ghost' size='icon' onClick={onMenuClick}>
           <Menu className='h-6 w-6' />
         </Button>
-        <h1 className='text-xl font-bold ml-4'>Movbe DEV</h1>
+        <Link href='/' className='flex items-center ml-4'>
+          <Image
+            src='/logo_black.png'
+            alt='Movbe'
+            width={120}
+            height={40}
+            className='dark:hidden'
+          />
+          <Image
+            src='/logo_white.png'
+            alt='Movbe'
+            width={120}
+            height={40}
+            className='hidden dark:block'
+          />
+        </Link>
       </div>
       <div className='flex-1 max-w-2xl mx-4'>
         <div className='flex'>
