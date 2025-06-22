@@ -1,10 +1,6 @@
 'use client'
 
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth'
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { Eye, EyeOff, ChromeIcon as Google } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -41,13 +37,15 @@ export default function LoginPage() {
       const password = formData.get('password') as string
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      
+
       if (!userCredential.user.emailVerified) {
-        setError('Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.')
+        setError(
+          'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.'
+        )
         await auth.signOut() // Sign out the unverified user
         return
       }
-      
+
       router.push('/')
     } catch (error) {
       setError(getFirebaseErrorMessage(error))
@@ -62,7 +60,7 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider()
       provider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: 'select_account',
       })
       await signInWithPopup(auth, provider)
       router.push('/')

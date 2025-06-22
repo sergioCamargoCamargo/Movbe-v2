@@ -21,24 +21,24 @@ export function getFirebaseErrorMessage(error: unknown): string {
     const errorObj = error as { error: { message?: string } }
     if (errorObj.error?.message) {
       switch (errorObj.error.message) {
-      case 'EMAIL_EXISTS':
-        return 'Este correo electrónico ya está registrado'
-      case 'WEAK_PASSWORD':
-        return 'La contraseña debe tener al menos 6 caracteres'
-      case 'INVALID_EMAIL':
-        return 'El correo electrónico no es válido'
-      case 'USER_NOT_FOUND':
-        return 'No existe una cuenta con este correo electrónico'
-      case 'WRONG_PASSWORD':
-        return 'La contraseña es incorrecta'
-      case 'TOO_MANY_ATTEMPTS_TRY_LATER':
-        return 'Demasiados intentos fallidos. Intenta más tarde'
-      default:
-        return errorObj.error.message
+        case 'EMAIL_EXISTS':
+          return 'Este correo electrónico ya está registrado'
+        case 'WEAK_PASSWORD':
+          return 'La contraseña debe tener al menos 6 caracteres'
+        case 'INVALID_EMAIL':
+          return 'El correo electrónico no es válido'
+        case 'USER_NOT_FOUND':
+          return 'No existe una cuenta con este correo electrónico'
+        case 'WRONG_PASSWORD':
+          return 'La contraseña es incorrecta'
+        case 'TOO_MANY_ATTEMPTS_TRY_LATER':
+          return 'Demasiados intentos fallidos. Intenta más tarde'
+        default:
+          return errorObj.error.message
       }
     }
   }
-  
+
   // Handle Firebase Auth error codes
   if (error && typeof error === 'object' && 'code' in error) {
     const errorObj = error as { code: string }
@@ -65,6 +65,6 @@ export function getFirebaseErrorMessage(error: unknown): string {
         return 'Error de autenticación'
     }
   }
-  
+
   return 'Error al procesar la solicitud'
 }

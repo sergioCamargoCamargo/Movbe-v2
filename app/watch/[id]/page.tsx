@@ -1,15 +1,15 @@
 'use client'
 
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal } from "lucide-react"
-import Image from "next/image"
-import { useParams } from "next/navigation"
-import { useState, useEffect, useRef } from "react"
-import Slider from "react-slick"
+import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal } from 'lucide-react'
+import Image from 'next/image'
+import { useParams } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import Slider from 'react-slick'
 
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from '@/components/ui/button'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
-import Header from "../../components/Header"
+import Header from '../../components/Header'
 
 export default function WatchPage() {
   const { id } = useParams()
@@ -30,7 +30,7 @@ export default function WatchPage() {
 
   useEffect(() => {
     const carousel = carouselRef.current
-    
+
     const handleScroll = () => {
       const st = window.pageYOffset || document.documentElement.scrollTop
       if (st > lastScrollTop.current) {
@@ -54,17 +54,17 @@ export default function WatchPage() {
       }
     }
 
-    window.addEventListener("scroll", handleScroll)
-    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('mousemove', handleMouseMove)
     if (carousel) {
-      carousel.addEventListener("mouseleave", handleMouseLeave)
+      carousel.addEventListener('mouseleave', handleMouseLeave)
     }
 
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('mousemove', handleMouseMove)
       if (carousel) {
-        carousel.removeEventListener("mouseleave", handleMouseLeave)
+        carousel.removeEventListener('mouseleave', handleMouseLeave)
       }
     }
   }, [])

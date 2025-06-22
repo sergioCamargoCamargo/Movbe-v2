@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from "react"
+import { useState } from 'react'
 
-import Header from "./components/Header"
-import MainContent from "./components/MainContent"
-import Sidebar from "./components/Sidebar"
+import Header from './components/Header'
+import MainContent from './components/MainContent'
+import Sidebar from './components/Sidebar'
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)

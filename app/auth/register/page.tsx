@@ -52,11 +52,13 @@ export default function RegisterPage() {
       if (displayName && userCredential.user) {
         await updateProfile(userCredential.user, { displayName })
       }
-      
+
       // Send email verification
       await sendEmailVerification(userCredential.user)
-      setSuccess('Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.')
-      
+      setSuccess(
+        'Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.'
+      )
+
       // Don't redirect immediately, let user see the success message
     } catch (error) {
       setError(getFirebaseErrorMessage(error))
