@@ -7,8 +7,13 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
+<<<<<<< HEAD
 } from '@/components/ui/toast'
 import { useToast } from '@/hooks/use-toast'
+=======
+} from "@/components/ui/toast"
+import { useToast } from "@/hooks/use-toast"
+>>>>>>> 3d27034 (feat: add login)
 
 export function Toaster() {
   const { toasts } = useToast()

@@ -1,15 +1,15 @@
 'use client'
 
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal } from 'lucide-react'
-import Image from 'next/image'
-import { useParams } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
-import Slider from 'react-slick'
+import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal } from "lucide-react"
+import Image from "next/image"
+import { useParams } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import Slider from "react-slick"
 
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-import Header from '../../components/Header'
+import Header from "../../components/Header"
 
 export default function WatchPage() {
   const { id } = useParams()
@@ -29,6 +29,8 @@ export default function WatchPage() {
   const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const carousel = carouselRef.current
+    
     const handleScroll = () => {
       const st = window.pageYOffset || document.documentElement.scrollTop
       if (st > lastScrollTop.current) {
@@ -47,22 +49,22 @@ export default function WatchPage() {
     }
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (carouselRef.current && !carouselRef.current.contains(e.relatedTarget as Node)) {
+      if (carousel && !carousel.contains(e.relatedTarget as Node)) {
         setShowRecommendations(false)
       }
     }
 
-    window.addEventListener('scroll', handleScroll)
-    window.addEventListener('mousemove', handleMouseMove)
-    if (carouselRef.current) {
-      carouselRef.current.addEventListener('mouseleave', handleMouseLeave)
+    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("mousemove", handleMouseMove)
+    if (carousel) {
+      carousel.addEventListener("mouseleave", handleMouseLeave)
     }
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('mousemove', handleMouseMove)
-      if (carouselRef.current) {
-        carouselRef.current.removeEventListener('mouseleave', handleMouseLeave)
+      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener("mousemove", handleMouseMove)
+      if (carousel) {
+        carousel.removeEventListener("mouseleave", handleMouseLeave)
       }
     }
   }, [])

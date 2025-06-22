@@ -1,7 +1,12 @@
 'use client'
 
+<<<<<<< HEAD
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import * as React from 'react'
+=======
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
+import * as React from "react"
+>>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

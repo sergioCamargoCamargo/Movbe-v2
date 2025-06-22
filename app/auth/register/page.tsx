@@ -5,9 +5,9 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
-  GithubAuthProvider,
+  sendEmailVerification,
 } from 'firebase/auth'
-import { Eye, EyeOff, Github, ChromeIcon as Google } from 'lucide-react'
+import { Eye, EyeOff, ChromeIcon as Google } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -25,11 +25,12 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { auth } from '@/lib/firebase'
+import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
@@ -37,6 +38,7 @@ export default function RegisterPage() {
     event.preventDefault()
     setIsLoading(true)
     setError('')
+    setSuccess('')
 
     try {
       const formData = new FormData(event.currentTarget)
@@ -50,9 +52,14 @@ export default function RegisterPage() {
       if (displayName && userCredential.user) {
         await updateProfile(userCredential.user, { displayName })
       }
-      router.push('/')
-    } catch {
-      setError('Error al crear la cuenta')
+      
+      // Send email verification
+      await sendEmailVerification(userCredential.user)
+      setSuccess('Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.')
+      
+      // Don't redirect immediately, let user see the success message
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -65,22 +72,8 @@ export default function RegisterPage() {
       const provider = new GoogleAuthProvider()
       await signInWithPopup(auth, provider)
       router.push('/')
-    } catch {
-      setError('Error al iniciar sesión con Google')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  async function handleGithubLogin() {
-    setIsLoading(true)
-    setError('')
-    try {
-      const provider = new GithubAuthProvider()
-      await signInWithPopup(auth, provider)
-      router.push('/')
-    } catch {
-      setError('Error al iniciar sesión con GitHub')
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -100,6 +93,11 @@ export default function RegisterPage() {
             {error && (
               <Alert variant='destructive'>
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert variant='default' className='border-green-200 bg-green-50 text-green-800'>
+                <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
             <div className='grid grid-cols-2 gap-4'>
@@ -165,16 +163,15 @@ export default function RegisterPage() {
                   <span className='bg-background px-2 text-muted-foreground'>O regístrate con</span>
                 </div>
               </div>
-              <div className='grid grid-cols-2 gap-4'>
-                <Button variant='outline' disabled={isLoading} onClick={handleGoogleLogin}>
-                  <Google className='mr-2 h-4 w-4' />
-                  Google
-                </Button>
-                <Button variant='outline' disabled={isLoading} onClick={handleGithubLogin}>
-                  <Github className='mr-2 h-4 w-4' />
-                  Github
-                </Button>
-              </div>
+              <Button
+                variant='outline'
+                disabled={isLoading}
+                onClick={handleGoogleLogin}
+                className='w-full'
+              >
+                <Google className='mr-2 h-4 w-4' />
+                Google
+              </Button>
             </div>
           </CardContent>
         </form>

@@ -1,19 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mv:*)",
-      "Bash(rg:*)",
-      "Bash(ls:*)",
-      "Bash(npm install)",
-      "Bash(npm install:*)",
-      "Bash(npm run build:*)",
-      "Bash(git reset:*)",
-      "Bash(git clean:*)",
-      "Bash(rm:*)",
-      "Bash(npm run format:*)",
-      "Bash(npm run lint:*)",
-      "Bash(mkdir:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(git add:*)",
+      "Bash(git rebase:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

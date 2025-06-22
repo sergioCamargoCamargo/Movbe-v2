@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { Slot } from '@radix-ui/react-slot'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
+=======
+import { Slot } from "@radix-ui/react-slot"
+import { ChevronRight, MoreHorizontal } from "lucide-react"
+import * as React from "react"
+>>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

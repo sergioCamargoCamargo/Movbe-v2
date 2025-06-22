@@ -1,18 +1,7 @@
-import {
-  Home,
-  Tv,
-  Music,
-  SmilePlus,
-  Gamepad2,
-  Clock,
-  ThumbsUp,
-  Flame,
-  ShoppingBag,
-  X,
-} from 'lucide-react'
+import { Home, Tv, Music, SmilePlus, Gamepad2, Clock, ThumbsUp, Flame, ShoppingBag, X } from "lucide-react"
 
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose?: () => void }) {
   return (

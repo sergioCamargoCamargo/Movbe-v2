@@ -1,7 +1,12 @@
 'use client'
 
+<<<<<<< HEAD
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 import * as React from 'react'
+=======
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
+import * as React from "react"
+>>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 

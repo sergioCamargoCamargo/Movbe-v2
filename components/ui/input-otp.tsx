@@ -1,8 +1,14 @@
 'use client'
 
+<<<<<<< HEAD
 import { OTPInput, OTPInputContext } from 'input-otp'
 import { Dot } from 'lucide-react'
 import * as React from 'react'
+=======
+import { OTPInput, OTPInputContext } from "input-otp"
+import { Dot } from "lucide-react"
+import * as React from "react"
+>>>>>>> 3d27034 (feat: add login)
 
 import { cn } from '@/lib/utils'
 
