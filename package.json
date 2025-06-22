@@ -2,10 +2,15 @@
   "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
     "start": "next start"
   },
   "dependencies": {
@@ -43,9 +48,10 @@
     "cmdk": "1.0.4",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "8.5.1",
+    "firebase": "^11.9.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
-    "next": "15.2.4",
+    "next": "^15.2.4",
     "next-themes": "^0.4.4",
     "react": "^18.2.0",
     "react-day-picker": "8.10.1",
@@ -61,11 +67,21 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.29.0",
+    "@types/node": "^22.15.32",
     "@types/react": "^18.2.79",
     "@types/react-dom": "^18.2.25",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "^15.3.4",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "postcss": "^8.5",
+    "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.34.1"
   }
 }
