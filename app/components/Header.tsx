@@ -52,7 +52,7 @@ export default function Header({
         <Button variant='ghost' size='icon' onClick={onMenuClick}>
           <Menu className='h-6 w-6' />
         </Button>
-        <h1 className='text-xl font-bold ml-4'>Movbe</h1>
+        <h1 className='text-xl font-bold ml-4'>Movbe DEV</h1>
       </div>
       <div className='flex-1 max-w-2xl mx-4'>
         <div className='flex'>
