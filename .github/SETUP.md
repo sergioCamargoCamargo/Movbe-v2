@@ -43,46 +43,49 @@ Ve a `Settings` → `Secrets and variables` → `Actions` en tu repositorio de G
    - En tu proyecto de Vercel, ve a `Settings` → `Environment Variables`
    - Agrega todas las variables de Firebase que configuraste en GitHub Secrets
 
-## Workflows Disponibles
+## Workflow Disponible
 
-### 1. CI Pipeline (`ci.yml`)
+### CI/CD Pipeline (`ci-cd.yml`)
 
-- **Trigger:** Push a `main`/`dev` y Pull Requests
-- **Acciones:**
-  - Linting con ESLint
-  - Verificación de formato con Prettier
-  - Type checking con TypeScript
-  - Build de la aplicación
+- **Triggers:**
+  - Push a `main`/`dev` 
+  - Pull Requests hacia `main`/`dev`
 
-### 2. Deploy to Vercel (`deploy.yml`)
+- **Jobs ejecutados:**
+  1. **Quality Check:** Linting, formato y type checking
+  2. **Build:** Compilación de la aplicación
+  3. **Deploy Production:** Deploy a producción (rama `main`)
+  4. **Deploy Development:** Deploy a desarrollo (rama `dev`) 
+  5. **Deploy Preview:** Deploy temporal (Pull Requests)
 
-- **Trigger:** Push a `main` (después de CI exitoso)
-- **Acciones:**
-  - Deploy automático a producción en Vercel
-  - Deploy de preview para Pull Requests
+- **Ambientes de deployment:**
+  - 🟢 **Production:** `main` → Vercel Production Environment
+  - 🟡 **Development:** `dev` → Vercel Preview Environment
+  - 🔵 **Preview:** PRs → Vercel Preview temporal con comentario
 
-### 3. CI/CD Complete (`ci-cd.yml`)
-
-- **Workflow completo que combina:**
-  - Quality checks (lint, format, type)
-  - Build
-  - Deploy a producción (main branch)
-  - Deploy de preview (Pull Requests)
-  - Comentarios automáticos en PRs con URL de preview
+- **Flujo por rama:**
+  - **`main`:** Quality → Build → Deploy Production
+  - **`dev`:** Quality → Build → Deploy Development + Comentario en commit
+  - **PRs:** Quality → Build → Deploy Preview + Comentario en PR
 
 ## Uso
 
-1. **Para desarrollo:**
+1. **Desarrollo en rama `dev`:**
+   - Push a `dev` → Deploy automático al ambiente de desarrollo
+   - URL de desarrollo se comenta en el commit
 
-   - Crea una rama desde `dev`
-   - Haz tus cambios
-   - Crea un Pull Request hacia `main`
-   - Los checks de calidad se ejecutarán automáticamente
-   - Se creará un deployment de preview
+2. **Testing con Pull Requests:**
+   - Crea PR desde cualquier rama → Deploy temporal de preview
+   - URL de preview se comenta en el PR
 
-2. **Para producción:**
-   - Merge el PR a `main`
-   - Se ejecutará el deployment automático a producción
+3. **Producción:**
+   - Merge a `main` → Deploy automático a producción
+   - Ambiente estable para usuarios finales
+
+4. **Flujo recomendado:**
+   ```
+   feature-branch → PR → dev → testing → PR → main → production
+   ```
 
 ## Configuración Local
 
