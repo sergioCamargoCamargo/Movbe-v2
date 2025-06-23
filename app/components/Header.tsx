@@ -127,9 +127,9 @@ export default function Header({
                   <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Configurar cuenta</DropdownMenuItem>
-                <DropdownMenuItem>Cambiar cuenta</DropdownMenuItem>
-                <DropdownMenuItem>Cambiar tema</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href='/settings'>Configurar cuenta</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
               </DropdownMenuContent>
