@@ -96,8 +96,10 @@ export default function Header({
         ) : user ? (
           // User is logged in
           <>
-            <Button variant='ghost' size='icon'>
-              <Upload className='h-6 w-6' />
+            <Button variant='ghost' size='icon' asChild>
+              <Link href='/upload'>
+                <Upload className='h-6 w-6' />
+              </Link>
             </Button>
             <Button variant='ghost' size='icon'>
               <Bell className='h-6 w-6' />
