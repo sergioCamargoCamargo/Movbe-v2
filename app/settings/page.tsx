@@ -1,6 +1,13 @@
 'use client'
 
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth'
+import {
+  onAuthStateChanged,
+  User as FirebaseUser,
+  updateProfile,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from 'firebase/auth'
 import { User, Mail, Shield, Bell, Camera, Settings, Lock, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -11,29 +18,137 @@ import { PageTransition } from '@/components/PageTransition'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useSidebar } from '@/contexts/SidebarContext'
+import { useToast } from '@/hooks/use-toast'
 import { auth } from '@/lib/firebase'
+import { updateUserProfile } from '@/lib/firestore'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [displayName, setDisplayName] = useState('')
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [passwordDialog, setPasswordDialog] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const router = useRouter()
   const { toggleSidebar } = useSidebar()
+  const { toast } = useToast()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
       setUser(user)
+      if (user) {
+        setDisplayName(user.displayName || '')
+      }
       setLoading(false)
     })
 
     return unsubscribe
   }, [])
+
+  const handleSaveProfile = async () => {
+    if (!user) return
+
+    setSaving(true)
+    try {
+      // Actualizar perfil en Firebase Auth
+      await updateProfile(user, {
+        displayName: displayName,
+      })
+
+      // Actualizar perfil en Firestore
+      await updateUserProfile(user.uid, {
+        displayName: displayName,
+        emailNotifications,
+        pushNotifications,
+        twoFactorEnabled,
+      })
+
+      toast({
+        title: 'Perfil actualizado',
+        description: 'Los cambios se han guardado correctamente.',
+      })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating profile:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudieron guardar los cambios.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!user || !user.email) return
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Las contraseñas no coinciden.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: 'Error',
+        description: 'La contraseña debe tener al menos 6 caracteres.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setSaving(true)
+    try {
+      // Reautenticar al usuario
+      const credential = EmailAuthProvider.credential(user.email, currentPassword)
+      await reauthenticateWithCredential(user, credential)
+
+      // Cambiar contraseña
+      await updatePassword(user, newPassword)
+
+      toast({
+        title: 'Contraseña actualizada',
+        description: 'Tu contraseña se ha cambiado correctamente.',
+      })
+
+      setPasswordDialog(false)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error changing password:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudo cambiar la contraseña. Verifica tu contraseña actual.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -138,7 +253,8 @@ export default function SettingsPage() {
                         </Label>
                         <Input
                           id='displayName'
-                          defaultValue={user.displayName || ''}
+                          value={displayName}
+                          onChange={e => setDisplayName(e.target.value)}
                           placeholder='Tu nombre de usuario'
                           className='h-12 focus:ring-2 focus:ring-primary/20'
                         />
@@ -161,9 +277,13 @@ export default function SettingsPage() {
                     </div>
 
                     <div className='flex justify-center sm:justify-end'>
-                      <Button className='w-full sm:w-auto px-6 sm:px-8 h-10 sm:h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-sm sm:text-base'>
+                      <Button
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className='w-full sm:w-auto px-6 sm:px-8 h-10 sm:h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-sm sm:text-base'
+                      >
                         <Settings className='h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2' />
-                        Guardar cambios
+                        {saving ? 'Guardando...' : 'Guardar cambios'}
                       </Button>
                     </div>
                   </CardContent>
@@ -197,13 +317,70 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant='outline'
-                        className='border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20'
-                      >
-                        <Lock className='h-4 w-4 mr-2' />
-                        Cambiar
-                      </Button>
+                      <Dialog open={passwordDialog} onOpenChange={setPasswordDialog}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant='outline'
+                            className='border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20'
+                          >
+                            <Lock className='h-4 w-4 mr-2' />
+                            Cambiar
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Cambiar contraseña</DialogTitle>
+                            <DialogDescription>
+                              Ingresa tu contraseña actual y la nueva contraseña.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className='space-y-4'>
+                            <div>
+                              <Label htmlFor='current-password'>Contraseña actual</Label>
+                              <Input
+                                id='current-password'
+                                type='password'
+                                value={currentPassword}
+                                onChange={e => setCurrentPassword(e.target.value)}
+                                placeholder='Ingresa tu contraseña actual'
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor='new-password'>Nueva contraseña</Label>
+                              <Input
+                                id='new-password'
+                                type='password'
+                                value={newPassword}
+                                onChange={e => setNewPassword(e.target.value)}
+                                placeholder='Ingresa tu nueva contraseña'
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor='confirm-password'>Confirmar nueva contraseña</Label>
+                              <Input
+                                id='confirm-password'
+                                type='password'
+                                value={confirmPassword}
+                                onChange={e => setConfirmPassword(e.target.value)}
+                                placeholder='Confirma tu nueva contraseña'
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant='outline' onClick={() => setPasswordDialog(false)}>
+                              Cancelar
+                            </Button>
+                            <Button
+                              onClick={handleChangePassword}
+                              disabled={
+                                saving || !currentPassword || !newPassword || !confirmPassword
+                              }
+                            >
+                              {saving ? 'Cambiando...' : 'Cambiar contraseña'}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
 
                     <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30'>
@@ -221,7 +398,26 @@ export default function SettingsPage() {
                           <div className='flex items-center gap-2 mt-2'>
                             <Switch
                               checked={twoFactorEnabled}
-                              onCheckedChange={setTwoFactorEnabled}
+                              onCheckedChange={checked => {
+                                setTwoFactorEnabled(checked)
+                                // Guardar automáticamente al cambiar
+                                if (user) {
+                                  updateUserProfile(user.uid, { twoFactorEnabled: checked })
+                                    .then(() => {
+                                      toast({
+                                        title: 'Configuración actualizada',
+                                        description: `Verificación en dos pasos ${checked ? 'activada' : 'desactivada'}.`,
+                                      })
+                                    })
+                                    .catch(() => {
+                                      toast({
+                                        title: 'Error',
+                                        description: 'No se pudo actualizar la configuración.',
+                                        variant: 'destructive',
+                                      })
+                                    })
+                                }
+                              }}
                             />
                             <span className='text-xs text-blue-600 dark:text-blue-400'>
                               {twoFactorEnabled ? 'Activado' : 'Desactivado'}
@@ -270,7 +466,26 @@ export default function SettingsPage() {
                       </div>
                       <Switch
                         checked={emailNotifications}
-                        onCheckedChange={setEmailNotifications}
+                        onCheckedChange={checked => {
+                          setEmailNotifications(checked)
+                          // Guardar automáticamente al cambiar
+                          if (user) {
+                            updateUserProfile(user.uid, { emailNotifications: checked })
+                              .then(() => {
+                                toast({
+                                  title: 'Configuración actualizada',
+                                  description: `Notificaciones por email ${checked ? 'activadas' : 'desactivadas'}.`,
+                                })
+                              })
+                              .catch(() => {
+                                toast({
+                                  title: 'Error',
+                                  description: 'No se pudo actualizar la configuración.',
+                                  variant: 'destructive',
+                                })
+                              })
+                          }
+                        }}
                       />
                     </div>
 
@@ -288,7 +503,29 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>
-                      <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
+                      <Switch
+                        checked={pushNotifications}
+                        onCheckedChange={checked => {
+                          setPushNotifications(checked)
+                          // Guardar automáticamente al cambiar
+                          if (user) {
+                            updateUserProfile(user.uid, { pushNotifications: checked })
+                              .then(() => {
+                                toast({
+                                  title: 'Configuración actualizada',
+                                  description: `Notificaciones push ${checked ? 'activadas' : 'desactivadas'}.`,
+                                })
+                              })
+                              .catch(() => {
+                                toast({
+                                  title: 'Error',
+                                  description: 'No se pudo actualizar la configuración.',
+                                  variant: 'destructive',
+                                })
+                              })
+                          }
+                        }}
+                      />
                     </div>
                   </CardContent>
                 </Card>
