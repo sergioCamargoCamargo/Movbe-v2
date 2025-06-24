@@ -1,6 +1,6 @@
 'use client'
 
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth'
+import { User as FirebaseUser } from 'firebase/auth'
 import { User, Mail, Shield, Bell, Camera, Settings, Lock, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -15,25 +15,156 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useSidebar } from '@/contexts/SidebarContext'
-import { auth } from '@/lib/firebase'
+import { useToast } from '@/hooks/use-toast'
+import { getUserService } from '@/lib/di/serviceRegistration'
+import { handleError, getErrorMessage } from '@/lib/utils/errorHandler'
+import { Validator } from '@/lib/utils/validation'
+import { UserSettings } from '@/types'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null)
   const [loading, setLoading] = useState(true)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [displayName, setDisplayName] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
   const { toggleSidebar } = useSidebar()
+  const { toast } = useToast()
+  const userService = getUserService()
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setUser(user)
-      setLoading(false)
-    })
+    loadUserData()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    return unsubscribe
-  }, [])
+  const loadUserData = async () => {
+    try {
+      const currentUser = await userService.getCurrentUser()
+      if (!currentUser) {
+        router.push('/auth/login')
+        return
+      }
+
+      setUser(currentUser as unknown as FirebaseUser)
+      setDisplayName(currentUser.displayName ?? '')
+      
+      const settings = await userService.getUserSettings(currentUser.id)
+      setUserSettings(settings)
+    } catch {
+      // console.error('Error loading user data:', error)
+      toast({
+        title: 'Error',
+        description: 'No se pudo cargar la información del usuario',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (displayName.trim()) {
+      const nameValidation = Validator.minLength(2)(displayName)
+      if (nameValidation) newErrors.displayName = nameValidation
+    }
+
+    if (newPassword) {
+      const passwordValidation = Validator.passwordStrength(newPassword)
+      if (passwordValidation) newErrors.newPassword = passwordValidation
+
+      if (newPassword !== confirmPassword) {
+        newErrors.confirmPassword = 'Las contraseñas no coinciden'
+      }
+
+      if (!currentPassword) {
+        newErrors.currentPassword = 'Ingresa tu contraseña actual'
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSaveProfile = async () => {
+    if (!validateForm() || !user) return
+
+    setSaving(true)
+    try {
+      await userService.updateUser(user.uid, {
+        displayName: displayName.trim() || user.displayName || undefined
+      })
+
+      toast({
+        title: 'Perfil actualizado',
+        description: 'Los cambios se han guardado correctamente'
+      })
+    } catch (error) {
+      const appError = handleError(error)
+      toast({
+        title: 'Error',
+        description: getErrorMessage(appError),
+        variant: 'destructive'
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!validateForm() || !user || !newPassword) return
+
+    setSaving(true)
+    try {
+      const success = await userService.changePassword(user.uid, currentPassword, newPassword)
+      
+      if (success) {
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+        toast({
+          title: 'Contraseña cambiada',
+          description: 'Tu contraseña se ha actualizado correctamente'
+        })
+      } else {
+        throw new Error('Error al cambiar la contraseña')
+      }
+    } catch (error) {
+      const appError = handleError(error)
+      toast({
+        title: 'Error',
+        description: getErrorMessage(appError),
+        variant: 'destructive'
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleUpdateSettings = async (newSettings: Partial<UserSettings>) => {
+    if (!user) return
+
+    try {
+      const updatedSettings = await userService.updateUserSettings(user.uid, newSettings)
+      setUserSettings(updatedSettings)
+      
+      toast({
+        title: 'Configuración guardada',
+        description: 'Los cambios se han aplicado correctamente'
+      })
+    } catch (error) {
+      const appError = handleError(error)
+      toast({
+        title: 'Error',
+        description: getErrorMessage(appError),
+        variant: 'destructive'
+      })
+    }
+  }
 
   if (loading) {
     return (
@@ -58,7 +189,6 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    router.push('/auth/login')
     return null
   }
 
@@ -138,10 +268,16 @@ export default function SettingsPage() {
                         </Label>
                         <Input
                           id='displayName'
-                          defaultValue={user.displayName || ''}
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
                           placeholder='Tu nombre de usuario'
-                          className='h-12 focus:ring-2 focus:ring-primary/20'
+                          className={`h-12 focus:ring-2 focus:ring-primary/20 ${
+                            errors.displayName ? 'border-red-500' : ''
+                          }`}
                         />
+                        {errors.displayName && (
+                          <p className='text-sm text-red-500 mt-1'>{errors.displayName}</p>
+                        )}
                       </div>
                       <div className='space-y-3'>
                         <Label htmlFor='email' className='text-sm font-medium'>
@@ -161,9 +297,13 @@ export default function SettingsPage() {
                     </div>
 
                     <div className='flex justify-center sm:justify-end'>
-                      <Button className='w-full sm:w-auto px-6 sm:px-8 h-10 sm:h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-sm sm:text-base'>
+                      <Button 
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className='w-full sm:w-auto px-6 sm:px-8 h-10 sm:h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-sm sm:text-base'
+                      >
                         <Settings className='h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2' />
-                        Guardar cambios
+                        {saving ? 'Guardando...' : 'Guardar cambios'}
                       </Button>
                     </div>
                   </CardContent>
@@ -197,13 +337,47 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant='outline'
-                        className='border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20'
-                      >
-                        <Lock className='h-4 w-4 mr-2' />
-                        Cambiar
-                      </Button>
+                      <div className='space-y-3 w-full sm:w-auto'>
+                        <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+                          <Input
+                            type='password'
+                            placeholder='Contraseña actual'
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className={errors.currentPassword ? 'border-red-500' : ''}
+                          />
+                          <Input
+                            type='password'
+                            placeholder='Nueva contraseña'
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className={errors.newPassword ? 'border-red-500' : ''}
+                          />
+                          <Input
+                            type='password'
+                            placeholder='Confirmar contraseña'
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={errors.confirmPassword ? 'border-red-500' : ''}
+                          />
+                        </div>
+                        {(errors.currentPassword || errors.newPassword || errors.confirmPassword) && (
+                          <div className='text-sm text-red-500'>
+                            {errors.currentPassword && <p>{errors.currentPassword}</p>}
+                            {errors.newPassword && <p>{errors.newPassword}</p>}
+                            {errors.confirmPassword && <p>{errors.confirmPassword}</p>}
+                          </div>
+                        )}
+                        <Button
+                          onClick={handleChangePassword}
+                          disabled={saving || !newPassword}
+                          variant='outline'
+                          className='border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-900/20'
+                        >
+                          <Lock className='h-4 w-4 mr-2' />
+                          {saving ? 'Cambiando...' : 'Cambiar'}
+                        </Button>
+                      </div>
                     </div>
 
                     <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-blue-50/50 dark:bg-blue-950/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30'>
@@ -220,11 +394,19 @@ export default function SettingsPage() {
                           </p>
                           <div className='flex items-center gap-2 mt-2'>
                             <Switch
-                              checked={twoFactorEnabled}
-                              onCheckedChange={setTwoFactorEnabled}
+                              checked={userSettings?.privacy?.profileVisibility === 'private'}
+                              onCheckedChange={(checked) => 
+                                handleUpdateSettings({
+                                  privacy: {
+                                    showEmail: userSettings?.privacy?.showEmail ?? false,
+                                    showActivity: userSettings?.privacy?.showActivity ?? true,
+                                    profileVisibility: checked ? 'private' : 'public'
+                                  }
+                                })
+                              }
                             />
                             <span className='text-xs text-blue-600 dark:text-blue-400'>
-                              {twoFactorEnabled ? 'Activado' : 'Desactivado'}
+                              {userSettings?.privacy?.profileVisibility === 'private' ? 'Perfil privado' : 'Perfil público'}
                             </span>
                           </div>
                         </div>
@@ -269,8 +451,19 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <Switch
-                        checked={emailNotifications}
-                        onCheckedChange={setEmailNotifications}
+                        checked={userSettings?.notifications?.email ?? true}
+                        onCheckedChange={(checked) => 
+                          handleUpdateSettings({
+                            notifications: {
+                              email: checked,
+                              push: userSettings?.notifications?.push ?? true,
+                              newVideos: userSettings?.notifications?.newVideos ?? true,
+                              comments: userSettings?.notifications?.comments ?? true,
+                              likes: userSettings?.notifications?.likes ?? true,
+                              followers: userSettings?.notifications?.followers ?? true
+                            }
+                          })
+                        }
                       />
                     </div>
 
@@ -288,7 +481,21 @@ export default function SettingsPage() {
                           </p>
                         </div>
                       </div>
-                      <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
+                      <Switch 
+                        checked={userSettings?.notifications?.push ?? true}
+                        onCheckedChange={(checked) => 
+                          handleUpdateSettings({
+                            notifications: {
+                              email: userSettings?.notifications?.email ?? true,
+                              push: checked,
+                              newVideos: userSettings?.notifications?.newVideos ?? true,
+                              comments: userSettings?.notifications?.comments ?? true,
+                              likes: userSettings?.notifications?.likes ?? true,
+                              followers: userSettings?.notifications?.followers ?? true
+                            }
+                          })
+                        }
+                      />
                     </div>
                   </CardContent>
                 </Card>
