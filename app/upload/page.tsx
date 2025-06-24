@@ -1,4 +1,3 @@
-
 'use client'
 
 import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
@@ -16,7 +15,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { updateVideo } from '@/lib/firestore'
-import { uploadVideo, validateVideoFile, generateThumbnail, uploadThumbnail, UploadProgress } from '@/lib/videoService'
+import {
+  uploadVideo,
+  validateVideoFile,
+  generateThumbnail,
+  uploadThumbnail,
+  UploadProgress,
+} from '@/lib/videoService'
 
 export default function UploadPage() {
   const [title, setTitle] = useState('')
@@ -81,9 +86,9 @@ export default function UploadPage() {
           userName: userProfile.displayName || user.email || 'Usuario',
           category: 'general',
           tags: [],
-          visibility: 'public'
+          visibility: 'public',
         },
-        (progress) => {
+        progress => {
           setUploadProgress(progress)
         }
       )
@@ -92,7 +97,7 @@ export default function UploadPage() {
       try {
         const thumbnailDataURL = await generateThumbnail(selectedFile)
         const thumbnailURL = await uploadThumbnail(thumbnailDataURL, user.uid, videoId)
-        
+
         // Actualizar video con thumbnail
         await updateVideo(videoId, { thumbnailURL })
       } catch {
@@ -229,7 +234,9 @@ export default function UploadPage() {
                   {uploading ? (
                     <>
                       <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
-                      {uploadProgress ? `Subiendo ${Math.round(uploadProgress.progress)}%...` : 'Preparando...'}
+                      {uploadProgress
+                        ? `Subiendo ${Math.round(uploadProgress.progress)}%...`
+                        : 'Preparando...'}
                     </>
                   ) : (
                     <>
