@@ -1,7 +1,7 @@
 'use client'
 
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth'
-import { Bell, Menu, Mic, Search, Upload, User } from 'lucide-react'
+import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
@@ -131,8 +131,17 @@ export default function Header({
                   <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigateTo('/profile/123')}>
+                  <User className='mr-2 h-4 w-4' />
+                  Mi Perfil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
+                  <BarChart3 className='mr-2 h-4 w-4' />
+                  Analytics
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigateTo('/settings')}>
-                  Configurar cuenta
+                  <Settings className='mr-2 h-4 w-4' />
+                  Configuración
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>

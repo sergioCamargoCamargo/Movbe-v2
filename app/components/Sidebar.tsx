@@ -9,6 +9,8 @@ import {
   Flame,
   ShoppingBag,
   X,
+  Upload,
+  Mail,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -48,6 +50,12 @@ export default function Sidebar() {
           Inicio
         </NavigationLink>
       </Button>
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/upload'>
+          <Upload className='mr-2 h-4 w-4' />
+          Subir Video
+        </NavigationLink>
+      </Button>
       <Button variant='ghost' className='w-full justify-start'>
         <Flame className='mr-2 h-4 w-4' />
         Tendencias
@@ -83,6 +91,13 @@ export default function Sidebar() {
       <Button variant='ghost' className='w-full justify-start'>
         <ThumbsUp className='mr-2 h-4 w-4' />
         Videos que me gustan
+      </Button>
+      <hr className='my-4' />
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/contact'>
+          <Mail className='mr-2 h-4 w-4' />
+          Contacto
+        </NavigationLink>
       </Button>
     </div>
   )
