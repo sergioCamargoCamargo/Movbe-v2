@@ -12,6 +12,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -25,9 +32,28 @@ import {
   UploadProgress,
 } from '@/lib/videoService'
 
+const VIDEO_CATEGORIES = [
+  { value: 'entertainment', label: 'Entretenimiento' },
+  { value: 'music', label: 'Música' },
+  { value: 'news', label: 'Noticias' },
+  { value: 'education', label: 'Educación' },
+  { value: 'gaming', label: 'Videojuegos' },
+  { value: 'sports', label: 'Deportes' },
+  { value: 'comedy', label: 'Comedia' },
+  { value: 'technology', label: 'Tecnología' },
+  { value: 'travel', label: 'Viajes' },
+  { value: 'cooking', label: 'Cocina' },
+  { value: 'lifestyle', label: 'Estilo de vida' },
+  { value: 'fitness', label: 'Fitness' },
+  { value: 'art', label: 'Arte' },
+  { value: 'science', label: 'Ciencia' },
+  { value: 'other', label: 'Otros' },
+]
+
 export default function UploadPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
@@ -53,11 +79,12 @@ export default function UploadPage() {
   }
 
   const handleUpload = async () => {
-    if (!title || !selectedFile) {
+    if (!title || !selectedFile || !category) {
       toast({
         variant: 'destructive',
         title: 'Campos incompletos',
-        description: 'Por favor, completa el título y selecciona un video antes de continuar.',
+        description:
+          'Por favor, completa el título, selecciona una categoría y un video antes de continuar.',
       })
       return
     }
@@ -82,7 +109,7 @@ export default function UploadPage() {
           file: selectedFile,
           userId: user.uid,
           userName: userProfile.displayName || user.email || 'Usuario',
-          category: 'general',
+          category: category,
           tags: [],
           visibility: 'public',
         },
@@ -182,6 +209,22 @@ export default function UploadPage() {
                   </div>
 
                   <div className='space-y-2'>
+                    <Label htmlFor='category'>Categoría *</Label>
+                    <Select value={category} onValueChange={setCategory} disabled={uploading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Selecciona una categoría' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VIDEO_CATEGORIES.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className='space-y-2'>
                     <Label htmlFor='video'>Seleccionar video</Label>
                     <div className='border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center'>
                       <input
@@ -228,7 +271,7 @@ export default function UploadPage() {
 
                   <Button
                     onClick={handleUpload}
-                    disabled={!title || !selectedFile || uploading}
+                    disabled={!title || !selectedFile || !category || uploading}
                     className='w-full'
                     size='lg'
                   >
