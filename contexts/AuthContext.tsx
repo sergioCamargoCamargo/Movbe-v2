@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       try {
         const profile = await createOrUpdateUser(user)
-        setUserProfile(profile)
+        setUserProfile(profile as UserProfile | null)
       } catch (error) {
         console.error('Error refreshing user profile:', error)
       }
@@ -46,14 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async authUser => {
       setUser(authUser)
-      
+
       if (authUser) {
         try {
           // Crear o actualizar el perfil del usuario en Firestore automáticamente
           const profile = await createOrUpdateUser(authUser)
-          setUserProfile(profile)
+          setUserProfile(profile as UserProfile | null)
         } catch (error) {
           console.error('Error creating/updating user profile:', error)
           setUserProfile(null)
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUserProfile(null)
       }
-      
+
       setLoading(false)
     })
 
@@ -72,14 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     userProfile,
     loading,
-    refreshUserProfile
+    refreshUserProfile,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

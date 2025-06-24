@@ -8,11 +8,11 @@ import { useAuth } from '@/contexts/AuthContext'
 
 export default function ProfileComponent() {
   const { user, userProfile, loading } = useAuth()
-  
+
   if (loading) return <div>Cargando...</div>
-  
+
   if (!user) return <div>No autenticado</div>
-  
+
   return (
     <div>
       <h2>Perfil de Usuario</h2>
@@ -39,11 +39,11 @@ export default function UploadVideoComponent() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
-  
-  const handleUpload = async (e) => {
+
+  const handleUpload = async e => {
     e.preventDefault()
     if (!user || !userProfile) return
-    
+
     setLoading(true)
     try {
       const videoData = {
@@ -55,16 +55,16 @@ export default function UploadVideoComponent() {
         tags: [],
         language: 'es',
         status: 'processing', // Cambiar a 'published' cuando esté listo
-        visibility: 'public'
+        visibility: 'public',
       }
-      
+
       const newVideo = await createVideo(videoData)
       console.log('Video creado:', newVideo)
-      
+
       // Limpiar formulario
       setTitle('')
       setDescription('')
-      
+
       alert('Video subido exitosamente!')
     } catch (error) {
       console.error('Error:', error)
@@ -72,25 +72,18 @@ export default function UploadVideoComponent() {
     }
     setLoading(false)
   }
-  
+
   return (
     <form onSubmit={handleUpload}>
       <div>
         <label>Título:</label>
-        <input 
-          value={title} 
-          onChange={(e) => setTitle(e.target.value)}
-          required 
-        />
+        <input value={title} onChange={e => setTitle(e.target.value)} required />
       </div>
       <div>
         <label>Descripción:</label>
-        <textarea 
-          value={description} 
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <textarea value={description} onChange={e => setDescription(e.target.value)} />
       </div>
-      <button type="submit" disabled={loading}>
+      <button type='submit' disabled={loading}>
         {loading ? 'Subiendo...' : 'Subir Video'}
       </button>
     </form>
@@ -110,13 +103,13 @@ export default function MyVideosComponent() {
   const { user } = useAuth()
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(() => {
     if (user) {
       loadUserVideos()
     }
   }, [user])
-  
+
   const loadUserVideos = async () => {
     try {
       const userVideos = await getVideosByUser(user.uid)
@@ -126,21 +119,21 @@ export default function MyVideosComponent() {
     }
     setLoading(false)
   }
-  
+
   if (loading) return <div>Cargando videos...</div>
-  
+
   return (
     <div>
       <h2>Mis Videos ({videos.length})</h2>
       {videos.length === 0 ? (
         <p>No has subido videos aún</p>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className='grid grid-cols-3 gap-4'>
           {videos.map(video => (
-            <div key={video.id} className="border p-4 rounded">
+            <div key={video.id} className='border p-4 rounded'>
               <h3>{video.title}</h3>
               <p>{video.description}</p>
-              <div className="text-sm text-gray-500">
+              <div className='text-sm text-gray-500'>
                 <p>Vistas: {video.viewCount}</p>
                 <p>Estado: {video.status}</p>
                 <p>Subido: {video.uploadDate?.toDate?.()?.toLocaleDateString()}</p>
@@ -164,11 +157,11 @@ import { getPublicVideos, incrementVideoViews } from '@/lib/firestore'
 export default function PublicVideosComponent() {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(() => {
     loadPublicVideos()
   }, [])
-  
+
   const loadPublicVideos = async () => {
     try {
       const publicVideos = await getPublicVideos()
@@ -178,36 +171,34 @@ export default function PublicVideosComponent() {
     }
     setLoading(false)
   }
-  
-  const handleVideoClick = async (video) => {
+
+  const handleVideoClick = async video => {
     try {
       await incrementVideoViews(video.id, video.uploaderId)
       // Actualizar la vista local
-      setVideos(prev => prev.map(v => 
-        v.id === video.id 
-          ? { ...v, viewCount: v.viewCount + 1 }
-          : v
-      ))
+      setVideos(prev =>
+        prev.map(v => (v.id === video.id ? { ...v, viewCount: v.viewCount + 1 } : v))
+      )
     } catch (error) {
       console.error('Error incrementing views:', error)
     }
   }
-  
+
   if (loading) return <div>Cargando videos...</div>
-  
+
   return (
     <div>
       <h2>Videos Públicos</h2>
-      <div className="grid grid-cols-4 gap-4">
+      <div className='grid grid-cols-4 gap-4'>
         {videos.map(video => (
-          <div 
-            key={video.id} 
-            className="border p-4 rounded cursor-pointer hover:shadow-lg"
+          <div
+            key={video.id}
+            className='border p-4 rounded cursor-pointer hover:shadow-lg'
             onClick={() => handleVideoClick(video)}
           >
             <h3>{video.title}</h3>
             <p>Por: {video.uploaderName}</p>
-            <div className="text-sm text-gray-500">
+            <div className='text-sm text-gray-500'>
               <p>👁 {video.viewCount} vistas</p>
               <p>👍 {video.likeCount} likes</p>
               <p>Categoría: {video.category}</p>
@@ -233,24 +224,24 @@ export default function EditProfileComponent() {
   const [displayName, setDisplayName] = useState(userProfile?.displayName || '')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [loading, setLoading] = useState(false)
-  
-  const handleSubmit = async (e) => {
+
+  const handleSubmit = async e => {
     e.preventDefault()
     if (!user) return
-    
+
     setLoading(true)
     try {
       const updates = {
         displayName,
-        ...(dateOfBirth && { 
+        ...(dateOfBirth && {
           dateOfBirth: new Date(dateOfBirth),
-          ageVerified: true 
-        })
+          ageVerified: true,
+        }),
       }
-      
+
       await updateUserProfile(user.uid, updates)
       await refreshUserProfile() // Refrescar el perfil en el contexto
-      
+
       alert('Perfil actualizado!')
     } catch (error) {
       console.error('Error:', error)
@@ -258,25 +249,18 @@ export default function EditProfileComponent() {
     }
     setLoading(false)
   }
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <div>
         <label>Nombre a mostrar:</label>
-        <input 
-          value={displayName} 
-          onChange={(e) => setDisplayName(e.target.value)}
-        />
+        <input value={displayName} onChange={e => setDisplayName(e.target.value)} />
       </div>
       <div>
         <label>Fecha de nacimiento:</label>
-        <input 
-          type="date"
-          value={dateOfBirth} 
-          onChange={(e) => setDateOfBirth(e.target.value)}
-        />
+        <input type='date' value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} />
       </div>
-      <button type="submit" disabled={loading}>
+      <button type='submit' disabled={loading}>
         {loading ? 'Guardando...' : 'Guardar Cambios'}
       </button>
     </form>
@@ -295,11 +279,11 @@ export default function SearchComponent() {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
-  
-  const handleSearch = async (e) => {
+
+  const handleSearch = async e => {
     e.preventDefault()
     if (!searchTerm.trim()) return
-    
+
     setLoading(true)
     try {
       const videos = await searchVideos(searchTerm)
@@ -309,26 +293,26 @@ export default function SearchComponent() {
     }
     setLoading(false)
   }
-  
+
   return (
     <div>
       <form onSubmit={handleSearch}>
-        <input 
-          type="text"
-          placeholder="Buscar videos..."
+        <input
+          type='text'
+          placeholder='Buscar videos...'
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
         />
-        <button type="submit" disabled={loading}>
+        <button type='submit' disabled={loading}>
           {loading ? 'Buscando...' : 'Buscar'}
         </button>
       </form>
-      
+
       {results.length > 0 && (
         <div>
           <h3>Resultados ({results.length}):</h3>
           {results.map(video => (
-            <div key={video.id} className="border p-2 mb-2">
+            <div key={video.id} className='border p-2 mb-2'>
               <h4>{video.title}</h4>
               <p>{video.description}</p>
               <small>Por: {video.uploaderName}</small>
@@ -352,17 +336,17 @@ import { useEffect } from 'react'
 export default function ProtectedPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
-  
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/login')
     }
   }, [user, loading, router])
-  
+
   if (loading) return <div>Cargando...</div>
-  
+
   if (!user) return null // Se redirigirá
-  
+
   return (
     <div>
       <h1>Página Protegida</h1>
