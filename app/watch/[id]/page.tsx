@@ -106,7 +106,7 @@ export default function WatchPage() {
     <div className='flex flex-col min-h-screen pt-16'>
       <Header visible={showHeader} />
       <ScrollArea className='flex-1'>
-        <div className='p-4 space-y-4'>
+        <div className='p-2 sm:p-4 space-y-4'>
           <div className='relative' ref={videoRef}>
             <div className='aspect-video bg-black'>
               <Image
@@ -145,9 +145,9 @@ export default function WatchPage() {
             )}
           </div>
           <div className='space-y-4'>
-            <h1 className='text-2xl font-bold'>Título del Video {id}</h1>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center space-x-4'>
+            <h1 className='text-lg sm:text-2xl font-bold'>Título del Video {id}</h1>
+            <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+              <div className='flex items-center space-x-2 sm:space-x-4'>
                 <Image
                   src='/placeholder.svg?text=Avatar'
                   alt='Avatar del canal'
@@ -155,41 +155,56 @@ export default function WatchPage() {
                   height={40}
                   className='rounded-full'
                 />
-                <div>
-                  <p className='font-semibold'>Nombre del Canal</p>
-                  <p className='text-sm text-muted-foreground'>1M suscriptores</p>
+                <div className='flex-1'>
+                  <p className='font-semibold text-sm sm:text-base'>Nombre del Canal</p>
+                  <p className='text-xs sm:text-sm text-muted-foreground'>1M suscriptores</p>
                 </div>
-                <Button>Suscribirse</Button>
+                <Button size='sm' className='sm:size-default'>
+                  Suscribirse
+                </Button>
               </div>
-              <div className='flex items-center space-x-2'>
-                <Button variant='secondary' onClick={handleLike}>
-                  <ThumbsUp className='mr-2 h-4 w-4' /> {likes.toLocaleString()}
+              <div className='flex flex-wrap items-center gap-2'>
+                <Button
+                  variant='secondary'
+                  onClick={handleLike}
+                  size='sm'
+                  className='sm:size-default'
+                >
+                  <ThumbsUp className='mr-1 sm:mr-2 h-4 w-4' />
+                  <span className='hidden xs:inline'>{likes.toLocaleString()}</span>
                 </Button>
-                <Button variant='secondary' onClick={handleDislike}>
-                  <ThumbsDown className='mr-2 h-4 w-4' /> {dislikes.toLocaleString()}
+                <Button
+                  variant='secondary'
+                  onClick={handleDislike}
+                  size='sm'
+                  className='sm:size-default'
+                >
+                  <ThumbsDown className='mr-1 sm:mr-2 h-4 w-4' />
+                  <span className='hidden xs:inline'>{dislikes.toLocaleString()}</span>
                 </Button>
-                <Button variant='secondary'>
-                  <Share2 className='mr-2 h-4 w-4' /> Compartir
+                <Button variant='secondary' size='sm' className='sm:size-default'>
+                  <Share2 className='mr-1 sm:mr-2 h-4 w-4' />
+                  <span className='hidden sm:inline'>Compartir</span>
                 </Button>
-                <Button variant='secondary'>
+                <Button variant='secondary' size='sm' className='sm:size-default hidden sm:flex'>
                   <Download className='mr-2 h-4 w-4' /> Descargar
                 </Button>
-                <Button variant='secondary'>
+                <Button variant='secondary' size='sm' className='sm:size-default'>
                   <MoreHorizontal className='h-4 w-4' />
                 </Button>
               </div>
             </div>
-            <div className='bg-muted p-4 rounded-lg'>
-              <p className='text-sm'>100,000 visualizaciones • hace 1 día</p>
-              <p className='mt-2'>
+            <div className='bg-muted p-3 sm:p-4 rounded-lg'>
+              <p className='text-xs sm:text-sm'>100,000 visualizaciones • hace 1 día</p>
+              <p className='mt-2 text-sm sm:text-base'>
                 Descripción del video. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
                 do eiusmod tempor incididunt ut labore et dolore magna aliqua.
               </p>
             </div>
             <div className='space-y-4'>
-              <h2 className='text-xl font-bold'>Comentarios</h2>
+              <h2 className='text-lg sm:text-xl font-bold'>Comentarios</h2>
               {comments.map(comment => (
-                <div key={comment.id} className='flex space-x-4'>
+                <div key={comment.id} className='flex space-x-2 sm:space-x-4'>
                   <Image
                     src='/placeholder.svg?text=User'
                     alt='Avatar del usuario'
@@ -197,21 +212,21 @@ export default function WatchPage() {
                     height={40}
                     className='rounded-full'
                   />
-                  <div>
-                    <p className='font-semibold'>{comment.user}</p>
-                    <p className='text-sm'>{comment.text}</p>
-                    <div className='flex items-center space-x-2 mt-1'>
+                  <div className='flex-1'>
+                    <p className='font-semibold text-sm sm:text-base'>{comment.user}</p>
+                    <p className='text-xs sm:text-sm'>{comment.text}</p>
+                    <div className='flex items-center space-x-1 sm:space-x-2 mt-1'>
                       <Button
                         variant='ghost'
                         size='sm'
                         onClick={() => handleCommentLike(comment.id)}
                       >
-                        <ThumbsUp className='h-4 w-4 mr-1' /> {comment.likes}
+                        <ThumbsUp className='h-3 w-3 sm:h-4 sm:w-4 mr-1' /> {comment.likes}
                       </Button>
                       <Button variant='ghost' size='sm'>
-                        <ThumbsDown className='h-4 w-4' />
+                        <ThumbsDown className='h-3 w-3 sm:h-4 sm:w-4' />
                       </Button>
-                      <Button variant='ghost' size='sm'>
+                      <Button variant='ghost' size='sm' className='text-xs sm:text-sm'>
                         Responder
                       </Button>
                     </div>

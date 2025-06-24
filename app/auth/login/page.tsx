@@ -72,16 +72,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-4'>
-      <Card className='w-full max-w-md'>
-        <CardHeader className='space-y-1'>
-          <CardTitle className='text-2xl text-center'>Iniciar sesión</CardTitle>
-          <CardDescription className='text-center'>
+    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-2 sm:p-4'>
+      <Card className='w-full max-w-md mx-2 sm:mx-0'>
+        <CardHeader className='space-y-1 px-4 sm:px-6'>
+          <CardTitle className='text-xl sm:text-2xl text-center'>Iniciar sesión</CardTitle>
+          <CardDescription className='text-center text-sm sm:text-base'>
             Ingresa tus credenciales para acceder
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className='space-y-4'>
+          <CardContent className='space-y-4 px-4 sm:px-6'>
             {error && (
               <Alert variant='destructive'>
                 <AlertDescription>{error}</AlertDescription>
@@ -149,8 +149,8 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </form>
-        <CardFooter className='flex flex-col items-center'>
-          <p className='text-sm text-muted-foreground'>
+        <CardFooter className='flex flex-col items-center px-4 sm:px-6'>
+          <p className='text-xs sm:text-sm text-muted-foreground text-center'>
             ¿No tienes una cuenta?{' '}
             <Link href='/auth/register' className='text-primary hover:underline'>
               Regístrate

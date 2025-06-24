@@ -1,10 +1,10 @@
 import Image from 'next/image'
-import Link from 'next/link'
 
+import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-export default function MainContent({ isSidebarOpen }: { isSidebarOpen: boolean }) {
+export default function MainContent() {
   const categories = [
     'Todo',
     'Música',
@@ -17,23 +17,28 @@ export default function MainContent({ isSidebarOpen }: { isSidebarOpen: boolean 
 
   return (
     <ScrollArea className='flex-1'>
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64' : ''} p-4`}>
-        <div className='bg-accent rounded-lg p-4 text-center'>
-          <h2 className='text-xl font-bold'>Banner de Publicidad</h2>
-          <p>Aquí iría tu anuncio o promoción destacada</p>
+      <div className='p-2 md:p-4'>
+        <div className='bg-accent rounded-lg p-3 md:p-4 text-center mb-4'>
+          <h2 className='text-lg md:text-xl font-bold'>Banner de Publicidad</h2>
+          <p className='text-sm md:text-base'>Aquí iría tu anuncio o promoción destacada</p>
         </div>
 
-        <div className='flex space-x-2 pb-4 overflow-x-auto'>
+        <div className='flex space-x-2 pb-4 overflow-x-auto scrollbar-hide'>
           {categories.map(category => (
-            <Button key={category} variant='secondary' size='sm'>
+            <Button
+              key={category}
+              variant='secondary'
+              size='sm'
+              className='whitespace-nowrap text-xs md:text-sm px-2 md:px-3'
+            >
               {category}
             </Button>
           ))}
         </div>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+        <div className='grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 md:gap-4'>
           {[...Array(12)].map((_, i) => (
-            <Link href={`/watch/${i + 1}`} key={i} className='space-y-2 block'>
+            <NavigationLink href={`/watch/${i + 1}`} key={i} className='space-y-2 block'>
               <div className='aspect-video bg-muted rounded-lg overflow-hidden relative group'>
                 <Image
                   src={`/placeholder.svg?text=Video ${i + 1}`}
@@ -46,10 +51,12 @@ export default function MainContent({ isSidebarOpen }: { isSidebarOpen: boolean 
                   <span className='text-white text-lg font-bold'>Ver video</span>
                 </div>
               </div>
-              <h3 className='font-semibold'>Título del Video {i + 1}</h3>
-              <p className='text-sm text-muted-foreground'>Nombre del Canal</p>
+              <h3 className='font-semibold text-sm md:text-base line-clamp-2'>
+                Título del Video {i + 1}
+              </h3>
+              <p className='text-xs md:text-sm text-muted-foreground'>Nombre del Canal</p>
               <p className='text-xs text-muted-foreground'>1M de vistas • hace 3 días</p>
-            </Link>
+            </NavigationLink>
           ))}
         </div>
       </div>
