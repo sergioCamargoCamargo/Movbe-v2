@@ -1,14 +1,16 @@
-import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 
+import './globals.css'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mobve.com'),
   title: 'MOBVE - Plataforma de Videos para Creadores',
   description:
     'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
@@ -38,11 +40,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
   },
   openGraph: {
     type: 'website',
@@ -86,18 +83,23 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/site.webmanifest',
+  category: 'entertainment',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#1a1a1a' },
   ],
-  category: 'entertainment',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es'>
       <head>
-        <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=5' />
         <link
           rel='stylesheet'
           type='text/css'
