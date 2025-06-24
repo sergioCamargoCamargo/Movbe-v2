@@ -21,7 +21,7 @@ export default function Sidebar() {
   const [isVisible, setIsVisible] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const { isSidebarOpen: isOpen, closeSidebar, isNavigating } = useSidebar()
-  
+
   const onClose = closeSidebar
 
   useEffect(() => {
@@ -99,9 +99,9 @@ export default function Sidebar() {
         }`}
         onClick={onClose}
       />
-      
+
       {/* Sidebar - Always overlay with smooth animation */}
-      <div 
+      <div
         className={`
           fixed top-0 md:top-16 left-0 w-64 h-full md:h-[calc(100vh-4rem)] 
           border-r bg-background z-50 
@@ -109,9 +109,7 @@ export default function Sidebar() {
           ${isAnimating ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-90'}
         `}
       >
-        <ScrollArea className='h-full'>
-          {sidebarContent}
-        </ScrollArea>
+        <ScrollArea className='h-full'>{sidebarContent}</ScrollArea>
       </div>
     </>
   )

@@ -140,115 +140,115 @@ export default function UploadPage() {
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-2 sm:p-4'>
-          <div className='max-w-2xl mx-auto px-2 sm:px-0'>
-            <div className='mb-4 sm:mb-6'>
-              <h1 className='text-2xl sm:text-3xl font-bold mt-2 sm:mt-4'>Subir Video</h1>
-              <p className='text-sm sm:text-base text-muted-foreground'>
-                Comparte tu contenido con la comunidad
-              </p>
-            </div>
+            <div className='max-w-2xl mx-auto px-2 sm:px-0'>
+              <div className='mb-4 sm:mb-6'>
+                <h1 className='text-2xl sm:text-3xl font-bold mt-2 sm:mt-4'>Subir Video</h1>
+                <p className='text-sm sm:text-base text-muted-foreground'>
+                  Comparte tu contenido con la comunidad
+                </p>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className='flex items-center gap-2'>
-                  <Video className='h-5 w-5' />
-                  Detalles del Video
-                </CardTitle>
-                <CardDescription>Completa la información de tu video</CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
-                <div className='space-y-2'>
-                  <Label htmlFor='title'>Título del video</Label>
-                  <Input
-                    id='title'
-                    type='text'
-                    placeholder='Ingresa el título de tu video'
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    disabled={uploading}
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='description'>Descripción (opcional)</Label>
-                  <Textarea
-                    id='description'
-                    placeholder='Describe tu video...'
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    disabled={uploading}
-                    rows={3}
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='video'>Seleccionar video</Label>
-                  <div className='border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center'>
-                    <input
-                      id='video'
-                      type='file'
-                      accept='video/*'
-                      onChange={handleFileChange}
-                      disabled={uploading}
-                      className='hidden'
-                    />
-                    <label
-                      htmlFor='video'
-                      className='cursor-pointer flex flex-col items-center space-y-2'
-                    >
-                      <Upload className='h-8 w-8 text-muted-foreground' />
-                      <span className='text-xs sm:text-sm text-muted-foreground block'>
-                        {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
-                      </span>
-                      <span className='text-xs text-muted-foreground block mt-1'>
-                        Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB)
-                      </span>
-                    </label>
-                  </div>
-                  {selectedFile && (
-                    <div className='text-sm text-muted-foreground'>
-                      Tamaño: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                    </div>
-                  )}
-                </div>
-
-                {uploadProgress && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <Video className='h-5 w-5' />
+                    Detalles del Video
+                  </CardTitle>
+                  <CardDescription>Completa la información de tu video</CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
                   <div className='space-y-2'>
-                    <div className='flex justify-between text-sm'>
-                      <span>Subiendo video...</span>
-                      <span>{Math.round(uploadProgress.progress)}%</span>
-                    </div>
-                    <Progress value={uploadProgress.progress} className='w-full' />
-                    <div className='text-xs text-muted-foreground'>
-                      {(uploadProgress.bytesTransferred / (1024 * 1024)).toFixed(1)} MB de{' '}
-                      {(uploadProgress.totalBytes / (1024 * 1024)).toFixed(1)} MB
-                    </div>
+                    <Label htmlFor='title'>Título del video</Label>
+                    <Input
+                      id='title'
+                      type='text'
+                      placeholder='Ingresa el título de tu video'
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      disabled={uploading}
+                    />
                   </div>
-                )}
 
-                <Button
-                  onClick={handleUpload}
-                  disabled={!title || !selectedFile || uploading}
-                  className='w-full'
-                  size='lg'
-                >
-                  {uploading ? (
-                    <>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
-                      {uploadProgress
-                        ? `Subiendo ${Math.round(uploadProgress.progress)}%...`
-                        : 'Preparando...'}
-                    </>
-                  ) : (
-                    <>
-                      <Upload className='h-4 w-4 mr-2' />
-                      Subir Video
-                    </>
+                  <div className='space-y-2'>
+                    <Label htmlFor='description'>Descripción (opcional)</Label>
+                    <Textarea
+                      id='description'
+                      placeholder='Describe tu video...'
+                      value={description}
+                      onChange={e => setDescription(e.target.value)}
+                      disabled={uploading}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className='space-y-2'>
+                    <Label htmlFor='video'>Seleccionar video</Label>
+                    <div className='border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center'>
+                      <input
+                        id='video'
+                        type='file'
+                        accept='video/*'
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                        className='hidden'
+                      />
+                      <label
+                        htmlFor='video'
+                        className='cursor-pointer flex flex-col items-center space-y-2'
+                      >
+                        <Upload className='h-8 w-8 text-muted-foreground' />
+                        <span className='text-xs sm:text-sm text-muted-foreground block'>
+                          {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
+                        </span>
+                        <span className='text-xs text-muted-foreground block mt-1'>
+                          Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB)
+                        </span>
+                      </label>
+                    </div>
+                    {selectedFile && (
+                      <div className='text-sm text-muted-foreground'>
+                        Tamaño: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </div>
+                    )}
+                  </div>
+
+                  {uploadProgress && (
+                    <div className='space-y-2'>
+                      <div className='flex justify-between text-sm'>
+                        <span>Subiendo video...</span>
+                        <span>{Math.round(uploadProgress.progress)}%</span>
+                      </div>
+                      <Progress value={uploadProgress.progress} className='w-full' />
+                      <div className='text-xs text-muted-foreground'>
+                        {(uploadProgress.bytesTransferred / (1024 * 1024)).toFixed(1)} MB de{' '}
+                        {(uploadProgress.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                      </div>
+                    </div>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+
+                  <Button
+                    onClick={handleUpload}
+                    disabled={!title || !selectedFile || uploading}
+                    className='w-full'
+                    size='lg'
+                  >
+                    {uploading ? (
+                      <>
+                        <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
+                        {uploadProgress
+                          ? `Subiendo ${Math.round(uploadProgress.progress)}%...`
+                          : 'Preparando...'}
+                      </>
+                    ) : (
+                      <>
+                        <Upload className='h-4 w-4 mr-2' />
+                        Subir Video
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

@@ -145,9 +145,7 @@ export default function Header({
             <Button variant='ghost' onClick={() => navigateTo('/auth/login')}>
               Iniciar sesión
             </Button>
-            <Button onClick={() => navigateTo('/auth/register')}>
-              Registrarse
-            </Button>
+            <Button onClick={() => navigateTo('/auth/register')}>Registrarse</Button>
           </div>
         )}
       </div>

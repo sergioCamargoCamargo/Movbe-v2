@@ -10,11 +10,11 @@ export function WatchSkeleton() {
         <div className='p-2 sm:p-4 space-y-4'>
           {/* Video player skeleton */}
           <div className='aspect-video bg-muted rounded-lg' />
-          
+
           <div className='space-y-4'>
             {/* Video title */}
             <Skeleton className='h-6 sm:h-8 w-full max-w-2xl' />
-            
+
             {/* Channel info and actions */}
             <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
               {/* Channel info */}
@@ -26,7 +26,7 @@ export function WatchSkeleton() {
                 </div>
                 <Skeleton className='h-8 w-20' />
               </div>
-              
+
               {/* Action buttons */}
               <div className='flex flex-wrap items-center gap-2'>
                 {[...Array(5)].map((_, i) => (
@@ -34,18 +34,18 @@ export function WatchSkeleton() {
                 ))}
               </div>
             </div>
-            
+
             {/* Description box */}
             <div className='bg-muted p-3 sm:p-4 rounded-lg space-y-2'>
               <Skeleton className='h-4 w-64' />
               <Skeleton className='h-4 w-full' />
               <Skeleton className='h-4 w-3/4' />
             </div>
-            
+
             {/* Comments section */}
             <div className='space-y-4'>
               <Skeleton className='h-6 w-32' />
-              
+
               {/* Comments */}
               {[...Array(5)].map((_, i) => (
                 <div key={i} className='flex space-x-2 sm:space-x-4'>

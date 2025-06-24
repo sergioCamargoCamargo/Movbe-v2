@@ -205,7 +205,9 @@
 .sidebar-enter-active {
   transform: translateX(0);
   opacity: 1;
-  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1), opacity 400ms ease-in-out;
+  transition:
+    transform 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 400ms ease-in-out;
 }
 
 .sidebar-exit {
@@ -216,7 +218,9 @@
 .sidebar-exit-active {
   transform: translateX(-100%);
   opacity: 0;
-  transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms ease-in-out;
+  transition:
+    transform 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 300ms ease-in-out;
 }
 
 /* Overlay animations */

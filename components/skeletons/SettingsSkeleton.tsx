@@ -66,7 +66,10 @@ export function SettingsSkeleton() {
 
                 {/* Security options */}
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border'>
+                  <div
+                    key={i}
+                    className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border'
+                  >
                     <div className='flex items-start gap-3 flex-1'>
                       <Skeleton className='h-8 w-8 rounded-lg' />
                       <div className='space-y-2'>
@@ -107,7 +110,7 @@ export function SettingsSkeleton() {
                   <Skeleton className='h-6 w-32' />
                   <Skeleton className='h-4 w-72' />
                 </div>
-                
+
                 <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border border-red-200'>
                   <div className='flex items-start gap-3 flex-1'>
                     <Skeleton className='h-8 w-8 rounded-lg' />

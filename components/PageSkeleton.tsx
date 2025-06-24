@@ -9,7 +9,7 @@ import { WatchSkeleton } from './skeletons/WatchSkeleton'
 
 export function PageSkeleton() {
   const { destinationUrl } = useSidebar()
-  
+
   // Usar la URL de destino en lugar de la actual
   const targetPath = destinationUrl || '/'
 
@@ -17,23 +17,23 @@ export function PageSkeleton() {
   if (targetPath === '/') {
     return <HomeSkeleton />
   }
-  
+
   if (targetPath === '/upload') {
     return <UploadSkeleton />
   }
-  
+
   if (targetPath === '/settings') {
     return <SettingsSkeleton />
   }
-  
+
   if (targetPath.startsWith('/watch/')) {
     return <WatchSkeleton />
   }
-  
+
   if (targetPath.startsWith('/auth/')) {
     return <HomeSkeleton /> // Para páginas de auth, usar esqueleto simple
   }
-  
+
   // Skeleton genérico para rutas no definidas
   return <HomeSkeleton />
 }

@@ -27,14 +27,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsNavigating(true)
     setIsSidebarOpen(false)
-    
+
     // Reset navigation state after a short delay
     const timer = setTimeout(() => {
       setIsNavigating(false)
       setIsPageTransitioning(false)
       setDestinationUrl(null) // Reset destination URL
     }, 100)
-    
+
     return () => clearTimeout(timer)
   }, [pathname])
 
@@ -49,16 +49,16 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const navigateTo = (url: string) => {
     // Si es la misma página, no hacer nada
     if (pathname === url) return
-    
+
     // Establecer la URL de destino para mostrar el esqueleto correcto
     setDestinationUrl(url)
     setIsPageTransitioning(true)
-    
+
     if (isSidebarOpen) {
       // Si el sidebar está abierto, cerrarlo primero
       setIsSidebarOpen(false)
       setIsNavigating(true)
-      
+
       // Esperar menos tiempo para una transición más rápida
       setTimeout(() => {
         router.push(url)
@@ -72,7 +72,17 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarContext.Provider value={{ isSidebarOpen, toggleSidebar, closeSidebar, isNavigating, navigateTo, isPageTransitioning, destinationUrl }}>
+    <SidebarContext.Provider
+      value={{
+        isSidebarOpen,
+        toggleSidebar,
+        closeSidebar,
+        isNavigating,
+        navigateTo,
+        isPageTransitioning,
+        destinationUrl,
+      }}
+    >
       {children}
     </SidebarContext.Provider>
   )

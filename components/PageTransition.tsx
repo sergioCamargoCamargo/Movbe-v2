@@ -20,7 +20,7 @@ export function PageTransition({ children }: PageTransitionProps) {
       }`}
     >
       {children}
-      
+
       {/* Skeleton overlay durante la transición */}
       {isPageTransitioning && (
         <div className='fixed inset-0 bg-background z-[100] overflow-auto'>
