@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
@@ -10,15 +11,23 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { updateVideo } from '@/lib/firestore'
+import { uploadVideo, validateVideoFile, generateThumbnail, uploadThumbnail, UploadProgress } from '@/lib/videoService'
 
 export default function UploadPage() {
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const { user, userProfile } = useAuth()
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -27,6 +36,15 @@ export default function UploadPage() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      const validation = validateVideoFile(file)
+      if (!validation.isValid) {
+        toast({
+          variant: 'destructive',
+          title: 'Archivo no válido',
+          description: validation.error,
+        })
+        return
+      }
       setSelectedFile(file)
     }
   }
@@ -41,11 +59,45 @@ export default function UploadPage() {
       return
     }
 
+    if (!user || !userProfile) {
+      toast({
+        variant: 'destructive',
+        title: 'Usuario no autenticado',
+        description: 'Debes iniciar sesión para subir videos.',
+      })
+      return
+    }
+
     setUploading(true)
+    setUploadProgress(null)
 
     try {
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const videoId = await uploadVideo(
+        {
+          title,
+          description,
+          file: selectedFile,
+          userId: user.uid,
+          userName: userProfile.displayName || user.email || 'Usuario',
+          category: 'general',
+          tags: [],
+          visibility: 'public'
+        },
+        (progress) => {
+          setUploadProgress(progress)
+        }
+      )
+
+      // Generar y subir thumbnail
+      try {
+        const thumbnailDataURL = await generateThumbnail(selectedFile)
+        const thumbnailURL = await uploadThumbnail(thumbnailDataURL, user.uid, videoId)
+        
+        // Actualizar video con thumbnail
+        await updateVideo(videoId, { thumbnailURL })
+      } catch {
+        // Thumbnail generation is optional, continue without it
+      }
 
       toast({
         title: '¡Video subido exitosamente!',
@@ -60,9 +112,8 @@ export default function UploadPage() {
       setTimeout(() => {
         router.push('/')
       }, 1500)
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error uploading video:', error)
+    } catch {
+      // Error will be shown in toast
       toast({
         variant: 'destructive',
         title: 'Error al subir el video',
@@ -75,6 +126,7 @@ export default function UploadPage() {
       })
     } finally {
       setUploading(false)
+      setUploadProgress(null)
     }
   }
 
@@ -112,6 +164,18 @@ export default function UploadPage() {
                 </div>
 
                 <div className='space-y-2'>
+                  <Label htmlFor='description'>Descripción (opcional)</Label>
+                  <Textarea
+                    id='description'
+                    placeholder='Describe tu video...'
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    disabled={uploading}
+                    rows={3}
+                  />
+                </div>
+
+                <div className='space-y-2'>
                   <Label htmlFor='video'>Seleccionar video</Label>
                   <div className='border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center'>
                     <input
@@ -131,7 +195,7 @@ export default function UploadPage() {
                         {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
                       </span>
                       <span className='text-xs text-muted-foreground'>
-                        Formatos soportados: MP4, MOV, AVI, MKV
+                        Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB)
                       </span>
                     </label>
                   </div>
@@ -142,6 +206,20 @@ export default function UploadPage() {
                   )}
                 </div>
 
+                {uploadProgress && (
+                  <div className='space-y-2'>
+                    <div className='flex justify-between text-sm'>
+                      <span>Subiendo video...</span>
+                      <span>{Math.round(uploadProgress.progress)}%</span>
+                    </div>
+                    <Progress value={uploadProgress.progress} className='w-full' />
+                    <div className='text-xs text-muted-foreground'>
+                      {(uploadProgress.bytesTransferred / (1024 * 1024)).toFixed(1)} MB de{' '}
+                      {(uploadProgress.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   onClick={handleUpload}
                   disabled={!title || !selectedFile || uploading}
@@ -151,7 +229,7 @@ export default function UploadPage() {
                   {uploading ? (
                     <>
                       <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
-                      Subiendo...
+                      {uploadProgress ? `Subiendo ${Math.round(uploadProgress.progress)}%...` : 'Preparando...'}
                     </>
                   ) : (
                     <>
