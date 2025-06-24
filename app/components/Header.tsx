@@ -3,9 +3,9 @@
 import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth'
 import { Bell, Menu, Mic, Search, Upload, User } from 'lucide-react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
+import { NavigationLink } from '@/components/NavigationLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { useSidebar } from '@/contexts/SidebarContext'
 import { auth } from '@/lib/firebase'
 
 export default function Header({
@@ -28,6 +29,7 @@ export default function Header({
 }) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const { navigateTo } = useSidebar()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, user => {
@@ -54,38 +56,42 @@ export default function Header({
         <Button variant='ghost' size='icon' onClick={onMenuClick}>
           <Menu className='h-6 w-6' />
         </Button>
-        <Link href='/' className='flex items-center ml-4'>
+        <NavigationLink href='/' className='flex items-center ml-2 md:ml-4'>
           <Image
             src='/logo_black.png'
             alt='Movbe'
-            width={120}
-            height={40}
-            className='dark:hidden'
+            width={100}
+            height={32}
+            className='dark:hidden w-20 h-auto md:w-[120px]'
           />
           <Image
             src='/logo_white.png'
             alt='Movbe'
-            width={120}
-            height={40}
-            className='hidden dark:block'
+            width={100}
+            height={32}
+            className='hidden dark:block w-20 h-auto md:w-[120px]'
           />
-        </Link>
+        </NavigationLink>
       </div>
-      <div className='flex-1 max-w-2xl mx-4'>
+      <div className='flex-1 max-w-2xl mx-2 md:mx-4 hidden sm:block'>
         <div className='flex'>
-          <Input type='search' placeholder='Buscar' className='rounded-r-none' />
-          <Button className='rounded-l-none'>
+          <Input
+            type='search'
+            placeholder='Buscar'
+            className='rounded-r-none text-sm md:text-base'
+          />
+          <Button className='rounded-l-none px-3 md:px-4'>
             <Search className='h-4 w-4' />
           </Button>
-          <Button variant='ghost' size='icon' className='ml-2'>
+          <Button variant='ghost' size='icon' className='ml-2 hidden md:flex'>
             <Mic className='h-6 w-6' />
           </Button>
         </div>
       </div>
-      <div className='flex items-center space-x-4'>
+      <div className='flex items-center space-x-2 md:space-x-4'>
         {loading ? (
           // Loading state
-          <div className='flex items-center space-x-4'>
+          <div className='flex items-center space-x-2 md:space-x-4'>
             <Button variant='ghost' size='icon' disabled>
               <Upload className='h-6 w-6' />
             </Button>
@@ -96,12 +102,10 @@ export default function Header({
         ) : user ? (
           // User is logged in
           <>
-            <Button variant='ghost' size='icon' asChild>
-              <Link href='/upload'>
-                <Upload className='h-6 w-6' />
-              </Link>
+            <Button variant='ghost' size='icon' onClick={() => navigateTo('/upload')}>
+              <Upload className='h-6 w-6' />
             </Button>
-            <Button variant='ghost' size='icon'>
+            <Button variant='ghost' size='icon' className='hidden md:flex'>
               <Bell className='h-6 w-6' />
             </Button>
             <DropdownMenu>
@@ -127,8 +131,8 @@ export default function Header({
                   <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href='/settings'>Configurar cuenta</Link>
+                <DropdownMenuItem onClick={() => navigateTo('/settings')}>
+                  Configurar cuenta
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
@@ -137,13 +141,11 @@ export default function Header({
           </>
         ) : (
           // User is not logged in
-          <div className='flex items-center space-x-2'>
-            <Button variant='ghost' asChild>
-              <Link href='/auth/login'>Iniciar sesión</Link>
+          <div className='flex items-center space-x-1 md:space-x-2'>
+            <Button variant='ghost' onClick={() => navigateTo('/auth/login')}>
+              Iniciar sesión
             </Button>
-            <Button asChild>
-              <Link href='/auth/register'>Registrarse</Link>
-            </Button>
+            <Button onClick={() => navigateTo('/auth/register')}>Registrarse</Button>
           </div>
         )}
       </div>

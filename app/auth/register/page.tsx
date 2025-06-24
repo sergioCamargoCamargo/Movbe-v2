@@ -82,16 +82,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-4'>
-      <Card className='w-full max-w-md'>
-        <CardHeader className='space-y-1'>
-          <CardTitle className='text-2xl text-center'>Crear cuenta</CardTitle>
-          <CardDescription className='text-center'>
+    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-2 sm:p-4'>
+      <Card className='w-full max-w-md mx-2 sm:mx-0'>
+        <CardHeader className='space-y-1 px-4 sm:px-6'>
+          <CardTitle className='text-xl sm:text-2xl text-center'>Crear cuenta</CardTitle>
+          <CardDescription className='text-center text-sm sm:text-base'>
             Ingresa tus datos para registrarte
           </CardDescription>
         </CardHeader>
         <form onSubmit={onSubmit}>
-          <CardContent className='space-y-4'>
+          <CardContent className='space-y-4 px-4 sm:px-6'>
             {error && (
               <Alert variant='destructive'>
                 <AlertDescription>{error}</AlertDescription>
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                 <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
-            <div className='grid grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <Label htmlFor='firstName'>Nombre</Label>
                 <Input id='firstName' name='firstName' required disabled={isLoading} />
@@ -146,7 +146,7 @@ export default function RegisterPage() {
             </div>
             <div className='flex items-center space-x-2'>
               <Checkbox id='terms' name='terms' required />
-              <Label htmlFor='terms' className='text-sm'>
+              <Label htmlFor='terms' className='text-xs sm:text-sm leading-tight'>
                 Acepto los{' '}
                 <Link href='#' className='text-primary hover:underline'>
                   términos y condiciones
@@ -177,8 +177,8 @@ export default function RegisterPage() {
             </div>
           </CardContent>
         </form>
-        <CardFooter className='flex flex-col items-center'>
-          <p className='text-sm text-muted-foreground'>
+        <CardFooter className='flex flex-col items-center px-4 sm:px-6'>
+          <p className='text-xs sm:text-sm text-muted-foreground text-center'>
             ¿Ya tienes una cuenta?{' '}
             <Link href='/auth/login' className='text-primary hover:underline'>
               Inicia sesión
