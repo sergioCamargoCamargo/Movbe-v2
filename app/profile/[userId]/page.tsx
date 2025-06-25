@@ -209,7 +209,7 @@ export default function ProfilePage() {
     if (!timestamp) return 'Fecha desconocida'
 
     // Handle Firestore timestamp
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000)
+    const date = new Date(timestamp.seconds * 1000) || new Date(timestamp.nanoseconds / 1000000)
     const now = new Date()
     const diffTime = Math.abs(now.getTime() - date.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
