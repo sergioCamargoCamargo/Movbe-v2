@@ -18,7 +18,7 @@ import { getVideosByUser } from '@/lib/firestore'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-import { FirestoreVideo } from '@/types'
+import { FirestoreVideo, FirestoreTimestamp } from '@/types'
 
 // Datos de ejemplo del perfil
 const mockProfile = {
@@ -205,7 +205,7 @@ export default function ProfilePage() {
     return num.toLocaleString()
   }
 
-  const formatUploadDate = (timestamp: FirestoreTimestamp | any) => {
+  const formatUploadDate = (timestamp: FirestoreTimestamp) => {
     if (!timestamp) return 'Fecha desconocida'
 
     // Handle Firestore timestamp
