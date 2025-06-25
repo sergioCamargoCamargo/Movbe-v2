@@ -9,8 +9,8 @@ import Slider from 'react-slick'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
-import { getVideoById, toggleVideoLike, incrementVideoViews, getPublicVideos, subscribeToChannel, unsubscribeFromChannel, checkSubscription } from '@/lib/firestore'
 import { useAuth } from '@/contexts/AuthContext'
+import { getVideoById, toggleVideoLike, incrementVideoViews, getPublicVideos, subscribeToChannel, unsubscribeFromChannel, checkSubscription } from '@/lib/firestore'
 
 import Header from '../../components/Header'
 
@@ -69,41 +69,30 @@ export default function WatchPage() {
   useEffect(() => {
     const fetchVideo = async () => {
       if (!id || typeof id !== 'string') {
-        console.log('❌ ID inválido:', id)
         return
       }
       
       try {
         setLoading(true)
-        console.log('🔄 Cargando video con ID:', id)
         const videoData = await getVideoById(id)
-        console.log('📹 Video encontrado:', videoData)
         
         if (videoData) {
           setVideo(videoData)
           // Incrementar vistas
-          console.log('👀 Incrementando vistas para video:', id)
           await incrementVideoViews(id, videoData.uploaderId)
           
           // Verificar suscripción si el usuario está logueado y no es su propio video
           if (user && user.uid !== videoData.uploaderId) {
-            console.log('🔍 Verificando suscripción al canal:', videoData.uploaderId)
             const subscribed = await checkSubscription(user.uid, videoData.uploaderId)
             setIsSubscribed(subscribed)
-            console.log('📊 Estado de suscripción:', subscribed)
           }
           
           // Cargar videos recomendados
-          console.log('🔄 Cargando videos recomendados...')
           const recommended = await getPublicVideos(10)
-          console.log('✅ Videos recomendados:', recommended.length)
           setRecommendedVideos(recommended.filter(v => v.id !== id))
         } else {
-          console.log('❌ Video no encontrado con ID:', id)
         }
-      } catch (error) {
-        console.error('❌ Error al cargar video:', error)
-        console.error('Error details:', error)
+      } catch {
       } finally {
         setLoading(false)
       }
@@ -155,12 +144,10 @@ export default function WatchPage() {
 
   const handleLike = async () => {
     if (!user || !video) {
-      console.log('❌ No se puede dar like - user:', !!user, 'video:', !!video)
       return
     }
     
     try {
-      console.log('👍 Dando like al video:', video.id)
       
       if (userDisliked) {
         setUserDisliked(false)
@@ -171,26 +158,21 @@ export default function WatchPage() {
         await toggleVideoLike(video.id, user.uid, true)
         setVideo(prev => prev ? { ...prev, likeCount: prev.likeCount + 1 } : null)
         setUserLiked(true)
-        console.log('✅ Like agregado exitosamente')
       } else {
         // Toggle off like
         setVideo(prev => prev ? { ...prev, likeCount: Math.max(0, prev.likeCount - 1) } : null)
         setUserLiked(false)
-        console.log('➖ Like removido')
       }
-    } catch (error) {
-      console.error('❌ Error al dar like:', error)
+    } catch {
     }
   }
 
   const handleDislike = async () => {
     if (!user || !video) {
-      console.log('❌ No se puede dar dislike - user:', !!user, 'video:', !!video)
       return
     }
     
     try {
-      console.log('👎 Dando dislike al video:', video.id)
       
       if (userLiked) {
         setUserLiked(false)
@@ -201,15 +183,12 @@ export default function WatchPage() {
         await toggleVideoLike(video.id, user.uid, false)
         setVideo(prev => prev ? { ...prev, dislikeCount: prev.dislikeCount + 1 } : null)
         setUserDisliked(true)
-        console.log('✅ Dislike agregado exitosamente')
       } else {
         // Toggle off dislike
         setVideo(prev => prev ? { ...prev, dislikeCount: Math.max(0, prev.dislikeCount - 1) } : null)
         setUserDisliked(false)
-        console.log('➖ Dislike removido')
       }
-    } catch (error) {
-      console.error('❌ Error al dar dislike:', error)
+    } catch {
     }
   }
 
@@ -231,14 +210,12 @@ export default function WatchPage() {
     
     setComments(prev => [comment, ...prev])
     setNewComment('')
-    console.log('💬 Comentario agregado:', comment.text)
   }
 
   const handleSubscribe = async () => {
     if (!user || !video || subscribing) return
     
     if (user.uid === video.uploaderId) {
-      console.log('❌ No puedes suscribirte a tu propio canal')
       return
     }
     
@@ -246,16 +223,13 @@ export default function WatchPage() {
       setSubscribing(true)
       
       if (isSubscribed) {
-        console.log('📤 Cancelando suscripción...')
         await unsubscribeFromChannel(user.uid, video.uploaderId)
         setIsSubscribed(false)
       } else {
-        console.log('📩 Suscribiéndose al canal...')
         await subscribeToChannel(user.uid, video.uploaderId)
         setIsSubscribed(true)
       }
-    } catch (error) {
-      console.error('❌ Error al manejar suscripción:', error)
+    } catch {
     } finally {
       setSubscribing(false)
     }
@@ -502,7 +476,7 @@ export default function WatchPage() {
               {!showComments && (
                 <div className='text-center p-4 bg-muted rounded-lg'>
                   <p className='text-muted-foreground'>
-                    Haz clic en "Mostrar comentarios" para ver los {comments.length} comentarios
+                    Haz clic en &quot;Mostrar comentarios&quot; para ver los {comments.length} comentarios
                   </p>
                 </div>
               )}

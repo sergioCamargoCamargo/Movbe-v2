@@ -52,8 +52,7 @@ export default function MainContent() {
         setLoading(true)
         const fetchedVideos = await getPublicVideos(50)
         setVideos(fetchedVideos)
-      } catch (error) {
-        console.error('Error al cargar videos:', error)
+      } catch {
       } finally {
         setLoading(false)
       }
