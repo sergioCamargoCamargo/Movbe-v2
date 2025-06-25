@@ -29,6 +29,36 @@ export interface Video {
   tags: string[]
 }
 
+// Interfaz específica para videos de Firebase
+export interface FirestoreVideo {
+  id: string
+  title: string
+  description: string
+  thumbnailURL: string
+  uploaderId: string
+  uploaderName: string
+  category: string
+  tags: string[]
+  commentCount: number
+  visibility: 'public' | 'private' | 'unlisted'
+  videoURLs: {
+    original: string
+  }
+  dislikeCount: number
+  language: string
+  status: 'published' | 'processing' | 'draft'
+  uploadDate: FirestoreTimestamp
+  likeCount: number
+  publishedAt: FirestoreTimestamp
+  duration: number
+  viewCount: number
+}
+
+export interface FirestoreTimestamp {
+  seconds: number
+  nanoseconds: number
+}
+
 export interface VideoCreator {
   id: string
   displayName: string
@@ -36,11 +66,11 @@ export interface VideoCreator {
   verified: boolean
 }
 
-export type VideoCategory = 
-  | 'Música' 
-  | 'Videojuegos' 
-  | 'Noticias' 
-  | 'Educación' 
+export type VideoCategory =
+  | 'Música'
+  | 'Videojuegos'
+  | 'Noticias'
+  | 'Educación'
   | 'Entretenimiento'
   | 'Deportes'
   | 'Tecnología'
@@ -89,12 +119,7 @@ export interface Notification {
   actionUrl?: string
 }
 
-export type NotificationType = 
-  | 'new_video' 
-  | 'comment' 
-  | 'like' 
-  | 'follow' 
-  | 'system'
+export type NotificationType = 'new_video' | 'comment' | 'like' | 'follow' | 'system'
 
 export interface UserSettings {
   userId: string

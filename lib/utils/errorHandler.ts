@@ -52,7 +52,7 @@ export function handleError(error: unknown): AppError {
     // Firebase Auth errors
     if (error.message.includes('auth/')) {
       const errorCode = error.message.split('auth/')[1]
-      
+
       switch (errorCode) {
         case 'user-not-found':
           return new AuthenticationError(ERROR_MESSAGES.AUTH.USER_NOT_FOUND)

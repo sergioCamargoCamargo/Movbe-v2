@@ -10,7 +10,7 @@ import {
   Bookmark,
   Flag,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
+import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import { setVideoInteraction, updateVideoInteraction } from '@/lib/store/slices/videoSlice'
 
 interface Comment {
   id: string
@@ -43,28 +45,57 @@ interface VideoInteractionsProps {
 }
 
 export function VideoInteractions({
-  videoId: _videoId,
+  videoId,
   likes = 0,
   dislikes = 0,
   isLiked = false,
-  isDisliked = false,
+  isDisliked: _isDisliked = false,
   isSaved = false,
   rating = 0,
   userRating = 0,
   comments = [],
   className = '',
 }: VideoInteractionsProps) {
-  const [liked, setLiked] = useState(isLiked)
-  const [disliked, setDisliked] = useState(isDisliked)
-  const [saved, setSaved] = useState(isSaved)
+  const dispatch = useAppDispatch()
+  const videoInteraction = useAppSelector(state => state.video.interactions[videoId])
+
+  // Use Redux state if available, otherwise use props
+  const liked = videoInteraction?.liked ?? isLiked
+  const saved = videoInteraction?.saved ?? isSaved
+  const commentCount = videoInteraction?.commentCount ?? comments.length
+  const likeCount = videoInteraction?.likeCount ?? likes
+
   const [currentUserRating, setCurrentUserRating] = useState(userRating)
   const [newComment, setNewComment] = useState('')
   const [localComments, setLocalComments] = useState<Comment[]>(comments)
   const { toast } = useToast()
 
+  // Initialize video interaction in Redux if not exists
+  useEffect(() => {
+    if (!videoInteraction) {
+      dispatch(
+        setVideoInteraction({
+          videoId,
+          liked: isLiked,
+          saved: isSaved,
+          commentCount: comments.length,
+          likeCount: likes,
+          viewCount: 0, // This would come from props or API
+        })
+      )
+    }
+  }, [videoId, videoInteraction, dispatch, isLiked, isSaved, comments.length, likes])
+
   const handleLike = () => {
-    setLiked(!liked)
-    if (disliked) setDisliked(false)
+    dispatch(
+      updateVideoInteraction({
+        videoId,
+        updates: {
+          liked: !liked,
+          likeCount: liked ? likeCount - 1 : likeCount + 1,
+        },
+      })
+    )
 
     toast({
       title: liked ? 'Like removido' : 'Video liked',
@@ -73,17 +104,35 @@ export function VideoInteractions({
   }
 
   const handleDislike = () => {
-    setDisliked(!disliked)
-    if (liked) setLiked(false)
+    // For dislike, we need to also handle the like state
+    const newLiked = false // Disliking removes like
+    const newLikeCount = liked ? likeCount - 1 : likeCount
+
+    dispatch(
+      updateVideoInteraction({
+        videoId,
+        updates: {
+          liked: newLiked,
+          likeCount: newLikeCount,
+        },
+      })
+    )
 
     toast({
-      title: disliked ? 'Dislike removido' : 'Video disliked',
-      description: disliked ? 'Has removido tu dislike' : 'No te gusta este video',
+      title: 'Video feedback registrado',
+      description: 'Tu reacción ha sido guardada',
     })
   }
 
   const handleSave = () => {
-    setSaved(!saved)
+    dispatch(
+      updateVideoInteraction({
+        videoId,
+        updates: {
+          saved: !saved,
+        },
+      })
+    )
 
     toast({
       title: saved ? 'Removido de guardados' : 'Video guardado',
@@ -141,6 +190,16 @@ export function VideoInteractions({
     setLocalComments([comment, ...localComments])
     setNewComment('')
 
+    // Update comment count in Redux
+    dispatch(
+      updateVideoInteraction({
+        videoId,
+        updates: {
+          commentCount: localComments.length + 1,
+        },
+      })
+    )
+
     toast({
       title: 'Comentario publicado',
       description: 'Tu comentario se ha añadido al video',
@@ -182,20 +241,18 @@ export function VideoInteractions({
                 aria-label={`${liked ? 'Quitar' : 'Dar'} like al video`}
               >
                 <ThumbsUp className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-                {formatNumber(likes + (liked && !isLiked ? 1 : 0) - (isLiked && !liked ? 1 : 0))}
+                {formatNumber(likeCount)}
               </Button>
 
               <Button
-                variant={disliked ? 'destructive' : 'outline'}
+                variant='outline'
                 size='sm'
                 onClick={handleDislike}
                 className='flex items-center gap-2'
-                aria-label={`${disliked ? 'Quitar' : 'Dar'} dislike al video`}
+                aria-label='Dar feedback negativo al video'
               >
-                <ThumbsDown className={`h-4 w-4 ${disliked ? 'fill-current' : ''}`} />
-                {formatNumber(
-                  dislikes + (disliked && !isDisliked ? 1 : 0) - (isDisliked && !disliked ? 1 : 0)
-                )}
+                <ThumbsDown className={`h-4 w-4`} />
+                {formatNumber(dislikes)}
               </Button>
             </div>
 
@@ -285,7 +342,7 @@ export function VideoInteractions({
         <CardHeader>
           <h3 className='text-lg font-semibold flex items-center gap-2'>
             <MessageCircle className='h-5 w-5' />
-            Comentarios ({localComments.length})
+            Comentarios ({commentCount})
           </h3>
         </CardHeader>
         <CardContent className='space-y-4'>

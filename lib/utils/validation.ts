@@ -48,15 +48,15 @@ export class Validator {
     if (value.length < 6) {
       return ERROR_MESSAGES.FORMS.PASSWORD_TOO_SHORT
     }
-    
+
     const hasUpperCase = /[A-Z]/.test(value)
     const hasLowerCase = /[a-z]/.test(value)
     const hasNumbers = /\d/.test(value)
-    
+
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
       return 'La contraseña debe incluir mayúsculas, minúsculas y números'
     }
-    
+
     return null
   }
 
@@ -83,7 +83,7 @@ export class Validator {
 
     rules.forEach(rule => {
       const value = obj[rule.field]
-      
+
       for (const validationFn of rule.rules) {
         const error = validationFn(value)
         if (error) {
@@ -95,16 +95,19 @@ export class Validator {
 
     return {
       isValid: Object.keys(errors).length === 0,
-      errors
+      errors,
     }
   }
 
-  static validateForm(formData: FormData, rules: Record<string, ((value: unknown) => string | null)[]>): ValidationResult {
+  static validateForm(
+    formData: FormData,
+    rules: Record<string, ((value: unknown) => string | null)[]>
+  ): ValidationResult {
     const errors: Record<string, string> = {}
 
     Object.entries(rules).forEach(([field, validationRules]) => {
       const value = formData.get(field)
-      
+
       for (const validationFn of validationRules) {
         const error = validationFn(value)
         if (error) {
@@ -116,7 +119,7 @@ export class Validator {
 
     return {
       isValid: Object.keys(errors).length === 0,
-      errors
+      errors,
     }
   }
 }

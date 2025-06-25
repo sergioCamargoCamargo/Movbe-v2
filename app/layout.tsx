@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
+import { StoreProvider } from '@/components/StoreProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
@@ -68,19 +69,17 @@ export const metadata: Metadata = {
     images: ['/og-image.jpg'],
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-    other: [
-      {
-        rel: 'mask-icon',
-        url: '/safari-pinned-tab.svg',
-        color: '#1a1a1a',
-      },
-    ],
+    icon: [{ url: '/favicon.ico' }],
+    //   { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    //   { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    // ],
+    // apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    // other: [
+    //   {
+    //     rel: 'mask-icon',
+    //     url: '/safari-pinned-tab.svg',
+    //     color: '#1a1a1a',
+    //   },
   },
   manifest: '/site.webmanifest',
   category: 'entertainment',
@@ -116,12 +115,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ></script>
       </head>
       <body className={`${inter.className} antialiased`}>
-        <AuthProvider>
-          <SidebarProvider>
-            {children}
-            <Toaster />
-          </SidebarProvider>
-        </AuthProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              {children}
+              <Toaster />
+            </SidebarProvider>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   )

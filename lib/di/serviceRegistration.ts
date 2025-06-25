@@ -17,7 +17,7 @@ export function registerServices(): void {
   // Register singleton services
   serviceContainer.registerSingleton(SERVICE_KEYS.AUTH_SERVICE, AuthService)
   serviceContainer.registerSingleton(SERVICE_KEYS.USER_SERVICE, UserService)
-  
+
   // Add other services when implemented
   // serviceContainer.registerSingleton(SERVICE_KEYS.VIDEO_SERVICE, VideoService)
   // serviceContainer.registerSingleton(SERVICE_KEYS.ANALYTICS_SERVICE, AnalyticsService)

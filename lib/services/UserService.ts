@@ -21,7 +21,7 @@ export class UserService implements IUserService {
 
       // Try to find user in Firestore
       let user = await this.repository.findById(currentUser.uid)
-      
+
       // If user doesn't exist in Firestore, create it
       if (!user) {
         const newUser: User = {
@@ -31,9 +31,9 @@ export class UserService implements IUserService {
           avatar: currentUser.photoURL || undefined,
           type: 'normal',
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         }
-        
+
         // Remove id from newUser when creating (Firestore will use the provided ID)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _id, ...userData } = newUser
@@ -61,16 +61,16 @@ export class UserService implements IUserService {
     try {
       const updatedData = {
         ...data,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }
-      
+
       await this.repository.update(id, updatedData)
       const updatedUser = await this.repository.findById(id)
-      
+
       if (!updatedUser) {
         throw new Error('User not found after update')
       }
-      
+
       return updatedUser
     } catch (error) {
       // console.error('Error updating user:', error)
@@ -101,7 +101,7 @@ export class UserService implements IUserService {
   async updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<UserSettings> {
     try {
       const existingSettings = await this.settingsRepository.findById(userId)
-      
+
       const updatedSettings: UserSettings = {
         userId,
         notifications: {
@@ -112,14 +112,14 @@ export class UserService implements IUserService {
           likes: true,
           followers: true,
           ...existingSettings?.notifications,
-          ...settings.notifications
+          ...settings.notifications,
         },
         privacy: {
           profileVisibility: 'public',
           showEmail: false,
           showActivity: true,
           ...existingSettings?.privacy,
-          ...settings.privacy
+          ...settings.privacy,
         },
         display: {
           theme: 'system',
@@ -127,14 +127,14 @@ export class UserService implements IUserService {
           autoplay: true,
           quality: 'auto',
           ...existingSettings?.display,
-          ...settings.display
-        }
+          ...settings.display,
+        },
       }
 
       if (existingSettings) {
         await this.settingsRepository.update(userId, updatedSettings)
       } else {
-        // When creating, we include the userId field 
+        // When creating, we include the userId field
         await this.settingsRepository.create(userId, updatedSettings)
       }
 
@@ -145,7 +145,11 @@ export class UserService implements IUserService {
     }
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> {
     try {
       return await this.authService.changePassword(currentPassword, newPassword)
     } catch {
@@ -159,9 +163,9 @@ export class UserService implements IUserService {
       // Implementar lógica de subida de archivo
       // Por ahora retornamos una URL placeholder
       const avatarUrl = `https://api.placeholder.com/avatar/${userId}`
-      
+
       await this.updateUser(userId, { avatar: avatarUrl })
-      
+
       return avatarUrl
     } catch (error) {
       // console.error('Error uploading avatar:', error)

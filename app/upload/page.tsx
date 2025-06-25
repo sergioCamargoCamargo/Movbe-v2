@@ -2,7 +2,6 @@
 
 import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 
 import Header from '@/app/components/Header'
 import Sidebar from '@/app/components/Sidebar'
@@ -13,28 +12,33 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
-import { useAuth } from '@/contexts/AuthContext'
-import { useSidebar } from '@/contexts/SidebarContext'
 import { useToast } from '@/hooks/use-toast'
 import { updateVideo } from '@/lib/firestore'
+import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import {
+  setTitle,
+  setDescription,
+  setSelectedFile,
+  setUploading,
+  setUploadProgress,
+} from '@/lib/store/slices/uploadSlice'
 import {
   uploadVideo,
   validateVideoFile,
   generateThumbnail,
   uploadThumbnail,
-  UploadProgress,
+  UploadProgress as VideoUploadProgress,
 } from '@/lib/videoService'
 
 export default function UploadPage() {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
+  const { user, userProfile } = useAppSelector(state => state.auth)
+  const { title, description, selectedFile, uploading, uploadProgress } = useAppSelector(
+    state => state.upload
+  )
+  const dispatch = useAppDispatch()
   const router = useRouter()
   const { toast } = useToast()
-  const { user, userProfile } = useAuth()
-  const { toggleSidebar } = useSidebar()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -48,7 +52,7 @@ export default function UploadPage() {
         })
         return
       }
-      setSelectedFile(file)
+      dispatch(setSelectedFile(file))
     }
   }
 
@@ -71,8 +75,8 @@ export default function UploadPage() {
       return
     }
 
-    setUploading(true)
-    setUploadProgress(null)
+    dispatch(setUploading(true))
+    dispatch(setUploadProgress(null))
 
     try {
       const videoId = await uploadVideo(
@@ -86,8 +90,15 @@ export default function UploadPage() {
           tags: [],
           visibility: 'public',
         },
-        progress => {
-          setUploadProgress(progress)
+        (progress: VideoUploadProgress) => {
+          // Convert VideoUploadProgress to UploadProgress expected by Redux
+          dispatch(
+            setUploadProgress({
+              videoId: '', // Will be available after upload completes
+              progress: progress.progress,
+              status: progress.state === 'running' ? 'uploading' : 'completed',
+            })
+          )
         }
       )
 
@@ -128,15 +139,15 @@ export default function UploadPage() {
         ),
       })
     } finally {
-      setUploading(false)
-      setUploadProgress(null)
+      dispatch(setUploading(false))
+      dispatch(setUploadProgress(null))
     }
   }
 
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={toggleSidebar} />
+        <Header onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-2 sm:p-4'>
@@ -164,7 +175,7 @@ export default function UploadPage() {
                       type='text'
                       placeholder='Ingresa el título de tu video'
                       value={title}
-                      onChange={e => setTitle(e.target.value)}
+                      onChange={e => dispatch(setTitle(e.target.value))}
                       disabled={uploading}
                     />
                   </div>
@@ -175,7 +186,7 @@ export default function UploadPage() {
                       id='description'
                       placeholder='Describe tu video...'
                       value={description}
-                      onChange={e => setDescription(e.target.value)}
+                      onChange={e => dispatch(setDescription(e.target.value))}
                       disabled={uploading}
                       rows={3}
                     />
@@ -220,8 +231,7 @@ export default function UploadPage() {
                       </div>
                       <Progress value={uploadProgress.progress} className='w-full' />
                       <div className='text-xs text-muted-foreground'>
-                        {(uploadProgress.bytesTransferred / (1024 * 1024)).toFixed(1)} MB de{' '}
-                        {(uploadProgress.totalBytes / (1024 * 1024)).toFixed(1)} MB
+                        Estado: {uploadProgress.status}
                       </div>
                     </div>
                   )}
