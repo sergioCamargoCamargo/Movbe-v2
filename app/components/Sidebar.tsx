@@ -12,19 +12,45 @@ import {
   Upload,
   Mail,
 } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useSidebar } from '@/contexts/SidebarContext'
+import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import {
+  closeSidebar,
+  setNavigating,
+  setPageTransitioning,
+  resetNavigation,
+} from '@/lib/store/slices/sidebarSlice'
 
 export default function Sidebar() {
   const [isVisible, setIsVisible] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-  const { isSidebarOpen: isOpen, closeSidebar, isNavigating } = useSidebar()
+  const { isOpen, isNavigating } = useAppSelector(state => state.sidebar)
+  const dispatch = useAppDispatch()
+  const { navigateTo } = useNavigation()
+  const pathname = usePathname()
 
-  const onClose = closeSidebar
+  const onClose = () => dispatch(closeSidebar())
+
+  // Handle route changes - reset navigation state and close sidebar
+  useEffect(() => {
+    dispatch(setNavigating(true))
+    dispatch(closeSidebar())
+
+    // Reset navigation state after a short delay
+    const timer = setTimeout(() => {
+      dispatch(setNavigating(false))
+      dispatch(setPageTransitioning(false))
+      dispatch(resetNavigation())
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [pathname, dispatch])
 
   useEffect(() => {
     if (isOpen) {
@@ -56,39 +82,39 @@ export default function Sidebar() {
           Subir Video
         </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <Flame className='mr-2 h-4 w-4' />
         Tendencias
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <ShoppingBag className='mr-2 h-4 w-4' />
         Suscripciones
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Categorías</h3>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <Tv className='mr-2 h-4 w-4' />
         Noticias
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <Music className='mr-2 h-4 w-4' />
         Música
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <SmilePlus className='mr-2 h-4 w-4' />
         Videos de risa
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <Gamepad2 className='mr-2 h-4 w-4' />
         Videojuegos
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Biblioteca</h3>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <Clock className='mr-2 h-4 w-4' />
         Historial
       </Button>
-      <Button variant='ghost' className='w-full justify-start'>
+      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
         <ThumbsUp className='mr-2 h-4 w-4' />
         Videos que me gustan
       </Button>

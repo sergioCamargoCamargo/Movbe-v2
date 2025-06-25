@@ -3,10 +3,10 @@ import { Notification, NotificationType } from '@/types'
 export interface INotificationService {
   getUserNotifications(userId: string): Promise<Notification[]>
   createNotification(
-    userId: string, 
-    type: NotificationType, 
-    title: string, 
-    message: string, 
+    userId: string,
+    type: NotificationType,
+    title: string,
+    message: string,
     actionUrl?: string
   ): Promise<Notification>
   markAsRead(notificationId: string): Promise<boolean>

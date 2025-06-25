@@ -1,9 +1,9 @@
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
   updatePassword,
-  User as FirebaseUser
+  User as FirebaseUser,
 } from 'firebase/auth'
 
 import { auth } from '@/lib/firebase'
@@ -39,8 +39,8 @@ export class AuthService {
   }
 
   async getCurrentUser(): Promise<FirebaseUser | null> {
-    return new Promise((resolve) => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
+    return new Promise(resolve => {
+      const unsubscribe = auth.onAuthStateChanged(user => {
         unsubscribe()
         resolve(user)
       })
@@ -56,10 +56,10 @@ export class AuthService {
 
       // Re-authenticate user with current password
       await signInWithEmailAndPassword(auth, user.email!, currentPassword)
-      
+
       // Update password
       await updatePassword(user, newPassword)
-      
+
       return true
     } catch {
       // console.error('Error changing password:', error)

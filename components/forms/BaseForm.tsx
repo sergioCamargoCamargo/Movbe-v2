@@ -30,7 +30,7 @@ export function BaseForm({
   submitText = 'Enviar',
   loading = false,
   initialValues = {},
-  className = ''
+  className = '',
 }: BaseFormProps) {
   const [formData, setFormData] = useState<Record<string, unknown>>(initialValues)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -38,7 +38,7 @@ export function BaseForm({
 
   const handleInputChange = (name: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [name]: value }))
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => {
@@ -54,7 +54,7 @@ export function BaseForm({
 
     fields.forEach(field => {
       const value = formData[field.name]
-      
+
       // Check required fields
       if (field.required && (value === undefined || value === null || value === '')) {
         newErrors[field.name] = 'Este campo es obligatorio'
@@ -76,7 +76,7 @@ export function BaseForm({
     setErrors(newErrors)
     return {
       isValid: Object.keys(newErrors).length === 0,
-      errors: newErrors
+      errors: newErrors,
     }
   }
 
@@ -103,14 +103,15 @@ export function BaseForm({
     const commonProps = {
       id: field.name,
       value: (formData[field.name] as string) || '',
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-        handleInputChange(field.name, e.target.value),
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+      ) => handleInputChange(field.name, e.target.value),
       className: `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
         hasError ? 'border-red-500' : 'border-gray-300'
       }`,
       placeholder: field.placeholder,
       required: field.required,
-      disabled: loading || isSubmitting
+      disabled: loading || isSubmitting,
     }
 
     let input: React.ReactNode
@@ -142,9 +143,7 @@ export function BaseForm({
           {field.required && <span className='text-red-500 ml-1'>*</span>}
         </label>
         {input}
-        {hasError && (
-          <p className='text-red-500 text-sm mt-1'>{errors[field.name]}</p>
-        )}
+        {hasError && <p className='text-red-500 text-sm mt-1'>{errors[field.name]}</p>}
       </div>
     )
   }
@@ -152,13 +151,9 @@ export function BaseForm({
   return (
     <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
       {fields.map(renderField)}
-      
+
       <div className='flex justify-end'>
-        <Button
-          type='submit'
-          disabled={loading || isSubmitting}
-          className='px-6 py-2'
-        >
+        <Button type='submit' disabled={loading || isSubmitting} className='px-6 py-2'>
           {isSubmitting ? 'Enviando...' : submitText}
         </Button>
       </div>

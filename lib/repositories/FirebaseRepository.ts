@@ -1,17 +1,17 @@
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
   limit as firestoreLimit,
   WhereFilterOp,
-  setDoc 
+  setDoc,
 } from 'firebase/firestore'
 
 import { db } from '@/lib/firebase'
@@ -33,11 +33,11 @@ export class FirebaseRepository<T> {
     try {
       const docRef = doc(db, this.collectionName, id)
       const docSnap = await getDoc(docRef)
-      
+
       if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() } as T
       }
-      
+
       return null
     } catch (error) {
       // console.error(`Error finding document by id in ${this.collectionName}:`, error)
@@ -67,9 +67,9 @@ export class FirebaseRepository<T> {
       }
 
       const querySnapshot = await getDocs(q)
-      return querySnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
       })) as T[]
     } catch (error) {
       // console.error(`Error finding documents in ${this.collectionName}:`, error)

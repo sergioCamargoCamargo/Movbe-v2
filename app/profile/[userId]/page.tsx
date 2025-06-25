@@ -2,8 +2,8 @@
 
 import { Calendar, Eye, Heart, Play, Settings, Share2, Users, Video } from 'lucide-react'
 import Image from 'next/image'
-// import { useParams } from 'next/navigation'
-import { useState } from 'react'
+import { useParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 import Header from '@/app/components/Header'
 import Sidebar from '@/app/components/Sidebar'
@@ -13,8 +13,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSidebar } from '@/contexts/SidebarContext'
 import { useToast } from '@/hooks/use-toast'
+import { getVideosByUser } from '@/lib/firestore'
+import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
+import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import { FirestoreVideo } from '@/types'
 
 // Datos de ejemplo del perfil
 const mockProfile = {
@@ -77,29 +81,113 @@ const mockVideos = [
 ]
 
 export default function ProfilePage() {
-  // const params = useParams()
-  // const userId = params.userId as string // TODO: Use for API calls
-  const [isSubscribed, setIsSubscribed] = useState(mockProfile.isSubscribed)
-  const [subscriberCount, setSubscriberCount] = useState(mockProfile.subscriberCount)
-  const { toggleSidebar } = useSidebar()
+  const params = useParams()
+  const userId = params.userId as string
+  const dispatch = useAppDispatch()
+  const { user, userProfile, loading } = useAppSelector(state => state.auth)
   const { toast } = useToast()
+  const { navigateTo } = useNavigation()
+
+  // Check if this is the current user's profile
+  const isOwnProfile = user?.uid === userId
+
+  // Use real user data if it's own profile, otherwise use mock data for now
+  const profileData =
+    isOwnProfile && userProfile
+      ? {
+          id: userProfile.uid,
+          name: userProfile.displayName || user?.displayName || 'Usuario',
+          username: `@${userProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
+          bio: 'Creador de contenido en MOBVE', // TODO: Add bio field to user profile
+          avatar: userProfile.photoURL || user?.photoURL || '/placeholder.svg?text=USER',
+          coverImage: '/placeholder.svg?text=Cover', // TODO: Add cover image field
+          subscriberCount: userProfile.subscriberCount || 0,
+          videoCount: userProfile.videoCount || 0,
+          totalViews: userProfile.totalViews || 0,
+          joinDate: userProfile.createdAt
+            ? new Date(userProfile.createdAt).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+              })
+            : 'Recientemente',
+          isSubscribed: false,
+          isOwnProfile: true,
+          socialLinks: {
+            twitter: '',
+            instagram: '',
+            youtube: '',
+          },
+        }
+      : mockProfile
+
+  const [isSubscribed, setIsSubscribed] = useState(profileData.isSubscribed)
+  const [subscriberCount, setSubscriberCountState] = useState(profileData.subscriberCount)
+  const [userVideos, setUserVideos] = useState<FirestoreVideo[]>([])
+  const [videosLoading, setVideosLoading] = useState(true)
+  const [videosError, setVideosError] = useState<string | null>(null)
+
+  // Load user videos when component mounts or userId changes
+  useEffect(() => {
+    const loadUserVideos = async () => {
+      if (!userId) return
+
+      try {
+        setVideosLoading(true)
+        setVideosError(null)
+        const videos = await getVideosByUser(userId)
+        setUserVideos(videos)
+      } catch {
+        setVideosError('Error al cargar los videos')
+      } finally {
+        setVideosLoading(false)
+      }
+    }
+
+    loadUserVideos()
+  }, [userId])
+
+  // Show loading state while auth is loading
+  if (loading) {
+    return (
+      <PageTransition>
+        <div className='flex flex-col h-screen'>
+          <Header onMenuClick={() => dispatch(toggleSidebar())} />
+          <div className='flex flex-1 overflow-hidden pt-16'>
+            <Sidebar />
+            <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30'>
+              <div className='max-w-7xl mx-auto p-4 sm:p-6 md:p-8'>
+                <div className='animate-pulse'>
+                  <div className='h-48 sm:h-64 md:h-80 lg:h-96 bg-muted rounded-lg mb-8'></div>
+                  <div className='space-y-4'>
+                    <div className='h-8 bg-muted rounded w-1/3'></div>
+                    <div className='h-4 bg-muted rounded w-1/2'></div>
+                    <div className='h-4 bg-muted rounded w-1/4'></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    )
+  }
 
   const handleSubscribe = () => {
     setIsSubscribed(!isSubscribed)
-    setSubscriberCount(prev => (isSubscribed ? prev - 1 : prev + 1))
+    setSubscriberCountState(prev => (isSubscribed ? prev - 1 : prev + 1))
 
     toast({
       title: isSubscribed ? 'Te has desuscrito' : '¡Suscrito!',
       description: isSubscribed
-        ? `Ya no seguirás a ${mockProfile.name}`
-        : `Ahora sigues a ${mockProfile.name}`,
+        ? `Ya no seguirás a ${profileData.name}`
+        : `Ahora sigues a ${profileData.name}`,
     })
   }
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `Perfil de ${mockProfile.name} en MOBVE`,
+        title: `Perfil de ${profileData.name} en MOBVE`,
         url: window.location.href,
       })
     } else {
@@ -117,18 +205,43 @@ export default function ProfilePage() {
     return num.toLocaleString()
   }
 
+  const formatUploadDate = (timestamp: FirestoreTimestamp | any) => {
+    if (!timestamp) return 'Fecha desconocida'
+
+    // Handle Firestore timestamp
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) return 'hace 1 día'
+    if (diffDays < 7) return `hace ${diffDays} días`
+    if (diffDays < 30)
+      return `hace ${Math.floor(diffDays / 7)} semana${Math.floor(diffDays / 7) > 1 ? 's' : ''}`
+    if (diffDays < 365)
+      return `hace ${Math.floor(diffDays / 30)} mes${Math.floor(diffDays / 30) > 1 ? 'es' : ''}`
+    return `hace ${Math.floor(diffDays / 365)} año${Math.floor(diffDays / 365) > 1 ? 's' : ''}`
+  }
+
+  const formatDuration = (seconds: number) => {
+    if (!seconds) return '0:00'
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={toggleSidebar} />
+        <Header onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30'>
             {/* Cover Image */}
             <div className='relative h-48 sm:h-64 md:h-80 lg:h-96'>
               <Image
-                src={mockProfile.coverImage}
-                alt={`Portada de ${mockProfile.name}`}
+                src={profileData.coverImage}
+                alt={`Portada de ${profileData.name}`}
                 fill
                 className='object-cover'
               />
@@ -138,9 +251,9 @@ export default function ProfilePage() {
               <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8'>
                 <div className='flex flex-col sm:flex-row items-start sm:items-end gap-4'>
                   <Avatar className='h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20'>
-                    <AvatarImage src={mockProfile.avatar} alt={mockProfile.name} />
+                    <AvatarImage src={profileData.avatar} alt={profileData.name} />
                     <AvatarFallback className='text-xl font-bold'>
-                      {mockProfile.name
+                      {profileData.name
                         .split(' ')
                         .map(n => n[0])
                         .join('')}
@@ -149,9 +262,9 @@ export default function ProfilePage() {
 
                   <div className='flex-1 text-white'>
                     <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold mb-1'>
-                      {mockProfile.name}
+                      {profileData.name}
                     </h1>
-                    <p className='text-lg sm:text-xl text-white/80 mb-2'>{mockProfile.username}</p>
+                    <p className='text-lg sm:text-xl text-white/80 mb-2'>{profileData.username}</p>
                     <div className='flex flex-wrap items-center gap-4 text-sm text-white/70'>
                       <span className='flex items-center gap-1'>
                         <Users className='h-4 w-4' />
@@ -159,17 +272,17 @@ export default function ProfilePage() {
                       </span>
                       <span className='flex items-center gap-1'>
                         <Video className='h-4 w-4' />
-                        {mockProfile.videoCount} videos
+                        {profileData.videoCount} videos
                       </span>
                       <span className='flex items-center gap-1'>
                         <Eye className='h-4 w-4' />
-                        {formatNumber(mockProfile.totalViews)} vistas
+                        {formatNumber(profileData.totalViews)} vistas
                       </span>
                     </div>
                   </div>
 
                   <div className='flex gap-2'>
-                    {!mockProfile.isOwnProfile && (
+                    {!profileData.isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
                         variant={isSubscribed ? 'outline' : 'default'}
@@ -193,7 +306,7 @@ export default function ProfilePage() {
                       <Share2 className='h-4 w-4' />
                     </Button>
 
-                    {mockProfile.isOwnProfile && (
+                    {profileData.isOwnProfile && (
                       <Button
                         variant='outline'
                         size='icon'
@@ -219,46 +332,84 @@ export default function ProfilePage() {
 
                 <TabsContent value='videos' className='space-y-4'>
                   <div className='flex items-center justify-between'>
-                    <h2 className='text-xl font-semibold'>Videos ({mockProfile.videoCount})</h2>
+                    <h2 className='text-xl font-semibold'>Videos ({userVideos.length})</h2>
                     <Button variant='outline' size='sm'>
                       Más recientes
                     </Button>
                   </div>
 
-                  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'>
-                    {mockVideos.map(video => (
-                      <Card
-                        key={video.id}
-                        className='overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group'
-                      >
-                        <div className='relative aspect-video'>
-                          <Image
-                            src={video.thumbnail}
-                            alt={video.title}
-                            fill
-                            className='object-cover group-hover:scale-105 transition-transform duration-300'
-                          />
-                          <div className='absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center'>
-                            <Play className='h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity' />
+                  {videosLoading ? (
+                    // Loading skeleton for videos
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'>
+                      {[...Array(8)].map((_, i) => (
+                        <Card key={i} className='overflow-hidden'>
+                          <div className='aspect-video bg-muted animate-pulse'></div>
+                          <CardContent className='p-3 space-y-2'>
+                            <div className='h-4 bg-muted rounded animate-pulse'></div>
+                            <div className='h-3 bg-muted rounded w-3/4 animate-pulse'></div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : videosError ? (
+                    // Error state
+                    <div className='text-center py-12'>
+                      <Video className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+                      <p className='text-muted-foreground'>{videosError}</p>
+                    </div>
+                  ) : userVideos.length === 0 ? (
+                    // Empty state
+                    <div className='text-center py-12'>
+                      <Video className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+                      <p className='text-muted-foreground'>
+                        {isOwnProfile
+                          ? 'Aún no has subido videos'
+                          : 'Este usuario no ha subido videos'}
+                      </p>
+                      {isOwnProfile && (
+                        <Button className='mt-4' onClick={() => navigateTo('/upload')}>
+                          Subir tu primer video
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    // Videos grid
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'>
+                      {userVideos.map(video => (
+                        <Card
+                          key={video.id}
+                          className='overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group'
+                          onClick={() => navigateTo(`/watch/${video.id}`)}
+                        >
+                          <div className='relative aspect-video'>
+                            <Image
+                              src={video.thumbnailURL || '/placeholder.svg?text=Video'}
+                              alt={video.title}
+                              fill
+                              className='object-cover group-hover:scale-105 transition-transform duration-300'
+                            />
+                            <div className='absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center'>
+                              <Play className='h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity' />
+                            </div>
+                            <div className='absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded'>
+                              {formatDuration(video.duration)}
+                            </div>
                           </div>
-                          <div className='absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded'>
-                            {video.duration}
-                          </div>
-                        </div>
 
-                        <CardContent className='p-3'>
-                          <h3 className='font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors'>
-                            {video.title}
-                          </h3>
-                          <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                            <span>{formatNumber(video.views)} vistas</span>
-                            <span>•</span>
-                            <span>{video.uploadDate}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                          <CardContent className='p-3'>
+                            <h3 className='font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors'>
+                              {video.title}
+                            </h3>
+                            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                              <span>{formatNumber(video.viewCount || 0)} vistas</span>
+                              <span>•</span>
+                              <span>{formatUploadDate(video.uploadDate)}</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value='about' className='space-y-6'>
@@ -267,7 +418,7 @@ export default function ProfilePage() {
                       <CardTitle>Descripción</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className='text-muted-foreground leading-relaxed'>{mockProfile.bio}</p>
+                      <p className='text-muted-foreground leading-relaxed'>{profileData.bio}</p>
                     </CardContent>
                   </Card>
 
@@ -278,7 +429,7 @@ export default function ProfilePage() {
                     <CardContent className='space-y-4'>
                       <div className='flex items-center gap-2'>
                         <Calendar className='h-4 w-4 text-muted-foreground' />
-                        <span className='text-sm'>Se unió en {mockProfile.joinDate}</span>
+                        <span className='text-sm'>Se unió en {profileData.joinDate}</span>
                       </div>
 
                       <Separator />
@@ -294,13 +445,13 @@ export default function ProfilePage() {
                           </div>
                           <div className='text-center p-3 bg-muted/30 rounded-lg'>
                             <div className='text-2xl font-bold text-primary'>
-                              {mockProfile.videoCount}
+                              {profileData.videoCount}
                             </div>
                             <div className='text-sm text-muted-foreground'>Videos</div>
                           </div>
                           <div className='text-center p-3 bg-muted/30 rounded-lg'>
                             <div className='text-2xl font-bold text-primary'>
-                              {formatNumber(mockProfile.totalViews)}
+                              {formatNumber(profileData.totalViews)}
                             </div>
                             <div className='text-sm text-muted-foreground'>Vistas totales</div>
                           </div>

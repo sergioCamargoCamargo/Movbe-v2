@@ -26,10 +26,10 @@ export function useAsyncService<T, R>(
     try {
       setLoading(true)
       setError(null)
-      
+
       const serviceMethod = (service as Record<string, (...args: unknown[]) => Promise<R>>)[method]
       const result = await serviceMethod.apply(service, dependencies)
-      
+
       setData(result)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')

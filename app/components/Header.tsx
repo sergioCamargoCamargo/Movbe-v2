@@ -1,9 +1,9 @@
 'use client'
 
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth'
+import { signOut } from 'firebase/auth'
 import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings } from 'lucide-react'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 
 import { NavigationLink } from '@/components/NavigationLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,8 +17,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { useSidebar } from '@/contexts/SidebarContext'
 import { auth } from '@/lib/firebase'
+import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useAppSelector } from '@/lib/store/hooks'
 
 export default function Header({
   visible = true,
@@ -27,17 +28,12 @@ export default function Header({
   visible?: boolean
   onMenuClick?: () => void
 }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null)
-  const [loading, setLoading] = useState(true)
-  const { navigateTo } = useSidebar()
+  const { user, loading } = useAppSelector(state => state.auth)
+  const { navigateTo } = useNavigation()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setUser(user)
-      setLoading(false)
-    })
-
-    return unsubscribe
+    setMounted(true)
   }, [])
 
   const handleLogout = async () => {
@@ -89,8 +85,8 @@ export default function Header({
         </div>
       </div>
       <div className='flex items-center space-x-2 md:space-x-4'>
-        {loading ? (
-          // Loading state
+        {!mounted || loading ? (
+          // Loading state or initial render
           <div className='flex items-center space-x-2 md:space-x-4'>
             <Button variant='ghost' size='icon' disabled>
               <Upload className='h-6 w-6' />
@@ -131,7 +127,7 @@ export default function Header({
                   <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigateTo('/profile/123')}>
+                <DropdownMenuItem onClick={() => navigateTo(`/profile/${user.uid}`)}>
                   <User className='mr-2 h-4 w-4' />
                   Mi Perfil
                 </DropdownMenuItem>
