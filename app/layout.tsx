@@ -1,14 +1,17 @@
-import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
+import { StoreProvider } from '@/components/StoreProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 
+import './globals.css'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mobve.com'),
   title: 'MOBVE - Plataforma de Videos para Creadores',
   description:
     'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
@@ -39,11 +42,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
   openGraph: {
     type: 'website',
     locale: 'es_CO',
@@ -71,33 +69,36 @@ export const metadata: Metadata = {
     images: ['/og-image.jpg'],
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-    other: [
-      {
-        rel: 'mask-icon',
-        url: '/safari-pinned-tab.svg',
-        color: '#1a1a1a',
-      },
-    ],
+    icon: [{ url: '/favicon.ico' }],
+    //   { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    //   { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    // ],
+    // apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    // other: [
+    //   {
+    //     rel: 'mask-icon',
+    //     url: '/safari-pinned-tab.svg',
+    //     color: '#1a1a1a',
+    //   },
   },
   manifest: '/site.webmanifest',
+  category: 'entertainment',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#1a1a1a' },
   ],
-  category: 'entertainment',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es'>
       <head>
-        <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=5' />
         <link
           rel='stylesheet'
           type='text/css'
@@ -114,12 +115,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ></script>
       </head>
       <body className={`${inter.className} antialiased`}>
-        <AuthProvider>
-          <SidebarProvider>
-            {children}
-            <Toaster />
-          </SidebarProvider>
-        </AuthProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              {children}
+              <Toaster />
+            </SidebarProvider>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   )
