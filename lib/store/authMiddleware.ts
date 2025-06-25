@@ -20,6 +20,8 @@ export const createAuthMiddleware = () => {
           try {
             dispatch(refreshUserProfile(authUser))
           } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error refreshing user profile:', error)
             dispatch(setUserProfile(null))
             dispatch(setLoading(false))
           }
