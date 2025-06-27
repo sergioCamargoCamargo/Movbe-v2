@@ -102,7 +102,7 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     if (!user) return
 
-    dispatch(setSaving(true))
+    setSaving(true)
     try {
       await userService.updateUser(user.uid, {
         displayName: displayName.trim() || user.displayName || undefined,
@@ -120,7 +120,7 @@ export default function SettingsPage() {
         variant: 'destructive',
       })
     } finally {
-      dispatch(setSaving(false))
+      setSaving(false)
     }
   }
 
