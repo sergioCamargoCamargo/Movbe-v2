@@ -111,6 +111,7 @@ export class UserService implements IUserService {
           comments: true,
           likes: true,
           followers: true,
+          marketing: false,
           ...existingSettings?.notifications,
           ...settings.notifications,
         },
@@ -128,6 +129,11 @@ export class UserService implements IUserService {
           quality: 'auto',
           ...existingSettings?.display,
           ...settings.display,
+        },
+        security: {
+          twoFactor: false,
+          ...existingSettings?.security,
+          ...settings.security,
         },
       }
 

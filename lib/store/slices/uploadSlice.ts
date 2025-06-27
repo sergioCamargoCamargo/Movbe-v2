@@ -5,6 +5,7 @@ import { UploadProgress } from '@/types'
 interface UploadFormState {
   title: string
   description: string
+  category: string
   selectedFile: File | null
   uploading: boolean
   uploadProgress: UploadProgress | null
@@ -13,6 +14,7 @@ interface UploadFormState {
 const initialState: UploadFormState = {
   title: '',
   description: '',
+  category: '',
   selectedFile: null,
   uploading: false,
   uploadProgress: null,
@@ -27,6 +29,9 @@ const uploadSlice = createSlice({
     },
     setDescription: (state, action: PayloadAction<string>) => {
       state.description = action.payload
+    },
+    setCategory: (state, action: PayloadAction<string>) => {
+      state.category = action.payload
     },
     setSelectedFile: (state, action: PayloadAction<File | null>) => {
       state.selectedFile = action.payload
@@ -44,6 +49,7 @@ const uploadSlice = createSlice({
 export const {
   setTitle,
   setDescription,
+  setCategory,
   setSelectedFile,
   setUploading,
   setUploadProgress,
