@@ -32,6 +32,7 @@ const initialState: AuthState = {
   error: null,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serializeUserProfile = (profile: any): UserProfile => {
   return {
     ...profile,

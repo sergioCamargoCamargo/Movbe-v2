@@ -15,6 +15,7 @@ export interface UserSettings {
   notifications: NotificationSettings
   privacy: PrivacySettings
   display: DisplaySettings
+  security: SecuritySettings
 }
 
 export interface NotificationSettings {
@@ -24,6 +25,7 @@ export interface NotificationSettings {
   comments: boolean
   likes: boolean
   followers: boolean
+  marketing: boolean
 }
 
 export interface PrivacySettings {
@@ -37,4 +39,8 @@ export interface DisplaySettings {
   language: string
   autoplay: boolean
   quality: 'auto' | '480p' | '720p' | '1080p'
+}
+
+export interface SecuritySettings {
+  twoFactor: boolean
 }

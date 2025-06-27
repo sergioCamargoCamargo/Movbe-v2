@@ -4,6 +4,7 @@ import { auth } from '@/lib/firebase'
 
 import { setUser, setUserProfile, setLoading, refreshUserProfile } from './slices/authSlice'
 
+// eslint -disable-next-line @typescript-eslint/no-explicit-any
 type DispatchFunction = (action: any) => void
 
 export const createAuthMiddleware = () => {
@@ -33,6 +34,7 @@ export const createAuthMiddleware = () => {
 
       // Store the unsubscribe function for cleanup
       if (typeof window !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(window as any).__authUnsubscribe__ = unsubscribe
       }
     }

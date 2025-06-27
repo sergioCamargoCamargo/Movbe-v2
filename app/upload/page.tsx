@@ -26,6 +26,7 @@ import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
   setTitle,
   setDescription,
+  setCategory,
   setSelectedFile,
   setUploading,
   setUploadProgress,
@@ -58,7 +59,7 @@ const VIDEO_CATEGORIES = [
 
 export default function UploadPage() {
   const { user, userProfile } = useAppSelector(state => state.auth)
-  const { title, description, selectedFile, uploading, uploadProgress } = useAppSelector(
+  const { title, description, category, selectedFile, uploading, uploadProgress } = useAppSelector(
     state => state.upload
   )
   const dispatch = useAppDispatch()
