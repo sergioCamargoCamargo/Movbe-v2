@@ -16,11 +16,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSidebar } from '@/contexts/SidebarContext'
+import { useAppDispatch } from '@/lib/store/hooks'
+import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d')
-  const { toggleSidebar } = useSidebar()
+  const dispatch = useAppDispatch()
 
   // Datos de ejemplo para las métricas
   const metrics = {
@@ -68,7 +69,7 @@ export default function AnalyticsPage() {
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={toggleSidebar} />
+        <Header onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 p-2 sm:p-4 md:p-6 lg:p-8'>

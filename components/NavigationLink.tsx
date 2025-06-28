@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ReactNode } from 'react'
 
-import { useSidebar } from '@/contexts/SidebarContext'
+import { useNavigation } from '@/lib/hooks/useNavigation'
 
 interface NavigationLinkProps {
   href: string
@@ -13,7 +13,7 @@ interface NavigationLinkProps {
 }
 
 export function NavigationLink({ href, children, className, onClick }: NavigationLinkProps) {
-  const { navigateTo } = useSidebar()
+  const { navigateTo } = useNavigation()
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()

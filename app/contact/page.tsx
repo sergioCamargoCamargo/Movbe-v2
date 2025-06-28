@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useSidebar } from '@/contexts/SidebarContext'
 import { useToast } from '@/hooks/use-toast'
+import { useAppDispatch } from '@/lib/store/hooks'
+import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
 export default function ContactPage() {
   const [name, setName] = useState('')
@@ -28,7 +29,7 @@ export default function ContactPage() {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { toggleSidebar } = useSidebar()
+  const dispatch = useAppDispatch()
   const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +66,7 @@ export default function ContactPage() {
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={toggleSidebar} />
+        <Header onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 p-2 sm:p-4 md:p-6 lg:p-8'>
