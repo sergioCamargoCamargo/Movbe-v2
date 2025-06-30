@@ -135,7 +135,7 @@ export default function ProfilePage() {
         setVideosLoading(true)
         setVideosError(null)
         const videos = await getVideosByUser(userId)
-        setUserVideos(videos as unknown as FirestoreVideo[])
+        setUserVideos(videos)
       } catch {
         setVideosError('Error al cargar los videos')
       } finally {
