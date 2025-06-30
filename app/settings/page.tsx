@@ -32,7 +32,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
 export default function SettingsPage() {
-  const { user } = useAppSelector(state => state.auth)
+  const { user, loading: authLoading } = useAppSelector(state => state.auth)
   const dispatch = useAppDispatch()
   const router = useRouter()
   const { toast } = useToast()
@@ -52,12 +52,26 @@ export default function SettingsPage() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [isGoogleUser, setIsGoogleUser] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [hasProfileChanges, setHasProfileChanges] = useState(false)
+  const [originalNotifications, setOriginalNotifications] = useState({
+    email: true,
+    push: true,
+    marketing: false,
+    newVideos: true,
+    comments: true,
+    likes: true,
+    followers: true,
+  })
+  const [originalDisplayName, setOriginalDisplayName] = useState('')
 
   const loadUserData = useCallback(async () => {
     try {
       if (!user) return
 
-      setDisplayName(user.displayName || '')
+      const currentDisplayName = user.displayName || ''
+      setDisplayName(currentDisplayName)
+      setOriginalDisplayName(currentDisplayName)
 
       // Verificar si es usuario de Google
       const isGoogle =
@@ -69,13 +83,24 @@ export default function SettingsPage() {
       // Cargar configuraciones del usuario
       try {
         const settings = await userService.getUserSettings(user.uid)
-        setEmailNotifications(settings?.notifications?.email ?? true)
-        setPushNotifications(settings?.notifications?.push ?? true)
-        setMarketingEmails(settings?.notifications?.marketing ?? false)
-        setNewVideosNotifications(settings?.notifications?.newVideos ?? true)
-        setCommentsNotifications(settings?.notifications?.comments ?? true)
-        setLikesNotifications(settings?.notifications?.likes ?? true)
-        setFollowersNotifications(settings?.notifications?.followers ?? true)
+        const notifications = {
+          email: settings?.notifications?.email ?? true,
+          push: settings?.notifications?.push ?? true,
+          marketing: settings?.notifications?.marketing ?? false,
+          newVideos: settings?.notifications?.newVideos ?? true,
+          comments: settings?.notifications?.comments ?? true,
+          likes: settings?.notifications?.likes ?? true,
+          followers: settings?.notifications?.followers ?? true,
+        }
+
+        setEmailNotifications(notifications.email)
+        setPushNotifications(notifications.push)
+        setMarketingEmails(notifications.marketing)
+        setNewVideosNotifications(notifications.newVideos)
+        setCommentsNotifications(notifications.comments)
+        setLikesNotifications(notifications.likes)
+        setFollowersNotifications(notifications.followers)
+        setOriginalNotifications(notifications)
         setTwoFactorEnabled(settings?.security?.twoFactor ?? false)
       } catch {
         // Error loading settings - will use defaults
@@ -92,31 +117,58 @@ export default function SettingsPage() {
   }, [user, userService, toast])
 
   useEffect(() => {
+    // Don't redirect if auth is still loading
+    if (authLoading) return
+
     if (!user) {
       router.push('/auth/login')
       return
     }
     loadUserData()
-  }, [user, router, loadUserData])
+  }, [user, authLoading, router, loadUserData])
 
-  const handleSaveProfile = async () => {
+  const handleSaveAll = async () => {
     if (!user) return
 
     setSaving(true)
     try {
-      await userService.updateUser(user.uid, {
-        displayName: displayName.trim() || user.displayName || undefined,
-      })
+      // Save profile changes if any
+      if (hasProfileChanges) {
+        await userService.updateUser(user.uid, {
+          displayName: displayName.trim() || user.displayName || undefined,
+        })
+        setOriginalDisplayName(displayName.trim() || user.displayName || '')
+        setHasProfileChanges(false)
+        setIsEditing(false)
+      }
+
+      // Save notification changes if any
+      if (hasUnsavedChanges) {
+        const settings = {
+          notifications: {
+            email: emailNotifications,
+            push: pushNotifications,
+            marketing: marketingEmails,
+            newVideos: newVideosNotifications,
+            comments: commentsNotifications,
+            likes: likesNotifications,
+            followers: followersNotifications,
+          },
+        }
+
+        await userService.updateUserSettings(user.uid, settings)
+        setOriginalNotifications(settings.notifications)
+        setHasUnsavedChanges(false)
+      }
 
       toast({
-        title: 'Perfil actualizado',
-        description: 'Los cambios se han guardado correctamente',
+        title: 'Cambios guardados',
+        description: 'Todos los cambios se han guardado correctamente',
       })
-      setIsEditing(false)
     } catch {
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar el perfil',
+        description: 'No se pudieron guardar los cambios',
         variant: 'destructive',
       })
     } finally {
@@ -124,44 +176,41 @@ export default function SettingsPage() {
     }
   }
 
-  const handleNotificationChange = async (type: string, value: boolean) => {
-    if (!user) return
-
-    try {
-      const settings = {
-        notifications: {
-          email: type === 'email' ? value : emailNotifications,
-          push: type === 'push' ? value : pushNotifications,
-          marketing: type === 'marketing' ? value : marketingEmails,
-          newVideos: type === 'newVideos' ? value : newVideosNotifications,
-          comments: type === 'comments' ? value : commentsNotifications,
-          likes: type === 'likes' ? value : likesNotifications,
-          followers: type === 'followers' ? value : followersNotifications,
-        },
-      }
-
-      await userService.updateUserSettings(user.uid, settings)
-
-      if (type === 'email') setEmailNotifications(value)
-      if (type === 'push') setPushNotifications(value)
-      if (type === 'marketing') setMarketingEmails(value)
-      if (type === 'newVideos') setNewVideosNotifications(value)
-      if (type === 'comments') setCommentsNotifications(value)
-      if (type === 'likes') setLikesNotifications(value)
-      if (type === 'followers') setFollowersNotifications(value)
-
-      toast({
-        title: 'Configuración actualizada',
-        description: 'Las preferencias de notificación se han guardado',
-      })
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar la configuración',
-        variant: 'destructive',
-      })
-    }
+  const handleDisplayNameChange = (value: string) => {
+    setDisplayName(value)
+    setHasProfileChanges(value.trim() !== originalDisplayName)
   }
+
+  const handleNotificationChange = (type: string, value: boolean) => {
+    if (type === 'email') setEmailNotifications(value)
+    if (type === 'push') setPushNotifications(value)
+    if (type === 'marketing') setMarketingEmails(value)
+    if (type === 'newVideos') setNewVideosNotifications(value)
+    if (type === 'comments') setCommentsNotifications(value)
+    if (type === 'likes') setLikesNotifications(value)
+    if (type === 'followers') setFollowersNotifications(value)
+
+    setHasUnsavedChanges(true)
+  }
+
+  const handleCancelChanges = () => {
+    // Reset profile changes
+    setDisplayName(originalDisplayName)
+    setHasProfileChanges(false)
+    setIsEditing(false)
+
+    // Reset notification changes
+    setEmailNotifications(originalNotifications.email)
+    setPushNotifications(originalNotifications.push)
+    setMarketingEmails(originalNotifications.marketing)
+    setNewVideosNotifications(originalNotifications.newVideos)
+    setCommentsNotifications(originalNotifications.comments)
+    setLikesNotifications(originalNotifications.likes)
+    setFollowersNotifications(originalNotifications.followers)
+    setHasUnsavedChanges(false)
+  }
+
+  const hasAnyChanges = hasUnsavedChanges || hasProfileChanges
 
   const handleDeleteAccount = async () => {
     if (!user) return
@@ -182,7 +231,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className='flex flex-col h-screen'>
         <Header onMenuClick={() => dispatch(toggleSidebar())} />
@@ -259,7 +308,7 @@ export default function SettingsPage() {
                           <Input
                             id='displayName'
                             value={displayName}
-                            onChange={e => setDisplayName(e.target.value)}
+                            onChange={e => handleDisplayNameChange(e.target.value)}
                             disabled={!isEditing}
                             placeholder='Tu nombre de usuario'
                           />
@@ -268,26 +317,17 @@ export default function SettingsPage() {
                               <Edit className='h-4 w-4' />
                             </Button>
                           ) : (
-                            <div className='flex gap-1'>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={handleSaveProfile}
-                                disabled={saving}
-                              >
-                                <Save className='h-4 w-4' />
-                              </Button>
-                              <Button
-                                variant='outline'
-                                size='sm'
-                                onClick={() => {
-                                  setIsEditing(false)
-                                  setDisplayName(user.displayName || '')
-                                }}
-                              >
-                                <X className='h-4 w-4' />
-                              </Button>
-                            </div>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => {
+                                setIsEditing(false)
+                                setDisplayName(originalDisplayName)
+                                setHasProfileChanges(false)
+                              }}
+                            >
+                              <X className='h-4 w-4' />
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -521,6 +561,25 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Botón de guardar fijo */}
+              <div className='sticky bottom-0 bg-background/80 backdrop-blur-sm border-t p-4 -mx-6'>
+                <div className='max-w-4xl mx-auto flex justify-end gap-2'>
+                  {hasAnyChanges && (
+                    <Button variant='outline' onClick={handleCancelChanges} disabled={saving}>
+                      Cancelar cambios
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleSaveAll}
+                    disabled={!hasAnyChanges || saving}
+                    className='min-w-[140px]'
+                  >
+                    <Save className='h-4 w-4 mr-2' />
+                    {saving ? 'Guardando...' : 'Guardar cambios'}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

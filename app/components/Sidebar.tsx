@@ -18,7 +18,6 @@ import { useEffect, useState } from 'react'
 import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
 import {
   closeSidebar,
@@ -32,7 +31,6 @@ export default function Sidebar() {
   const [isAnimating, setIsAnimating] = useState(false)
   const { isOpen, isNavigating } = useAppSelector(state => state.sidebar)
   const dispatch = useAppDispatch()
-  const { navigateTo } = useNavigation()
   const pathname = usePathname()
 
   const onClose = () => dispatch(closeSidebar())
@@ -82,41 +80,57 @@ export default function Sidebar() {
           Subir Video
         </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <Flame className='mr-2 h-4 w-4' />
-        Tendencias
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/trending'>
+          <Flame className='mr-2 h-4 w-4' />
+          Tendencias
+        </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <ShoppingBag className='mr-2 h-4 w-4' />
-        Suscripciones
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/subscriptions'>
+          <ShoppingBag className='mr-2 h-4 w-4' />
+          Suscripciones
+        </NavigationLink>
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Categorías</h3>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <Tv className='mr-2 h-4 w-4' />
-        Noticias
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/category/news'>
+          <Tv className='mr-2 h-4 w-4' />
+          Noticias
+        </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <Music className='mr-2 h-4 w-4' />
-        Música
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/category/music'>
+          <Music className='mr-2 h-4 w-4' />
+          Música
+        </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <SmilePlus className='mr-2 h-4 w-4' />
-        Videos de risa
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/category/comedy'>
+          <SmilePlus className='mr-2 h-4 w-4' />
+          Videos de risa
+        </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <Gamepad2 className='mr-2 h-4 w-4' />
-        Videojuegos
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/category/gaming'>
+          <Gamepad2 className='mr-2 h-4 w-4' />
+          Videojuegos
+        </NavigationLink>
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Biblioteca</h3>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <Clock className='mr-2 h-4 w-4' />
-        Historial
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/history'>
+          <Clock className='mr-2 h-4 w-4' />
+          Historial
+        </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' onClick={() => navigateTo('/')}>
-        <ThumbsUp className='mr-2 h-4 w-4' />
-        Videos que me gustan
+      <Button variant='ghost' className='w-full justify-start' asChild>
+        <NavigationLink href='/liked'>
+          <ThumbsUp className='mr-2 h-4 w-4' />
+          Videos que me gustan
+        </NavigationLink>
       </Button>
       <hr className='my-4' />
       <Button variant='ghost' className='w-full justify-start' asChild>

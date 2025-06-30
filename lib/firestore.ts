@@ -1,3 +1,4 @@
+import { User } from 'firebase/auth'
 import {
   getFirestore,
   doc,
@@ -12,7 +13,12 @@ import {
   getDocs,
   serverTimestamp,
   increment,
+  DocumentData,
+  QueryDocumentSnapshot,
+  FieldValue,
 } from 'firebase/firestore'
+
+import { UserProfile } from '@/types/user'
 
 import app from './firebase'
 
@@ -20,7 +26,7 @@ const db = getFirestore(app)
 
 // ========== COLECCIÓN USERS ==========
 
-export const createOrUpdateUser = async user => {
+export const createOrUpdateUser = async (user: User): Promise<UserProfile | null> => {
   if (!user?.uid) return null
 
   try {
@@ -37,10 +43,10 @@ export const createOrUpdateUser = async user => {
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
       })
-      return userSnap.data()
+      return userSnap.data() as UserProfile
     } else {
       // Usuario nuevo, crear documento completo
-      const userData = {
+      const userData: UserProfile = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName || null,
@@ -48,8 +54,8 @@ export const createOrUpdateUser = async user => {
         role: 'normal',
         ageVerified: false,
         dateOfBirth: null,
-        createdAt: now,
-        lastLoginAt: now,
+        createdAt: now.toISOString(),
+        lastLoginAt: now.toISOString(),
         // Estadísticas
         subscriberCount: 0,
         videoCount: 0,
@@ -64,13 +70,13 @@ export const createOrUpdateUser = async user => {
   }
 }
 
-export const getUserById = async uid => {
+export const getUserById = async (uid: string): Promise<UserProfile | null> => {
   try {
     const userRef = doc(db, 'users', uid)
     const userSnap = await getDoc(userRef)
 
     if (userSnap.exists()) {
-      return userSnap.data()
+      return userSnap.data() as UserProfile
     }
     return null
   } catch (error) {
@@ -78,7 +84,10 @@ export const getUserById = async uid => {
   }
 }
 
-export const updateUserProfile = async (uid, updates) => {
+export const updateUserProfile = async (
+  uid: string,
+  updates: Partial<UserProfile>
+): Promise<boolean> => {
   try {
     const userRef = doc(db, 'users', uid)
     await updateDoc(userRef, updates)
@@ -90,7 +99,34 @@ export const updateUserProfile = async (uid, updates) => {
 
 // ========== COLECCIÓN VIDEOS ==========
 
-export const createVideo = async videoData => {
+export interface VideoData {
+  title: string
+  description: string
+  uploaderId: string
+  uploaderName: string
+  videoURLs: {
+    original: string
+  }
+  thumbnailURL: string
+  duration: number
+  category: string
+  tags: string[]
+  language: string
+  status: 'published' | 'processing' | 'draft'
+  visibility: 'public' | 'private' | 'unlisted'
+}
+
+export interface Video extends VideoData {
+  id: string
+  viewCount: number
+  likeCount: number
+  dislikeCount: number
+  commentCount: number
+  uploadDate: any
+  publishedAt: any
+}
+
+export const createVideo = async (videoData: VideoData): Promise<Video> => {
   try {
     const videosRef = collection(db, 'videos')
 
@@ -134,22 +170,22 @@ export const createVideo = async videoData => {
       videoCount: increment(1),
     })
 
-    return { id: docRef.id, ...video }
+    return { id: docRef.id, ...video } as Video
   } catch (error) {
     throw error
   }
 }
 
-export const getVideosByUser = async (uploaderId, _limit = 20) => {
+export const getVideosByUser = async (uploaderId: string, _limit = 20): Promise<Video[]> => {
   try {
     const videosRef = collection(db, 'videos')
     const q = query(videosRef, where('uploaderId', '==', uploaderId), orderBy('uploadDate', 'desc'))
 
     const querySnapshot = await getDocs(q)
-    const videos = []
+    const videos: Video[] = []
 
-    querySnapshot.forEach(doc => {
-      videos.push({ id: doc.id, ...doc.data() })
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      videos.push({ id: doc.id, ...doc.data() } as Video)
     })
 
     return videos
@@ -158,7 +194,7 @@ export const getVideosByUser = async (uploaderId, _limit = 20) => {
   }
 }
 
-export const getPublicVideos = async (_limit = 20) => {
+export const getPublicVideos = async (_limit = 20): Promise<Video[]> => {
   try {
     const videosRef = collection(db, 'videos')
     const q = query(
@@ -169,10 +205,10 @@ export const getPublicVideos = async (_limit = 20) => {
     )
 
     const querySnapshot = await getDocs(q)
-    const videos = []
+    const videos: Video[] = []
 
-    querySnapshot.forEach(doc => {
-      videos.push({ id: doc.id, ...doc.data() })
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      videos.push({ id: doc.id, ...doc.data() } as Video)
     })
 
     return videos
@@ -181,13 +217,13 @@ export const getPublicVideos = async (_limit = 20) => {
   }
 }
 
-export const getVideoById = async videoId => {
+export const getVideoById = async (videoId: string): Promise<Video | null> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const videoSnap = await getDoc(videoRef)
 
     if (videoSnap.exists()) {
-      return { id: videoSnap.id, ...videoSnap.data() }
+      return { id: videoSnap.id, ...videoSnap.data() } as Video
     }
     return null
   } catch (error) {
@@ -195,23 +231,30 @@ export const getVideoById = async videoId => {
   }
 }
 
-export const updateVideo = async (videoId, updates) => {
+export const updateVideo = async (
+  videoId: string,
+  updates: Partial<VideoData> & { publishedAt?: FieldValue; thumbnailURL?: string }
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
 
     // Si se está publicando el video, actualizar publishedAt
-    if (updates.status === 'published' && !updates.publishedAt) {
-      updates.publishedAt = serverTimestamp()
+    const updatesWithTimestamp = { ...updates }
+    if (updates.status === 'published' && !updatesWithTimestamp.publishedAt) {
+      updatesWithTimestamp.publishedAt = serverTimestamp()
     }
 
-    await updateDoc(videoRef, updates)
+    await updateDoc(videoRef, updatesWithTimestamp)
     return true
   } catch (error) {
     throw error
   }
 }
 
-export const incrementVideoViews = async (videoId, uploaderId) => {
+export const incrementVideoViews = async (
+  videoId: string,
+  uploaderId: string
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const userRef = doc(db, 'users', uploaderId)
@@ -232,7 +275,11 @@ export const incrementVideoViews = async (videoId, uploaderId) => {
   }
 }
 
-export const toggleVideoLike = async (videoId, userId, isLike = true) => {
+export const toggleVideoLike = async (
+  videoId: string,
+  userId: string,
+  isLike = true
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
 
@@ -254,7 +301,7 @@ export const toggleVideoLike = async (videoId, userId, isLike = true) => {
 
 // ========== UTILIDADES ==========
 
-export const deleteVideo = async (videoId, uploaderId) => {
+export const deleteVideo = async (videoId: string, uploaderId: string): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const userRef = doc(db, 'users', uploaderId)
@@ -273,7 +320,7 @@ export const deleteVideo = async (videoId, uploaderId) => {
   }
 }
 
-export const searchVideos = async (searchTerm, limit = 20) => {
+export const searchVideos = async (searchTerm: string, limit = 20): Promise<Video[]> => {
   try {
     const videosRef = collection(db, 'videos')
     const q = query(
@@ -284,17 +331,17 @@ export const searchVideos = async (searchTerm, limit = 20) => {
     )
 
     const querySnapshot = await getDocs(q)
-    const videos = []
+    const videos: Video[] = []
 
-    querySnapshot.forEach(doc => {
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
       const data = doc.data()
       // Búsqueda simple en título y descripción
       if (
         data.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        data.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        data.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       ) {
-        videos.push({ id: doc.id, ...data })
+        videos.push({ id: doc.id, ...data } as Video)
       }
     })
 

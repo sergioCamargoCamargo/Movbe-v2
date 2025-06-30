@@ -8,6 +8,21 @@ export interface User {
   updatedAt: Date
 }
 
+export interface UserProfile {
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+  role: string
+  ageVerified: boolean
+  dateOfBirth: string | null
+  createdAt: string
+  lastLoginAt: string
+  subscriberCount: number
+  videoCount: number
+  totalViews: number
+}
+
 export type UserType = 'normal' | 'creator' | 'business' | 'admin'
 
 export interface UserSettings {

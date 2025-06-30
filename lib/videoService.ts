@@ -19,7 +19,7 @@ export interface VideoUploadData {
   userName: string
   category?: string
   tags?: string[]
-  visibility?: 'public' | 'private' | 'unlisted'
+  visibility?: 'public' | 'private'
 }
 
 export interface UploadProgress {
@@ -77,8 +77,10 @@ export const uploadVideo = async (
             videoURLs: {
               original: downloadURL,
             },
+            thumbnailURL: '',
             category: category || 'general',
             tags: tags || [],
+            language: 'es',
             visibility: visibility || 'public',
             status: 'published',
             duration: 0, // Se puede calcular después si es necesario

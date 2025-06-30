@@ -2,21 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { User } from 'firebase/auth'
 
 import { createOrUpdateUser } from '@/lib/firestore'
-
-export interface UserProfile {
-  uid: string
-  email: string | null
-  displayName: string | null
-  photoURL: string | null
-  role: string
-  ageVerified: boolean
-  dateOfBirth: Date | null
-  createdAt: Date
-  lastLoginAt: Date
-  subscriberCount: number
-  videoCount: number
-  totalViews: number
-}
+import { UserProfile } from '@/types/user'
 
 interface AuthState {
   user: User | null
@@ -32,13 +18,27 @@ const initialState: AuthState = {
   error: null,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serializeUserProfile = (profile: any): UserProfile => {
+  const toISOString = (timestamp: any) => {
+    if (!timestamp) return timestamp
+    if (timestamp.toDate) return timestamp.toDate().toISOString()
+    if (timestamp instanceof Date) return timestamp.toISOString()
+    return timestamp
+  }
+
   return {
-    ...profile,
-    createdAt: profile.createdAt?.toDate ? profile.createdAt.toDate() : profile.createdAt,
-    lastLoginAt: profile.lastLoginAt?.toDate ? profile.lastLoginAt.toDate() : profile.lastLoginAt,
-    dateOfBirth: profile.dateOfBirth?.toDate ? profile.dateOfBirth.toDate() : profile.dateOfBirth,
+    uid: profile.uid,
+    email: profile.email,
+    displayName: profile.displayName,
+    photoURL: profile.photoURL,
+    role: profile.role,
+    ageVerified: profile.ageVerified,
+    dateOfBirth: toISOString(profile.dateOfBirth),
+    createdAt: toISOString(profile.createdAt),
+    lastLoginAt: toISOString(profile.lastLoginAt),
+    subscriberCount: profile.subscriberCount,
+    videoCount: profile.videoCount,
+    totalViews: profile.totalViews,
   }
 }
 
@@ -61,7 +61,7 @@ const authSlice = createSlice({
       }
     },
     setUserProfile: (state, action: PayloadAction<UserProfile | null>) => {
-      state.userProfile = action.payload ? serializeUserProfile(action.payload) : null
+      state.userProfile = action.payload
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload

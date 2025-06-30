@@ -4,21 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { createOrUpdateUser } from '@/lib/firestore'
-
-interface UserProfile {
-  uid: string
-  email: string | null
-  displayName: string | null
-  photoURL: string | null
-  role: string
-  ageVerified: boolean
-  dateOfBirth: Date | null
-  createdAt: Date
-  lastLoginAt: Date
-  subscriberCount: number
-  videoCount: number
-  totalViews: number
-}
+import { UserProfile } from '@/types/user'
 
 interface AuthContextType {
   user: User | null
