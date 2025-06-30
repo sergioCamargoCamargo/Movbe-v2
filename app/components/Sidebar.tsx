@@ -35,6 +35,18 @@ export default function Sidebar() {
 
   const onClose = () => dispatch(closeSidebar())
 
+  // Routes that are not available yet
+  const unavailableRoutes = [
+    '/trending',
+    '/subscriptions', 
+    '/category/news',
+    '/category/music',
+    '/category/comedy',
+    '/category/gaming',
+    '/history',
+    '/liked'
+  ]
+
   // Handle route changes - reset navigation state and close sidebar
   useEffect(() => {
     dispatch(setNavigating(true))
@@ -80,57 +92,73 @@ export default function Sidebar() {
           Subir Video
         </NavigationLink>
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/trending'>
-          <Flame className='mr-2 h-4 w-4' />
-          Tendencias
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <Flame className='mr-2 h-4 w-4' />
+        Tendencias
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/subscriptions'>
-          <ShoppingBag className='mr-2 h-4 w-4' />
-          Suscripciones
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <ShoppingBag className='mr-2 h-4 w-4' />
+        Suscripciones
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Categorías</h3>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/category/news'>
-          <Tv className='mr-2 h-4 w-4' />
-          Noticias
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <Tv className='mr-2 h-4 w-4' />
+        Noticias
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/category/music'>
-          <Music className='mr-2 h-4 w-4' />
-          Música
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <Music className='mr-2 h-4 w-4' />
+        Música
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/category/comedy'>
-          <SmilePlus className='mr-2 h-4 w-4' />
-          Videos de risa
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <SmilePlus className='mr-2 h-4 w-4' />
+        Videos de risa
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/category/gaming'>
-          <Gamepad2 className='mr-2 h-4 w-4' />
-          Videojuegos
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <Gamepad2 className='mr-2 h-4 w-4' />
+        Videojuegos
       </Button>
       <hr className='my-4' />
       <h3 className='mb-2 px-4 text-lg font-semibold tracking-tight'>Biblioteca</h3>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/history'>
-          <Clock className='mr-2 h-4 w-4' />
-          Historial
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <Clock className='mr-2 h-4 w-4' />
+        Historial
       </Button>
-      <Button variant='ghost' className='w-full justify-start' asChild>
-        <NavigationLink href='/liked'>
-          <ThumbsUp className='mr-2 h-4 w-4' />
-          Videos que me gustan
-        </NavigationLink>
+      <Button 
+        variant='ghost' 
+        className='w-full justify-start opacity-50 cursor-not-allowed' 
+        disabled
+      >
+        <ThumbsUp className='mr-2 h-4 w-4' />
+        Videos que me gustan
       </Button>
       <hr className='my-4' />
       <Button variant='ghost' className='w-full justify-start' asChild>
