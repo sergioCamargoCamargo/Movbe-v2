@@ -61,7 +61,6 @@ export default function MainContent() {
     fetchVideos()
   }, [])
 
-
   return (
     <ScrollArea className='flex-1'>
       <div className='p-2 md:p-4'>
@@ -125,7 +124,10 @@ export default function MainContent() {
                 <NavigationLink href={`/watch/${video.id}`} className='space-y-2 block'>
                   <div className='aspect-video bg-muted rounded-lg overflow-hidden relative group'>
                     <Image
-                      src={video.thumbnailURL || `/placeholder.svg?text=${encodeURIComponent(video.title)}`}
+                      src={
+                        video.thumbnailURL ||
+                        `/placeholder.svg?text=${encodeURIComponent(video.title)}`
+                      }
                       alt={video.title}
                       width={320}
                       height={180}
@@ -135,17 +137,17 @@ export default function MainContent() {
                       <span className='text-white text-lg font-bold'>Ver video</span>
                     </div>
                   </div>
-                  <h3 className='font-semibold text-sm md:text-base line-clamp-2'>
-                    {video.title}
-                  </h3>
+                  <h3 className='font-semibold text-sm md:text-base line-clamp-2'>{video.title}</h3>
                   <p className='text-xs md:text-sm text-muted-foreground'>{video.uploaderName}</p>
                   <p className='text-xs text-muted-foreground'>
-                    {video.viewCount?.toLocaleString() || 0} vistas • {' '}
-                    {video.uploadDate ? new Date(video.uploadDate.seconds * 1000).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    }) : 'Fecha desconocida'}
+                    {video.viewCount?.toLocaleString() || 0} vistas •{' '}
+                    {video.uploadDate
+                      ? new Date(video.uploadDate.seconds * 1000).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })
+                      : 'Fecha desconocida'}
                   </p>
                 </NavigationLink>
               </div>

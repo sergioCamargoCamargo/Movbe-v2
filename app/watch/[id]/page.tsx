@@ -10,7 +10,19 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
-import { getVideoById, toggleVideoLike, incrementVideoViews, getPublicVideos, subscribeToChannel, unsubscribeFromChannel, checkSubscription } from '@/lib/firestore'
+import {
+  getVideoById,
+  toggleVideoLike,
+  incrementVideoViews,
+  getPublicVideos,
+  subscribeToChannel,
+  unsubscribeFromChannel,
+  checkSubscription,
+  addComment,
+  getCommentsByVideoId,
+  toggleCommentLike,
+  getUserVideoLikeStatus,
+} from '@/lib/firestore'
 
 import Header from '../../components/Header'
 
@@ -37,10 +49,13 @@ interface Video {
 }
 
 interface Comment {
-  id: number
-  user: string
+  id: string
+  userId: string
+  userName: string
   text: string
-  likes: number
+  likeCount: number
+  createdAt: Date
+  replies: Comment[]
 }
 
 export default function WatchPage() {
@@ -53,13 +68,10 @@ export default function WatchPage() {
   const [showHeader, setShowHeader] = useState(true)
   const [userLiked, setUserLiked] = useState(false)
   const [userDisliked, setUserDisliked] = useState(false)
-  const [comments, setComments] = useState<Comment[]>([
-    { id: 1, user: 'Usuario Demo', text: 'Excelente video! Me gustó mucho el contenido.', likes: 12 },
-    { id: 2, user: 'Ana García', text: '¡Muy informativo! Esperando la siguiente parte.', likes: 8 },
-    { id: 3, user: 'Carlos Ruiz', text: 'Gran trabajo, sigue así.', likes: 5 }
-  ])
+  const [comments, setComments] = useState<Comment[]>([])
+  const [loadingComments] = useState(false)
   const [newComment, setNewComment] = useState('')
-  const [showComments, setShowComments] = useState(false)
+  const [showComments, setShowComments] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [subscribing, setSubscribing] = useState(false)
   const lastScrollTop = useRef(0)
@@ -71,22 +83,29 @@ export default function WatchPage() {
       if (!id || typeof id !== 'string') {
         return
       }
-      
+
       try {
         setLoading(true)
         const videoData = await getVideoById(id)
-        
+
         if (videoData) {
           setVideo(videoData)
           // Incrementar vistas
           await incrementVideoViews(id, videoData.uploaderId)
-          
+
           // Verificar suscripción si el usuario está logueado y no es su propio video
           if (user && user.uid !== videoData.uploaderId) {
             const subscribed = await checkSubscription(user.uid, videoData.uploaderId)
             setIsSubscribed(subscribed)
           }
-          
+
+          // Obtener estado de likes del usuario
+          if (user) {
+            const likeStatus = await getUserVideoLikeStatus(id, user.uid)
+            setUserLiked(likeStatus.liked)
+            setUserDisliked(likeStatus.disliked)
+          }
+
           // Cargar videos recomendados
           const recommended = await getPublicVideos(10)
           setRecommendedVideos(recommended.filter(v => v.id !== id))
@@ -100,6 +119,22 @@ export default function WatchPage() {
 
     fetchVideo()
   }, [id, user])
+
+  // Efecto adicional para cargar comentarios
+  useEffect(() => {
+    const loadComments = async () => {
+      if (!id || typeof id !== 'string') return
+
+      try {
+        const videoComments = await getCommentsByVideoId(id)
+        setComments(videoComments)
+      } catch {
+        setComments([])
+      }
+    }
+
+    loadComments()
+  }, [id])
 
   useEffect(() => {
     const carousel = carouselRef.current
@@ -146,82 +181,122 @@ export default function WatchPage() {
     if (!user || !video) {
       return
     }
-    
+
     try {
-      
-      if (userDisliked) {
-        setUserDisliked(false)
-        setVideo(prev => prev ? { ...prev, dislikeCount: Math.max(0, prev.dislikeCount - 1) } : null)
-      }
-      
-      if (!userLiked) {
-        await toggleVideoLike(video.id, user.uid, true)
-        setVideo(prev => prev ? { ...prev, likeCount: prev.likeCount + 1 } : null)
+      const result = await toggleVideoLike(video.id, user.uid, true)
+
+      if (result.action === 'added') {
         setUserLiked(true)
-      } else {
-        // Toggle off like
-        setVideo(prev => prev ? { ...prev, likeCount: Math.max(0, prev.likeCount - 1) } : null)
+        setUserDisliked(false)
+        setVideo(prev => (prev ? { ...prev, likeCount: prev.likeCount + 1 } : null))
+      } else if (result.action === 'removed') {
         setUserLiked(false)
+        setVideo(prev => (prev ? { ...prev, likeCount: Math.max(0, prev.likeCount - 1) } : null))
+      } else if (result.action === 'changed') {
+        setUserLiked(true)
+        setUserDisliked(false)
+        setVideo(prev =>
+          prev
+            ? {
+                ...prev,
+                likeCount: prev.likeCount + 1,
+                dislikeCount: Math.max(0, prev.dislikeCount - 1),
+              }
+            : null
+        )
       }
-    } catch {
-    }
+    } catch {}
   }
 
   const handleDislike = async () => {
     if (!user || !video) {
       return
     }
-    
+
     try {
-      
-      if (userLiked) {
-        setUserLiked(false)
-        setVideo(prev => prev ? { ...prev, likeCount: Math.max(0, prev.likeCount - 1) } : null)
-      }
-      
-      if (!userDisliked) {
-        await toggleVideoLike(video.id, user.uid, false)
-        setVideo(prev => prev ? { ...prev, dislikeCount: prev.dislikeCount + 1 } : null)
+      const result = await toggleVideoLike(video.id, user.uid, false)
+
+      if (result.action === 'added') {
         setUserDisliked(true)
-      } else {
-        // Toggle off dislike
-        setVideo(prev => prev ? { ...prev, dislikeCount: Math.max(0, prev.dislikeCount - 1) } : null)
+        setUserLiked(false)
+        setVideo(prev => (prev ? { ...prev, dislikeCount: prev.dislikeCount + 1 } : null))
+      } else if (result.action === 'removed') {
         setUserDisliked(false)
+        setVideo(prev =>
+          prev ? { ...prev, dislikeCount: Math.max(0, prev.dislikeCount - 1) } : null
+        )
+      } else if (result.action === 'changed') {
+        setUserDisliked(true)
+        setUserLiked(false)
+        setVideo(prev =>
+          prev
+            ? {
+                ...prev,
+                dislikeCount: prev.dislikeCount + 1,
+                likeCount: Math.max(0, prev.likeCount - 1),
+              }
+            : null
+        )
       }
-    } catch {
-    }
+    } catch {}
   }
 
-  const handleCommentLike = (commentId: number) => {
-    setComments(prev =>
-      prev.map(comment => (comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment))
-    )
+  const handleCommentLike = async (commentId: string) => {
+    if (!user) return
+
+    try {
+      const isLiked = await toggleCommentLike(commentId, user.uid)
+
+      setComments(prev =>
+        prev.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              likeCount: isLiked ? comment.likeCount + 1 : Math.max(0, comment.likeCount - 1),
+            }
+          }
+          return comment
+        })
+      )
+    } catch {}
   }
 
-  const handleAddComment = () => {
-    if (!newComment.trim() || !user) return
-    
-    const comment = {
-      id: Date.now(),
-      user: user.displayName || user.email || 'Usuario',
-      text: newComment.trim(),
-      likes: 0
-    }
-    
-    setComments(prev => [comment, ...prev])
-    setNewComment('')
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !user || !video) return
+
+    try {
+      const userName = user.displayName || user.email || 'Usuario'
+      const comment = await addComment(video.id, user.uid, userName, newComment.trim())
+
+      // Agregar el comentario al estado local
+      const newCommentData: Comment = {
+        id: comment.id,
+        userId: user.uid,
+        userName,
+        text: newComment.trim(),
+        likeCount: 0,
+        createdAt: new Date(),
+        replies: [],
+      }
+
+      setComments(prev => [newCommentData, ...prev])
+      setNewComment('')
+
+      // Actualizar contador de comentarios en el video
+      setVideo(prev => (prev ? { ...prev, commentCount: prev.commentCount + 1 } : null))
+    } catch {}
   }
 
   const handleSubscribe = async () => {
     if (!user || !video || subscribing) return
-    
+
     if (user.uid === video.uploaderId) {
       return
     }
-    
+
     try {
       setSubscribing(true)
-      
+
       if (isSubscribed) {
         await unsubscribeFromChannel(user.uid, video.uploaderId)
         setIsSubscribed(false)
@@ -307,7 +382,9 @@ export default function WatchPage() {
                 </video>
               ) : (
                 <Image
-                  src={video.thumbnailURL || `/placeholder.svg?text=${encodeURIComponent(video.title)}`}
+                  src={
+                    video.thumbnailURL || `/placeholder.svg?text=${encodeURIComponent(video.title)}`
+                  }
                   alt={video.title}
                   layout='fill'
                   objectFit='contain'
@@ -321,21 +398,22 @@ export default function WatchPage() {
               >
                 <h3 className='font-bold mb-2'>Videos recomendados</h3>
                 <Slider {...sliderSettings} className='carousel-3d'>
-                  {recommendedVideos.map((recVideo) => (
+                  {recommendedVideos.map(recVideo => (
                     <div key={recVideo.id} className='px-2 carousel-item'>
                       <a href={`/watch/${recVideo.id}`} className='block'>
                         <div className='aspect-video bg-muted rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-110 hover:z-10'>
                           <Image
-                            src={recVideo.thumbnailURL || `/placeholder.svg?text=${encodeURIComponent(recVideo.title.substring(0, 20))}`}
+                            src={
+                              recVideo.thumbnailURL ||
+                              `/placeholder.svg?text=${encodeURIComponent(recVideo.title.substring(0, 20))}`
+                            }
                             alt={recVideo.title}
                             width={320}
                             height={180}
                             className='object-cover'
                           />
                         </div>
-                        <p className='text-sm font-semibold truncate mt-1'>
-                          {recVideo.title}
-                        </p>
+                        <p className='text-sm font-semibold truncate mt-1'>{recVideo.title}</p>
                         <p className='text-xs text-muted-foreground'>{recVideo.uploaderName}</p>
                       </a>
                     </div>
@@ -360,8 +438,8 @@ export default function WatchPage() {
                   <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
                 </div>
                 {user && user.uid !== video.uploaderId && (
-                  <Button 
-                    size='sm' 
+                  <Button
+                    size='sm'
                     className='sm:size-default'
                     variant={isSubscribed ? 'secondary' : 'default'}
                     onClick={handleSubscribe}
@@ -411,11 +489,11 @@ export default function WatchPage() {
             </div>
             <div className='bg-muted p-3 sm:p-4 rounded-lg'>
               <p className='text-xs sm:text-sm'>
-                {video.viewCount.toLocaleString()} visualizaciones • {' '}
+                {video.viewCount.toLocaleString()} visualizaciones •{' '}
                 {new Date(video.uploadDate.seconds * 1000).toLocaleDateString('es-ES', {
                   year: 'numeric',
                   month: 'long',
-                  day: 'numeric'
+                  day: 'numeric',
                 })}
               </p>
               <p className='mt-2 text-sm sm:text-base'>
@@ -424,18 +502,18 @@ export default function WatchPage() {
             </div>
             <div className='space-y-4'>
               <div className='flex items-center justify-between'>
-                <h2 className='text-lg sm:text-xl font-bold'>
-                  Comentarios ({comments.length})
-                </h2>
+                <h2 className='text-lg sm:text-xl font-bold'>Comentarios ({comments.length})</h2>
                 <Button
                   variant='outline'
                   size='sm'
-                  onClick={() => setShowComments(!showComments)}
+                  onClick={() => {
+                    setShowComments(!showComments)
+                  }}
                 >
                   {showComments ? 'Ocultar' : 'Mostrar'} comentarios
                 </Button>
               </div>
-              
+
               {showComments && user && (
                 <div className='flex space-x-2 sm:space-x-4'>
                   <Image
@@ -449,22 +527,14 @@ export default function WatchPage() {
                     <Textarea
                       placeholder='Agrega un comentario...'
                       value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
+                      onChange={e => setNewComment(e.target.value)}
                       className='min-h-[80px]'
                     />
                     <div className='flex justify-end space-x-2'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => setNewComment('')}
-                      >
+                      <Button variant='ghost' size='sm' onClick={() => setNewComment('')}>
                         Cancelar
                       </Button>
-                      <Button
-                        size='sm'
-                        onClick={handleAddComment}
-                        disabled={!newComment.trim()}
-                      >
+                      <Button size='sm' onClick={handleAddComment} disabled={!newComment.trim()}>
                         <Send className='mr-2 h-4 w-4' />
                         Comentar
                       </Button>
@@ -472,46 +542,89 @@ export default function WatchPage() {
                   </div>
                 </div>
               )}
-              
+
               {!showComments && (
                 <div className='text-center p-4 bg-muted rounded-lg'>
                   <p className='text-muted-foreground'>
-                    Haz clic en &quot;Mostrar comentarios&quot; para ver los {comments.length} comentarios
+                    Haz clic en &quot;Mostrar comentarios&quot; para ver los {comments.length}{' '}
+                    comentarios
                   </p>
                 </div>
               )}
-              
-              {showComments && comments.map(comment => (
-                <div key={comment.id} className='flex space-x-2 sm:space-x-4'>
-                  <Image
-                    src='/placeholder.svg?text=User'
-                    alt='Avatar del usuario'
-                    width={40}
-                    height={40}
-                    className='rounded-full'
-                  />
-                  <div className='flex-1'>
-                    <p className='font-semibold text-sm sm:text-base'>{comment.user}</p>
-                    <p className='text-xs sm:text-sm'>{comment.text}</p>
-                    <div className='flex items-center space-x-1 sm:space-x-2 mt-1'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => handleCommentLike(comment.id)}
-                        disabled={!user}
-                      >
-                        <ThumbsUp className='h-3 w-3 sm:h-4 sm:w-4 mr-1' /> {comment.likes}
-                      </Button>
-                      <Button variant='ghost' size='sm' disabled={!user}>
-                        <ThumbsDown className='h-3 w-3 sm:h-4 sm:w-4' />
-                      </Button>
-                      <Button variant='ghost' size='sm' className='text-xs sm:text-sm' disabled={!user}>
-                        Responder
-                      </Button>
+
+              {showComments && (
+                <div>
+                  {loadingComments ? (
+                    <div className='text-center p-4'>
+                      <p className='text-muted-foreground'>Cargando comentarios...</p>
                     </div>
-                  </div>
+                  ) : comments.length === 0 ? (
+                    <div className='text-center p-4 bg-muted rounded-lg'>
+                      <p className='text-muted-foreground'>
+                        No hay comentarios aún. ¡Sé el primero en comentar!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className='space-y-4'>
+                      {comments.map(comment => (
+                        <div
+                          key={comment.id}
+                          className='flex space-x-2 sm:space-x-4 p-3 border rounded-lg'
+                        >
+                          <Image
+                            src='/placeholder.svg?text=User'
+                            alt='Avatar del usuario'
+                            width={40}
+                            height={40}
+                            className='rounded-full'
+                          />
+                          <div className='flex-1'>
+                            <div className='flex items-center space-x-2'>
+                              <p className='font-semibold text-sm sm:text-base'>
+                                {comment.userName}
+                              </p>
+                              <span className='text-xs text-muted-foreground'>
+                                {comment.createdAt
+                                  ? new Date(comment.createdAt).toLocaleDateString('es-ES', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })
+                                  : 'Ahora'}
+                              </span>
+                            </div>
+                            <p className='text-xs sm:text-sm mt-1'>{comment.text}</p>
+                            <div className='flex items-center space-x-1 sm:space-x-2 mt-2'>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => handleCommentLike(comment.id)}
+                                disabled={!user}
+                              >
+                                <ThumbsUp className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />{' '}
+                                {comment.likeCount}
+                              </Button>
+                              <Button variant='ghost' size='sm' disabled={!user}>
+                                <ThumbsDown className='h-3 w-3 sm:h-4 sm:w-4' />
+                              </Button>
+                              <Button
+                                variant='ghost'
+                                size='sm'
+                                className='text-xs sm:text-sm'
+                                disabled={!user}
+                              >
+                                Responder
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
