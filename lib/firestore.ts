@@ -101,17 +101,19 @@ export const updateUserProfile = async (
 
 export interface VideoData {
   title: string
-  description?: string
+  description: string
   uploaderId: string
   uploaderName: string
-  videoURLs?: Record<string, string>
-  thumbnailURL?: string | null
-  duration?: number
-  category?: string
-  tags?: string[]
-  language?: string
-  status?: 'processing' | 'published' | 'deleted'
-  visibility?: 'public' | 'private'
+  videoURLs: {
+    original: string
+  }
+  thumbnailURL: string
+  duration: number
+  category: string
+  tags: string[]
+  language: string
+  status: 'published' | 'processing' | 'draft'
+  visibility: 'public' | 'private' | 'unlisted'
 }
 
 export interface Video extends VideoData {
@@ -120,8 +122,8 @@ export interface Video extends VideoData {
   likeCount: number
   dislikeCount: number
   commentCount: number
-  uploadDate: FieldValue
-  publishedAt: FieldValue | null
+  uploadDate: any
+  publishedAt: any
 }
 
 export const createVideo = async (videoData: VideoData): Promise<Video> => {

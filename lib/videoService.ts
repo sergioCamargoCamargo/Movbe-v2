@@ -77,8 +77,10 @@ export const uploadVideo = async (
             videoURLs: {
               original: downloadURL,
             },
+            thumbnailURL: '',
             category: category || 'general',
             tags: tags || [],
+            language: 'es',
             visibility: visibility || 'public',
             status: 'published',
             duration: 0, // Se puede calcular después si es necesario
