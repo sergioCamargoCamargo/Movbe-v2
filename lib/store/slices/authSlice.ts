@@ -18,7 +18,6 @@ const initialState: AuthState = {
   error: null,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serializeUserProfile = (profile: any): UserProfile => {
   const toISOString = (timestamp: any) => {
     if (!timestamp) return timestamp
@@ -28,11 +27,18 @@ const serializeUserProfile = (profile: any): UserProfile => {
   }
 
   return {
-    ...profile,
-    createdAt: toISOString(profile.createdAt),
-    updatedAt: toISOString(profile.updatedAt),
-    lastLoginAt: toISOString(profile.lastLoginAt),
+    uid: profile.uid,
+    email: profile.email,
+    displayName: profile.displayName,
+    photoURL: profile.photoURL,
+    role: profile.role,
+    ageVerified: profile.ageVerified,
     dateOfBirth: toISOString(profile.dateOfBirth),
+    createdAt: toISOString(profile.createdAt),
+    lastLoginAt: toISOString(profile.lastLoginAt),
+    subscriberCount: profile.subscriberCount,
+    videoCount: profile.videoCount,
+    totalViews: profile.totalViews,
   }
 }
 
@@ -55,7 +61,7 @@ const authSlice = createSlice({
       }
     },
     setUserProfile: (state, action: PayloadAction<UserProfile | null>) => {
-      state.userProfile = action.payload ? serializeUserProfile(action.payload) : null
+      state.userProfile = action.payload
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload

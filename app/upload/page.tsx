@@ -221,7 +221,11 @@ export default function UploadPage() {
 
                   <div className='space-y-2'>
                     <Label htmlFor='category'>Categoría *</Label>
-                    <Select value={category} onValueChange={(value) => dispatch(setCategory(value))} disabled={uploading}>
+                    <Select
+                      value={category}
+                      onValueChange={value => dispatch(setCategory(value))}
+                      disabled={uploading}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder='Selecciona una categoría' />
                       </SelectTrigger>

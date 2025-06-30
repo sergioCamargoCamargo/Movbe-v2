@@ -92,7 +92,7 @@ export default function SettingsPage() {
           likes: settings?.notifications?.likes ?? true,
           followers: settings?.notifications?.followers ?? true,
         }
-        
+
         setEmailNotifications(notifications.email)
         setPushNotifications(notifications.push)
         setMarketingEmails(notifications.marketing)
@@ -119,7 +119,7 @@ export default function SettingsPage() {
   useEffect(() => {
     // Don't redirect if auth is still loading
     if (authLoading) return
-    
+
     if (!user) {
       router.push('/auth/login')
       return
@@ -189,10 +189,9 @@ export default function SettingsPage() {
     if (type === 'comments') setCommentsNotifications(value)
     if (type === 'likes') setLikesNotifications(value)
     if (type === 'followers') setFollowersNotifications(value)
-    
+
     setHasUnsavedChanges(true)
   }
-
 
   const handleCancelChanges = () => {
     // Reset profile changes
@@ -567,15 +566,11 @@ export default function SettingsPage() {
               <div className='sticky bottom-0 bg-background/80 backdrop-blur-sm border-t p-4 -mx-6'>
                 <div className='max-w-4xl mx-auto flex justify-end gap-2'>
                   {hasAnyChanges && (
-                    <Button 
-                      variant='outline' 
-                      onClick={handleCancelChanges}
-                      disabled={saving}
-                    >
+                    <Button variant='outline' onClick={handleCancelChanges} disabled={saving}>
                       Cancelar cambios
                     </Button>
                   )}
-                  <Button 
+                  <Button
                     onClick={handleSaveAll}
                     disabled={!hasAnyChanges || saving}
                     className='min-w-[140px]'

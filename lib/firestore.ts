@@ -54,8 +54,8 @@ export const createOrUpdateUser = async (user: User): Promise<UserProfile | null
         role: 'normal',
         ageVerified: false,
         dateOfBirth: null,
-        createdAt: now,
-        lastLoginAt: now,
+        createdAt: now.toISOString(),
+        lastLoginAt: now.toISOString(),
         // Estadísticas
         subscriberCount: 0,
         videoCount: 0,
@@ -84,7 +84,10 @@ export const getUserById = async (uid: string): Promise<UserProfile | null> => {
   }
 }
 
-export const updateUserProfile = async (uid: string, updates: Partial<UserProfile>): Promise<boolean> => {
+export const updateUserProfile = async (
+  uid: string,
+  updates: Partial<UserProfile>
+): Promise<boolean> => {
   try {
     const userRef = doc(db, 'users', uid)
     await updateDoc(userRef, updates)
@@ -226,7 +229,10 @@ export const getVideoById = async (videoId: string): Promise<Video | null> => {
   }
 }
 
-export const updateVideo = async (videoId: string, updates: Partial<VideoData> & { publishedAt?: FieldValue; thumbnailURL?: string }): Promise<boolean> => {
+export const updateVideo = async (
+  videoId: string,
+  updates: Partial<VideoData> & { publishedAt?: FieldValue; thumbnailURL?: string }
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
 
@@ -243,7 +249,10 @@ export const updateVideo = async (videoId: string, updates: Partial<VideoData> &
   }
 }
 
-export const incrementVideoViews = async (videoId: string, uploaderId: string): Promise<boolean> => {
+export const incrementVideoViews = async (
+  videoId: string,
+  uploaderId: string
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const userRef = doc(db, 'users', uploaderId)
@@ -264,7 +273,11 @@ export const incrementVideoViews = async (videoId: string, uploaderId: string): 
   }
 }
 
-export const toggleVideoLike = async (videoId: string, userId: string, isLike = true): Promise<boolean> => {
+export const toggleVideoLike = async (
+  videoId: string,
+  userId: string,
+  isLike = true
+): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
 

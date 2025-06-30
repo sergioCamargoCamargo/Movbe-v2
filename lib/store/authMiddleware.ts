@@ -33,7 +33,8 @@ export const createAuthMiddleware = () => {
 
       // Store the unsubscribe function for cleanup
       if (typeof window !== 'undefined') {
-        ;(window as typeof window & { __authUnsubscribe__?: () => void }).__authUnsubscribe__ = unsubscribe
+        ;(window as typeof window & { __authUnsubscribe__?: () => void }).__authUnsubscribe__ =
+          unsubscribe
       }
     }
   }
