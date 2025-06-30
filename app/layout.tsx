@@ -7,6 +7,8 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 
 import './globals.css'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -98,22 +100,6 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es'>
-      <head>
-        <link
-          rel='stylesheet'
-          type='text/css'
-          href='https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css'
-        />
-        <link
-          rel='stylesheet'
-          type='text/css'
-          href='https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css'
-        />
-        <script
-          src='https://cdn.jsdelivr.net/npm/react-slick@0.29.0/dist/react-slick.min.js'
-          async
-        ></script>
-      </head>
       <body className={`${inter.className} antialiased`}>
         <StoreProvider>
           <AuthProvider>
