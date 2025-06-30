@@ -2,21 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { User } from 'firebase/auth'
 
 import { createOrUpdateUser } from '@/lib/firestore'
-
-export interface UserProfile {
-  uid: string
-  email: string | null
-  displayName: string | null
-  photoURL: string | null
-  role: string
-  ageVerified: boolean
-  dateOfBirth: Date | null
-  createdAt: Date
-  lastLoginAt: Date
-  subscriberCount: number
-  videoCount: number
-  totalViews: number
-}
+import { UserProfile } from '@/types/user'
 
 interface AuthState {
   user: User | null
@@ -34,11 +20,19 @@ const initialState: AuthState = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serializeUserProfile = (profile: any): UserProfile => {
+  const toISOString = (timestamp: any) => {
+    if (!timestamp) return timestamp
+    if (timestamp.toDate) return timestamp.toDate().toISOString()
+    if (timestamp instanceof Date) return timestamp.toISOString()
+    return timestamp
+  }
+
   return {
     ...profile,
-    createdAt: profile.createdAt?.toDate ? profile.createdAt.toDate() : profile.createdAt,
-    lastLoginAt: profile.lastLoginAt?.toDate ? profile.lastLoginAt.toDate() : profile.lastLoginAt,
-    dateOfBirth: profile.dateOfBirth?.toDate ? profile.dateOfBirth.toDate() : profile.dateOfBirth,
+    createdAt: toISOString(profile.createdAt),
+    updatedAt: toISOString(profile.updatedAt),
+    lastLoginAt: toISOString(profile.lastLoginAt),
+    dateOfBirth: toISOString(profile.dateOfBirth),
   }
 }
 

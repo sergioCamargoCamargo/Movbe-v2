@@ -19,7 +19,7 @@ export interface VideoUploadData {
   userName: string
   category?: string
   tags?: string[]
-  visibility?: 'public' | 'private' | 'unlisted'
+  visibility?: 'public' | 'private'
 }
 
 export interface UploadProgress {

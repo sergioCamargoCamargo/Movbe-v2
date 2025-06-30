@@ -20,8 +20,8 @@ export interface Video {
 export interface FirestoreVideo {
   id: string
   title: string
-  description: string
-  thumbnailURL: string
+  description?: string
+  thumbnailURL?: string | null
   uploaderId: string
   uploaderName: string
   category: string

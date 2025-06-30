@@ -4,13 +4,12 @@ import { auth } from '@/lib/firebase'
 
 import { setUser, setUserProfile, setLoading, refreshUserProfile } from './slices/authSlice'
 
-// eslint -disable-next-line @typescript-eslint/no-explicit-any
-type DispatchFunction = (action: any) => void
+import type { AppDispatch } from './index'
 
 export const createAuthMiddleware = () => {
   let hasInitialized = false
 
-  return (dispatch: DispatchFunction) => {
+  return (dispatch: AppDispatch) => {
     if (!hasInitialized) {
       hasInitialized = true
 
@@ -34,8 +33,7 @@ export const createAuthMiddleware = () => {
 
       // Store the unsubscribe function for cleanup
       if (typeof window !== 'undefined') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(window as any).__authUnsubscribe__ = unsubscribe
+        ;(window as typeof window & { __authUnsubscribe__?: () => void }).__authUnsubscribe__ = unsubscribe
       }
     }
   }
