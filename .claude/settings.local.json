@@ -16,7 +16,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(rm:*)",
       "Bash(convert:*)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

@@ -5,6 +5,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   addDoc,
   query,
@@ -48,14 +49,14 @@ export const createOrUpdateUser = async (user: User): Promise<UserProfile | null
       // Usuario nuevo, crear documento completo
       const userData: UserProfile = {
         uid: user.uid,
-        email: user.email,
+        email: user.email || '',
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
         role: 'normal',
         ageVerified: false,
         dateOfBirth: null,
-        createdAt: now.toISOString(),
-        lastLoginAt: now.toISOString(),
+        createdAt: now,
+        lastLoginAt: now,
         // Estadísticas
         subscriberCount: 0,
         videoCount: 0,
@@ -66,6 +67,7 @@ export const createOrUpdateUser = async (user: User): Promise<UserProfile | null
       return userData
     }
   } catch (error) {
+    console.error('Error creating/updating user:', error)
     throw error
   }
 }
@@ -80,48 +82,57 @@ export const getUserById = async (uid: string): Promise<UserProfile | null> => {
     }
     return null
   } catch (error) {
+    console.error('Error getting user:', error)
     throw error
   }
 }
 
-export const updateUserProfile = async (
-  uid: string,
-  updates: Partial<UserProfile>
-): Promise<boolean> => {
+export const updateUserProfile = async (uid: string, updates: Partial<UserProfile>): Promise<boolean> => {
   try {
     const userRef = doc(db, 'users', uid)
-    await updateDoc(userRef, updates)
+    await updateDoc(userRef, updates as any)
     return true
   } catch (error) {
+    console.error('Error updating user profile:', error)
     throw error
   }
 }
 
 // ========== COLECCIÓN VIDEOS ==========
 
-export interface VideoData {
+interface VideoData {
+  title: string
+  description?: string
+  uploaderId: string
+  uploaderName: string
+  videoURLs?: { original?: string }
+  thumbnailURL?: string
+  duration?: number
+  category?: string
+  tags?: string[]
+  language?: string
+  status?: string
+  visibility?: string
+}
+
+interface Video {
+  id: string
   title: string
   description: string
   uploaderId: string
   uploaderName: string
-  videoURLs: {
-    original: string
-  }
-  thumbnailURL: string
-  duration: number
-  category: string
-  tags: string[]
-  language: string
-  status: 'published' | 'processing' | 'draft'
-  visibility: 'public' | 'private' | 'unlisted'
-}
-
-export interface Video extends VideoData {
-  id: string
+  videoURLs: { original: string }
+  thumbnailURL: string | null
   viewCount: number
   likeCount: number
   dislikeCount: number
   commentCount: number
+  duration: number
+  category: string
+  tags: string[]
+  language: string
+  status: string
+  visibility: string
   uploadDate: any
   publishedAt: any
 }
@@ -172,24 +183,18 @@ export const createVideo = async (videoData: VideoData): Promise<Video> => {
 
     return { id: docRef.id, ...video } as Video
   } catch (error) {
+    console.error('Error creating video:', error)
     throw error
   }
 }
 
-export const getVideosByUser = async (uploaderId: string, _limit = 20): Promise<Video[]> => {
+export const updateVideo = async (videoId: string, updates: any): Promise<boolean> => {
   try {
-    const videosRef = collection(db, 'videos')
-    const q = query(videosRef, where('uploaderId', '==', uploaderId), orderBy('uploadDate', 'desc'))
-
-    const querySnapshot = await getDocs(q)
-    const videos: Video[] = []
-
-    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      videos.push({ id: doc.id, ...doc.data() } as Video)
-    })
-
-    return videos
+    const videoRef = doc(db, 'videos', videoId)
+    await updateDoc(videoRef, updates)
+    return true
   } catch (error) {
+    console.error('Error updating video:', error)
     throw error
   }
 }
@@ -197,23 +202,35 @@ export const getVideosByUser = async (uploaderId: string, _limit = 20): Promise<
 export const getPublicVideos = async (_limit = 20): Promise<Video[]> => {
   try {
     const videosRef = collection(db, 'videos')
-    const q = query(
-      videosRef,
-      where('visibility', '==', 'public'),
-      where('status', '==', 'published'),
-      orderBy('uploadDate', 'desc')
-    )
 
-    const querySnapshot = await getDocs(q)
-    const videos: Video[] = []
+    // Get all documents first
+    const allDocsSnapshot = await getDocs(videosRef)
 
-    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      videos.push({ id: doc.id, ...doc.data() } as Video)
+    if (allDocsSnapshot.size === 0) {
+      return []
+    }
+
+    const allVideos: Video[] = []
+    allDocsSnapshot.forEach(doc => {
+      const videoData = { id: doc.id, ...doc.data() } as Video
+      allVideos.push(videoData)
     })
 
-    return videos
+    // Filter on client side
+    const publicPublishedVideos = allVideos.filter(
+      video => video.visibility === 'public' && video.status === 'published'
+    )
+
+    // Sort by upload date (most recent first)
+    publicPublishedVideos.sort((a, b) => {
+      if (!a.uploadDate || !b.uploadDate) return 0
+      return b.uploadDate.seconds - a.uploadDate.seconds
+    })
+
+    return publicPublishedVideos.slice(0, _limit)
   } catch (error) {
-    throw error
+    console.error('Error getting public videos:', error)
+    return []
   }
 }
 
@@ -227,39 +244,17 @@ export const getVideoById = async (videoId: string): Promise<Video | null> => {
     }
     return null
   } catch (error) {
-    throw error
+    console.error('Error getting video by ID:', error)
+    return null
   }
 }
 
-export const updateVideo = async (
-  videoId: string,
-  updates: Partial<VideoData> & { publishedAt?: FieldValue; thumbnailURL?: string }
-): Promise<boolean> => {
-  try {
-    const videoRef = doc(db, 'videos', videoId)
-
-    // Si se está publicando el video, actualizar publishedAt
-    const updatesWithTimestamp = { ...updates }
-    if (updates.status === 'published' && !updatesWithTimestamp.publishedAt) {
-      updatesWithTimestamp.publishedAt = serverTimestamp()
-    }
-
-    await updateDoc(videoRef, updatesWithTimestamp)
-    return true
-  } catch (error) {
-    throw error
-  }
-}
-
-export const incrementVideoViews = async (
-  videoId: string,
-  uploaderId: string
-): Promise<boolean> => {
+export const incrementVideoViews = async (videoId: string, uploaderId: string): Promise<boolean> => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const userRef = doc(db, 'users', uploaderId)
 
-    // Incrementar vistas del video y del usuario
+    // Increment view count for video and total views for user
     await Promise.all([
       updateDoc(videoRef, {
         viewCount: increment(1),
@@ -271,42 +266,282 @@ export const incrementVideoViews = async (
 
     return true
   } catch (error) {
+    console.error('Error incrementing video views:', error)
+    return false
+  }
+}
+
+// ========== LIKES/DISLIKES ==========
+
+export const toggleVideoLike = async (videoId: string, userId: string, isLike: boolean): Promise<{ action: string; isLike: boolean }> => {
+  try {
+    const videoRef = doc(db, 'videos', videoId)
+    const likesRef = collection(db, 'videoLikes')
+    const likeQuery = query(
+      likesRef,
+      where('videoId', '==', videoId),
+      where('userId', '==', userId)
+    )
+
+    const querySnapshot = await getDocs(likeQuery)
+
+    if (!querySnapshot.empty) {
+      // User already has a like/dislike
+      const existingLike = querySnapshot.docs[0]
+      const existingData = existingLike.data()
+
+      if (existingData.isLike === isLike) {
+        // User is removing their like/dislike
+        await deleteDoc(existingLike.ref)
+
+        if (isLike) {
+          await updateDoc(videoRef, { likeCount: increment(-1) })
+        } else {
+          await updateDoc(videoRef, { dislikeCount: increment(-1) })
+        }
+
+        return { action: 'removed', isLike }
+      } else {
+        // User is changing from like to dislike or vice versa
+        await updateDoc(existingLike.ref, {
+          isLike,
+          likedAt: serverTimestamp(),
+        })
+
+        if (isLike) {
+          // Changing from dislike to like
+          await updateDoc(videoRef, {
+            likeCount: increment(1),
+            dislikeCount: increment(-1),
+          })
+        } else {
+          // Changing from like to dislike
+          await updateDoc(videoRef, {
+            likeCount: increment(-1),
+            dislikeCount: increment(1),
+          })
+        }
+
+        return { action: 'changed', isLike }
+      }
+    } else {
+      // New like/dislike
+      await addDoc(likesRef, {
+        videoId,
+        userId,
+        isLike,
+        likedAt: serverTimestamp(),
+      })
+
+      if (isLike) {
+        await updateDoc(videoRef, { likeCount: increment(1) })
+      } else {
+        await updateDoc(videoRef, { dislikeCount: increment(1) })
+      }
+
+      return { action: 'added', isLike }
+    }
+  } catch (error) {
+    console.error('Error toggling video like:', error)
     throw error
   }
 }
 
-export const toggleVideoLike = async (
-  videoId: string,
-  userId: string,
-  isLike = true
-): Promise<boolean> => {
+export const getUserVideoLikeStatus = async (videoId: string, userId: string) => {
   try {
+    if (!userId) return { liked: false, disliked: false }
+
+    const likesRef = collection(db, 'videoLikes')
+    const likeQuery = query(
+      likesRef,
+      where('videoId', '==', videoId),
+      where('userId', '==', userId)
+    )
+
+    const querySnapshot = await getDocs(likeQuery)
+
+    if (!querySnapshot.empty) {
+      const likeData = querySnapshot.docs[0].data()
+      return {
+        liked: likeData.isLike === true,
+        disliked: likeData.isLike === false,
+      }
+    }
+
+    return { liked: false, disliked: false }
+  } catch (error) {
+    console.error('Error getting user video like status:', error)
+    return { liked: false, disliked: false }
+  }
+}
+
+// ========== COMENTARIOS ==========
+
+export const addComment = async (videoId: string, userId: string, userName: string, text: string) => {
+  try {
+    const commentsRef = collection(db, 'comments')
     const videoRef = doc(db, 'videos', videoId)
 
-    if (isLike) {
-      await updateDoc(videoRef, {
+    const commentData = {
+      videoId,
+      userId,
+      userName,
+      text,
+      likeCount: 0,
+      createdAt: serverTimestamp(),
+    }
+
+    const docRef = await addDoc(commentsRef, commentData)
+
+    // Increment comment count in video
+    await updateDoc(videoRef, {
+      commentCount: increment(1),
+    })
+
+    return { id: docRef.id, ...commentData }
+  } catch (error) {
+    console.error('Error adding comment:', error)
+    throw error
+  }
+}
+
+export const getCommentsByVideoId = async (videoId: string) => {
+  try {
+    const commentsRef = collection(db, 'comments')
+    const q = query(commentsRef, where('videoId', '==', videoId))
+
+    const querySnapshot = await getDocs(q)
+    const comments: any[] = []
+
+    querySnapshot.forEach(doc => {
+      const data = doc.data()
+      comments.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000) : new Date(),
+      })
+    })
+
+    // Sort manually by creation date
+    comments.sort((a, b) => {
+      const timeA = a.createdAt ? a.createdAt.getTime() : 0
+      const timeB = b.createdAt ? b.createdAt.getTime() : 0
+      return timeB - timeA // Most recent first
+    })
+
+    return comments
+  } catch (error) {
+    console.error('Error getting comments:', error)
+    return []
+  }
+}
+
+export const toggleCommentLike = async (commentId: string, userId: string) => {
+  try {
+    const commentRef = doc(db, 'comments', commentId)
+    const likesRef = collection(db, 'commentLikes')
+    const likeId = `${commentId}_${userId}`
+    const likeRef = doc(likesRef, likeId)
+
+    const likeSnap = await getDoc(likeRef)
+
+    if (likeSnap.exists()) {
+      // User already liked, remove like
+      await deleteDoc(likeRef)
+      await updateDoc(commentRef, {
+        likeCount: increment(-1),
+      })
+      return false // Like removed
+    } else {
+      // Add like
+      await setDoc(likeRef, {
+        commentId,
+        userId,
+        likedAt: serverTimestamp(),
+      })
+      await updateDoc(commentRef, {
         likeCount: increment(1),
       })
-    } else {
-      await updateDoc(videoRef, {
-        dislikeCount: increment(1),
-      })
+      return true // Like added
     }
+  } catch (error) {
+    console.error('Error toggling comment like:', error)
+    throw error
+  }
+}
+
+// ========== SUBSCRIPTIONS ==========
+
+export const subscribeToChannel = async (subscriberId: string, channelId: string) => {
+  try {
+    // Increment subscriber count for channel
+    const channelRef = doc(db, 'users', channelId)
+    await updateDoc(channelRef, {
+      subscriberCount: increment(1),
+    })
+
+    // Create subscription document
+    const subscriptionRef = doc(db, 'subscriptions', `${subscriberId}_${channelId}`)
+    await setDoc(subscriptionRef, {
+      subscriberId,
+      channelId,
+      subscribedAt: serverTimestamp(),
+      status: 'active',
+    })
 
     return true
   } catch (error) {
+    console.error('Error subscribing to channel:', error)
     throw error
   }
 }
 
-// ========== UTILIDADES ==========
+export const unsubscribeFromChannel = async (subscriberId: string, channelId: string) => {
+  try {
+    // Decrement subscriber count for channel
+    const channelRef = doc(db, 'users', channelId)
+    await updateDoc(channelRef, {
+      subscriberCount: increment(-1),
+    })
 
-export const deleteVideo = async (videoId: string, uploaderId: string): Promise<boolean> => {
+    // Update subscription document
+    const subscriptionRef = doc(db, 'subscriptions', `${subscriberId}_${channelId}`)
+    await updateDoc(subscriptionRef, { 
+      status: 'unsubscribed',
+      unsubscribedAt: serverTimestamp()
+    })
+
+    return true
+  } catch (error) {
+    console.error('Error unsubscribing from channel:', error)
+    throw error
+  }
+}
+
+export const checkSubscription = async (subscriberId: string, channelId: string) => {
+  try {
+    const subscriptionRef = doc(db, 'subscriptions', `${subscriberId}_${channelId}`)
+    const subscriptionSnap = await getDoc(subscriptionRef)
+
+    if (subscriptionSnap.exists()) {
+      const data = subscriptionSnap.data()
+      return data.status === 'active'
+    }
+    return false
+  } catch (error) {
+    console.error('Error checking subscription:', error)
+    return false
+  }
+}
+
+// ========== UTILITIES ==========
+
+export const deleteVideo = async (videoId: string, uploaderId: string) => {
   try {
     const videoRef = doc(db, 'videos', videoId)
     const userRef = doc(db, 'users', uploaderId)
 
-    // Eliminar video y actualizar contador del usuario
+    // Delete video and update user counter
     await Promise.all([
       updateDoc(videoRef, { status: 'deleted' }), // Soft delete
       updateDoc(userRef, {
@@ -316,11 +551,12 @@ export const deleteVideo = async (videoId: string, uploaderId: string): Promise<
 
     return true
   } catch (error) {
+    console.error('Error deleting video:', error)
     throw error
   }
 }
 
-export const searchVideos = async (searchTerm: string, limit = 20): Promise<Video[]> => {
+export const searchVideos = async (searchTerm: string, limit = 20) => {
   try {
     const videosRef = collection(db, 'videos')
     const q = query(
@@ -333,20 +569,21 @@ export const searchVideos = async (searchTerm: string, limit = 20): Promise<Vide
     const querySnapshot = await getDocs(q)
     const videos: Video[] = []
 
-    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      const data = doc.data()
-      // Búsqueda simple en título y descripción
+    querySnapshot.forEach(doc => {
+      const data = doc.data() as Video
+      // Simple search in title and description
       if (
         data.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       ) {
-        videos.push({ id: doc.id, ...data } as Video)
+        videos.push({ id: doc.id, ...data })
       }
     })
 
     return videos.slice(0, limit)
   } catch (error) {
+    console.error('Error searching videos:', error)
     throw error
   }
 }
