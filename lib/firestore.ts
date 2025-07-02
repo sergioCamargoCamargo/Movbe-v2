@@ -16,7 +16,6 @@ import {
   increment,
   DocumentData,
   QueryDocumentSnapshot,
-  FieldValue,
 } from 'firebase/firestore'
 
 import { UserProfile } from '@/types/user'
@@ -55,8 +54,8 @@ export const createOrUpdateUser = async (user: User): Promise<UserProfile | null
         role: 'normal',
         ageVerified: false,
         dateOfBirth: null,
-        createdAt: now,
-        lastLoginAt: now,
+        createdAt: now.toISOString(),
+        lastLoginAt: now.toISOString(),
         // Estadísticas
         subscriberCount: 0,
         videoCount: 0,
@@ -577,13 +576,40 @@ export const searchVideos = async (searchTerm: string, limit = 20) => {
         data.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       ) {
-        videos.push({ id: doc.id, ...data })
+        const { id: _, ...videoData } = data
+        videos.push({ id: doc.id, ...videoData })
       }
     })
 
     return videos.slice(0, limit)
   } catch (error) {
     console.error('Error searching videos:', error)
+    throw error
+  }
+}
+
+export const getVideosByUser = async (userId: string, limit = 20): Promise<any[]> => {
+  try {
+    const videosQuery = query(
+      collection(db, 'videos'),
+      where('uploaderId', '==', userId),
+      where('visibility', '==', 'public'),
+      orderBy('uploadDate', 'desc')
+    )
+
+    const querySnapshot = await getDocs(videosQuery)
+    const videos: any[] = []
+
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      const data = doc.data()
+      if (data.status === 'published') {
+        videos.push({ id: doc.id, ...data })
+      }
+    })
+
+    return videos.slice(0, limit)
+  } catch (error) {
+    console.error('Error getting videos by user:', error)
     throw error
   }
 }

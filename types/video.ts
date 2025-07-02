@@ -94,3 +94,30 @@ export interface UploadProgress {
   status: 'uploading' | 'processing' | 'completed' | 'error'
   error?: string
 }
+
+export interface Comment {
+  id: string
+  videoId: string
+  userId: string
+  userName: string
+  text: string
+  likeCount: number
+  createdAt: Date
+  replies: Comment[]
+  parentCommentId?: string
+}
+
+export interface Subscription {
+  id: string
+  subscriberId: string
+  channelId: string
+  channelName: string
+  subscribedAt: Date
+  notificationsEnabled: boolean
+  status: 'active' | 'unsubscribed'
+}
+
+export interface VideoLikeStatus {
+  liked: boolean
+  disliked: boolean
+}

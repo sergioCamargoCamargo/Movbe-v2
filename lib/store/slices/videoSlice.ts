@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import type { Comment } from '@/types/video'
 
 interface VideoUpload {
   id: string
@@ -12,10 +13,16 @@ interface VideoUpload {
 interface VideoInteraction {
   videoId: string
   liked: boolean
+  disliked: boolean
   saved: boolean
+  subscribed: boolean
   commentCount: number
   likeCount: number
+  dislikeCount: number
   viewCount: number
+  comments: Comment[]
+  loadingComments: boolean
+  likeStatus: 'liked' | 'disliked' | null
 }
 
 interface VideoState {
@@ -91,6 +98,47 @@ const videoSlice = createSlice({
     setMuted: (state, action: PayloadAction<boolean>) => {
       state.muted = action.payload
     },
+    toggleVideoLike: (state, action: PayloadAction<{ videoId: string; isLike: boolean }>) => {
+      const { videoId, isLike } = action.payload
+      if (state.interactions[videoId]) {
+        if (isLike) {
+          state.interactions[videoId].liked = !state.interactions[videoId].liked
+          if (state.interactions[videoId].liked) {
+            state.interactions[videoId].disliked = false
+          }
+        } else {
+          state.interactions[videoId].disliked = !state.interactions[videoId].disliked
+          if (state.interactions[videoId].disliked) {
+            state.interactions[videoId].liked = false
+          }
+        }
+      }
+    },
+    setComments: (state, action: PayloadAction<{ videoId: string; comments: Comment[] }>) => {
+      const { videoId, comments } = action.payload
+      if (state.interactions[videoId]) {
+        state.interactions[videoId].comments = comments
+      }
+    },
+    addComment: (state, action: PayloadAction<{ videoId: string; comment: Comment }>) => {
+      const { videoId, comment } = action.payload
+      if (state.interactions[videoId]) {
+        state.interactions[videoId].comments.unshift(comment)
+        state.interactions[videoId].commentCount += 1
+      }
+    },
+    setLoadingComments: (state, action: PayloadAction<{ videoId: string; loading: boolean }>) => {
+      const { videoId, loading } = action.payload
+      if (state.interactions[videoId]) {
+        state.interactions[videoId].loadingComments = loading
+      }
+    },
+    toggleSubscription: (state, action: PayloadAction<{ videoId: string; subscribed: boolean }>) => {
+      const { videoId, subscribed } = action.payload
+      if (state.interactions[videoId]) {
+        state.interactions[videoId].subscribed = subscribed
+      }
+    },
   },
 })
 
@@ -106,6 +154,11 @@ export const {
   setIsPlaying,
   setVolume,
   setMuted,
+  toggleVideoLike,
+  setComments,
+  addComment,
+  setLoadingComments,
+  toggleSubscription,
 } = videoSlice.actions
 
 export default videoSlice.reducer

@@ -1,38 +1,17 @@
 'use client'
 
-import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 import { AdBanner } from '@/components/AdBanner'
 import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { getPublicVideos } from '@/lib/firestore'
-
-interface Video {
-  id: string
-  title: string
-  description: string
-  uploaderId: string
-  uploaderName: string
-  videoURLs: { original: string }
-  thumbnailURL: string | null
-  viewCount: number
-  likeCount: number
-  dislikeCount: number
-  commentCount: number
-  duration: number
-  category: string
-  tags: string[]
-  language: string
-  status: string
-  visibility: string
-  uploadDate: { seconds: number }
-  publishedAt: { seconds: number } | null
-}
+import { getVideoService } from '@/lib/di/serviceRegistration'
+import type { FirestoreVideo } from '@/types/video'
 
 export default function MainContent() {
-  const [videos, setVideos] = useState<Video[]>([])
+  const [videos, setVideos] = useState<FirestoreVideo[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('Todo')
 
@@ -50,9 +29,11 @@ export default function MainContent() {
     const fetchVideos = async () => {
       try {
         setLoading(true)
-        const fetchedVideos = await getPublicVideos(50)
+        const videoService = getVideoService()
+        const fetchedVideos = await videoService.getPublicVideos(50)
         setVideos(fetchedVideos)
-      } catch {
+      } catch (error) {
+        console.error('Error fetching videos:', error)
       } finally {
         setLoading(false)
       }
@@ -136,11 +117,16 @@ export default function MainContent() {
                     <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100'>
                       <span className='text-white text-lg font-bold'>Ver video</span>
                     </div>
+                    {video.duration && (
+                      <div className='absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-1 rounded'>
+                        {Math.floor(video.duration / 60)}:{String(video.duration % 60).padStart(2, '0')}
+                      </div>
+                    )}
                   </div>
                   <h3 className='font-semibold text-sm md:text-base line-clamp-2'>{video.title}</h3>
                   <p className='text-xs md:text-sm text-muted-foreground'>{video.uploaderName}</p>
                   <p className='text-xs text-muted-foreground'>
-                    {video.viewCount?.toLocaleString() || 0} vistas •{' '}
+                    {(video.viewCount || 0).toLocaleString()} vistas •{' '}
                     {video.uploadDate
                       ? new Date(video.uploadDate.seconds * 1000).toLocaleDateString('es-ES', {
                           year: 'numeric',

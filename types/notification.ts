@@ -1,4 +1,4 @@
-export interface Comment {
+export interface NotificationComment {
   id: string
   videoId: string
   authorId: string
@@ -8,7 +8,7 @@ export interface Comment {
   timestamp: string
   likes: number
   isLiked: boolean
-  replies?: Comment[]
+  replies?: NotificationComment[]
   parentId?: string
 }
 

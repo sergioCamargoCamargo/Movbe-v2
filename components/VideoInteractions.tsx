@@ -77,10 +77,16 @@ export function VideoInteractions({
         setVideoInteraction({
           videoId,
           liked: isLiked,
+          disliked: false,
           saved: isSaved,
+          subscribed: false,
           commentCount: comments.length,
           likeCount: likes,
-          viewCount: 0, // This would come from props or API
+          dislikeCount: 0,
+          viewCount: 0,
+          comments: [],
+          loadingComments: false,
+          likeStatus: null,
         })
       )
     }
