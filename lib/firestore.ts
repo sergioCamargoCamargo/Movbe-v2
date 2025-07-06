@@ -21,6 +21,10 @@ import {
 import { UserProfile } from '@/types/user'
 
 import app from './firebase'
+import { Comment, VideoLike } from './interfaces'
+
+// Re-export interfaces for external use
+export type { Comment, VideoLike } from './interfaces'
 
 const db = getFirestore(app)
 
@@ -122,8 +126,8 @@ export interface Video extends VideoData {
   likeCount: number
   dislikeCount: number
   commentCount: number
-  uploadDate: any
-  publishedAt: any
+  uploadDate: Date | null
+  publishedAt: Date | null
 }
 
 export const createVideo = async (videoData: VideoData): Promise<Video> => {
@@ -185,7 +189,15 @@ export const getVideosByUser = async (uploaderId: string, _limit = 20): Promise<
     const videos: Video[] = []
 
     querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      videos.push({ id: doc.id, ...doc.data() } as Video)
+      const data = doc.data()
+      // Convert Firebase Timestamps to Date for Redux serialization
+      const video = {
+        id: doc.id,
+        ...data,
+        uploadDate: data.uploadDate?.toDate() || new Date(),
+        publishedAt: data.publishedAt?.toDate() || new Date(),
+      } as Video
+      videos.push(video)
     })
 
     return videos
@@ -208,7 +220,15 @@ export const getPublicVideos = async (_limit = 20): Promise<Video[]> => {
     const videos: Video[] = []
 
     querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      videos.push({ id: doc.id, ...doc.data() } as Video)
+      const data = doc.data()
+      // Convert Firebase Timestamps to Date for Redux serialization
+      const video = {
+        id: doc.id,
+        ...data,
+        uploadDate: data.uploadDate?.toDate() || new Date(),
+        publishedAt: data.publishedAt?.toDate() || new Date(),
+      } as Video
+      videos.push(video)
     })
 
     return videos
@@ -223,7 +243,14 @@ export const getVideoById = async (videoId: string): Promise<Video | null> => {
     const videoSnap = await getDoc(videoRef)
 
     if (videoSnap.exists()) {
-      return { id: videoSnap.id, ...videoSnap.data() } as Video
+      const data = videoSnap.data()
+      // Convert Firebase Timestamps to Date for Redux serialization
+      return {
+        id: videoSnap.id,
+        ...data,
+        uploadDate: data.uploadDate?.toDate() || new Date(),
+        publishedAt: data.publishedAt?.toDate() || new Date(),
+      } as Video
     }
     return null
   } catch (error) {
@@ -268,30 +295,6 @@ export const incrementVideoViews = async (
         totalViews: increment(1),
       }),
     ])
-
-    return true
-  } catch (error) {
-    throw error
-  }
-}
-
-export const toggleVideoLike = async (
-  videoId: string,
-  userId: string,
-  isLike = true
-): Promise<boolean> => {
-  try {
-    const videoRef = doc(db, 'videos', videoId)
-
-    if (isLike) {
-      await updateDoc(videoRef, {
-        likeCount: increment(1),
-      })
-    } else {
-      await updateDoc(videoRef, {
-        dislikeCount: increment(1),
-      })
-    }
 
     return true
   } catch (error) {
@@ -346,6 +349,177 @@ export const searchVideos = async (searchTerm: string, limit = 20): Promise<Vide
     })
 
     return videos.slice(0, limit)
+  } catch (error) {
+    throw error
+  }
+}
+
+// ========== COLECCIÓN COMMENTS ==========
+
+export const getVideoComments = async (videoId: string): Promise<Comment[]> => {
+  try {
+    const commentsRef = collection(db, 'comments')
+    const q = query(commentsRef, where('videoId', '==', videoId))
+
+    const querySnapshot = await getDocs(q)
+    const comments: Comment[] = []
+
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      const data = doc.data()
+      // Convert Firebase Timestamp to Date for Redux serialization
+      const comment = {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+      } as Comment
+      comments.push(comment)
+    })
+
+    return comments
+  } catch (error) {
+    throw error
+  }
+}
+
+export const addComment = async (
+  comment: Omit<Comment, 'id' | 'createdAt' | 'likeCount' | 'replies'>
+): Promise<string> => {
+  try {
+    const commentsRef = collection(db, 'comments')
+
+    const newComment = {
+      ...comment,
+      createdAt: serverTimestamp(),
+      likeCount: 0,
+      replies: [],
+    }
+
+    const docRef = await addDoc(commentsRef, newComment)
+
+    // Update comment count in video
+    const videoRef = doc(db, 'videos', comment.videoId)
+    await updateDoc(videoRef, {
+      commentCount: increment(1),
+    })
+
+    return docRef.id
+  } catch (error) {
+    throw error
+  }
+}
+
+// ========== COLECCIÓN VIDEOLIKES ==========
+
+export const checkUserVideoLike = async (
+  videoId: string,
+  userId: string
+): Promise<VideoLike | null> => {
+  try {
+    const likesRef = collection(db, 'videoLikes')
+    const q = query(likesRef, where('videoId', '==', videoId), where('userId', '==', userId))
+
+    const querySnapshot = await getDocs(q)
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      const data = doc.data()
+      // Convert Firebase Timestamp to Date for Redux serialization
+      return {
+        id: doc.id,
+        ...data,
+        likedAt: data.likedAt?.toDate() || new Date(),
+      } as VideoLike
+    }
+
+    return null
+  } catch (error) {
+    throw error
+  }
+}
+
+export const toggleVideoLike = async (
+  videoId: string,
+  userId: string,
+  isLike: boolean
+): Promise<boolean> => {
+  try {
+    const existingLike = await checkUserVideoLike(videoId, userId)
+    const videoRef = doc(db, 'videos', videoId)
+
+    if (existingLike) {
+      // Update existing like/dislike
+      const likeRef = doc(db, 'videoLikes', existingLike.id)
+
+      if (existingLike.isLike === isLike) {
+        // Remove like/dislike
+        await updateDoc(likeRef, { isLike: !isLike })
+        await updateDoc(videoRef, {
+          likeCount: isLike ? increment(-1) : increment(0),
+          dislikeCount: !isLike ? increment(-1) : increment(0),
+        })
+      } else {
+        // Change from like to dislike or vice versa
+        await updateDoc(likeRef, {
+          isLike: isLike,
+          likedAt: serverTimestamp(),
+        })
+        await updateDoc(videoRef, {
+          likeCount: isLike ? increment(1) : increment(-1),
+          dislikeCount: !isLike ? increment(1) : increment(-1),
+        })
+      }
+    } else {
+      // Create new like/dislike
+      const likesRef = collection(db, 'videoLikes')
+      await addDoc(likesRef, {
+        videoId,
+        userId,
+        isLike,
+        likedAt: serverTimestamp(),
+      })
+
+      await updateDoc(videoRef, {
+        likeCount: isLike ? increment(1) : increment(0),
+        dislikeCount: !isLike ? increment(1) : increment(0),
+      })
+    }
+
+    return true
+  } catch (error) {
+    throw error
+  }
+}
+
+// ========== COLECCIÓN VIDEOVIEWS ==========
+
+export const recordVideoView = async (videoId: string, userId: string): Promise<boolean> => {
+  try {
+    // Check if user already viewed this video today
+    const viewsRef = collection(db, 'videoViews')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const q = query(viewsRef, where('videoId', '==', videoId), where('userId', '==', userId))
+
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      // First time viewing this video
+      await addDoc(viewsRef, {
+        videoId,
+        userId,
+        viewedAt: serverTimestamp(),
+      })
+
+      // Increment view count in video
+      const videoRef = doc(db, 'videos', videoId)
+      await updateDoc(videoRef, {
+        viewCount: increment(1),
+      })
+    }
+    // If user already viewed, don't increment again
+
+    return true
   } catch (error) {
     throw error
   }

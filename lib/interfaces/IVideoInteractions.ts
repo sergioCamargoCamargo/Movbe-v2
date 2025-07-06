@@ -1,0 +1,68 @@
+/**
+ * Interfaces para las interacciones de video (comentarios, likes, vistas)
+ * Estas interfaces definen la estructura de datos para las colecciones de Firebase
+ */
+
+import { Timestamp } from 'firebase/firestore'
+
+/**
+ * Interfaz para comentarios de video
+ * Corresponde a la colección 'comments' en Firebase
+ */
+export interface Comment {
+  id: string
+  videoId: string
+  userId: string
+  userName: string
+  text: string
+  createdAt: Timestamp | Date
+  likeCount: number
+  replies: Comment[]
+}
+
+/**
+ * Interfaz para likes/dislikes de video
+ * Corresponde a la colección 'videoLikes' en Firebase
+ */
+export interface VideoLike {
+  id: string
+  videoId: string
+  userId: string
+  isLike: boolean // true = like, false = dislike
+  likedAt: Timestamp | Date
+}
+
+/**
+ * Interfaz para las vistas de video
+ * Corresponde a la colección 'videoViews' en Firebase
+ */
+export interface VideoView {
+  id: string
+  videoId: string
+  userId: string
+  viewedAt: Timestamp | Date
+}
+
+/**
+ * Interfaz para el componente VideoInteractions
+ */
+export interface VideoInteractionsProps {
+  videoId: string
+  likes: number
+  dislikes: number
+  isLiked: boolean
+  isDisliked: boolean
+  isSaved: boolean
+  rating: number
+  userRating: number
+  comments: Comment[]
+  className?: string
+}
+
+/**
+ * Interfaz para el estado local de likes del usuario
+ */
+export interface UserLikeStatus {
+  isLiked: boolean
+  isDisliked: boolean
+}

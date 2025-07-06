@@ -12,116 +12,144 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
+import { VideoInteractionsProps } from '@/lib/interfaces/IVideoInteractions'
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
-import { setVideoInteraction, updateVideoInteraction } from '@/lib/store/slices/videoSlice'
-
-interface Comment {
-  id: string
-  author: string
-  authorAvatar?: string
-  content: string
-  timestamp: string
-  likes: number
-  isLiked: boolean
-}
-
-interface VideoInteractionsProps {
-  videoId: string
-  likes: number
-  dislikes: number
-  isLiked: boolean
-  isDisliked: boolean
-  isSaved: boolean
-  rating: number
-  userRating: number
-  comments: Comment[]
-  className?: string
-}
+import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
 
 export function VideoInteractions({
   videoId,
-  likes = 0,
-  dislikes = 0,
-  isLiked = false,
+  likes: _likes = 0,
+  dislikes: _dislikes = 0,
+  isLiked: _isLiked = false,
   isDisliked: _isDisliked = false,
   isSaved = false,
   rating = 0,
   userRating = 0,
-  comments = [],
+  comments: _comments = [],
   className = '',
 }: VideoInteractionsProps) {
   const dispatch = useAppDispatch()
+  const { user } = useAuth()
   const videoInteraction = useAppSelector(state => state.video.interactions[videoId])
 
+  // Use optimized hooks for data management
+  const {
+    comments: localComments,
+    loading: commentsLoading,
+    addComment: addNewComment,
+  } = useVideoComments(videoId)
+
+  const {
+    likeCount: hookLikeCount,
+    dislikeCount: hookDislikeCount,
+    isLiked: userLikeStatus_isLiked,
+    isDisliked: userLikeStatus_isDisliked,
+    loading: likesLoading,
+    toggleLike,
+  } = useVideoLikes(videoId)
+
+  // Use hook data if available (from Redux cache), fallback to props
+  const currentLikes = hookLikeCount || _likes
+  const currentDislikes = hookDislikeCount || _dislikes
+
   // Use Redux state if available, otherwise use props
-  const liked = videoInteraction?.liked ?? isLiked
   const saved = videoInteraction?.saved ?? isSaved
-  const commentCount = videoInteraction?.commentCount ?? comments.length
-  const likeCount = videoInteraction?.likeCount ?? likes
 
   const [currentUserRating, setCurrentUserRating] = useState(userRating)
   const [newComment, setNewComment] = useState('')
-  const [localComments, setLocalComments] = useState<Comment[]>(comments)
   const { toast } = useToast()
+
+  // Data is automatically loaded by hooks, no need for manual loading
 
   // Initialize video interaction in Redux if not exists
   useEffect(() => {
     if (!videoInteraction) {
       dispatch(
-        setVideoInteraction({
+        updateVideoInteraction({
           videoId,
-          liked: isLiked,
-          saved: isSaved,
-          commentCount: comments.length,
-          likeCount: likes,
-          viewCount: 0, // This would come from props or API
+          updates: {
+            liked: userLikeStatus_isLiked,
+            saved: isSaved,
+            commentCount: localComments.length,
+            likeCount: currentLikes,
+            dislikeCount: currentDislikes,
+            viewCount: 0,
+            userLikeStatus: {
+              isLiked: userLikeStatus_isLiked,
+              isDisliked: userLikeStatus_isDisliked,
+            },
+          },
         })
       )
     }
-  }, [videoId, videoInteraction, dispatch, isLiked, isSaved, comments.length, likes])
+  }, [
+    videoId,
+    videoInteraction,
+    dispatch,
+    userLikeStatus_isLiked,
+    userLikeStatus_isDisliked,
+    isSaved,
+    localComments.length,
+    currentLikes,
+    currentDislikes,
+  ])
 
-  const handleLike = () => {
-    dispatch(
-      updateVideoInteraction({
-        videoId,
-        updates: {
-          liked: !liked,
-          likeCount: liked ? likeCount - 1 : likeCount + 1,
-        },
+  const handleLike = async () => {
+    if (!user) {
+      toast({
+        title: 'Inicia sesión requerido',
+        description: 'Inicia sesión para dar like a los videos',
+        variant: 'destructive',
       })
-    )
+      return
+    }
 
-    toast({
-      title: liked ? 'Like removido' : 'Video liked',
-      description: liked ? 'Has removido tu like' : 'Te gusta este video',
-    })
+    const success = await toggleLike(true)
+    if (success) {
+      toast({
+        title: userLikeStatus_isLiked ? 'Like removido' : 'Video liked',
+        description: userLikeStatus_isLiked ? 'Has removido tu like' : 'Te gusta este video',
+      })
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Error al procesar el like',
+        variant: 'destructive',
+      })
+    }
   }
 
-  const handleDislike = () => {
-    // For dislike, we need to also handle the like state
-    const newLiked = false // Disliking removes like
-    const newLikeCount = liked ? likeCount - 1 : likeCount
-
-    dispatch(
-      updateVideoInteraction({
-        videoId,
-        updates: {
-          liked: newLiked,
-          likeCount: newLikeCount,
-        },
+  const handleDislike = async () => {
+    if (!user) {
+      toast({
+        title: 'Inicia sesión requerido',
+        description: 'Inicia sesión para dar dislike a los videos',
+        variant: 'destructive',
       })
-    )
+      return
+    }
 
-    toast({
-      title: 'Video feedback registrado',
-      description: 'Tu reacción ha sido guardada',
-    })
+    const success = await toggleLike(false)
+    if (success) {
+      toast({
+        title: 'Video feedback registrado',
+        description: 'Tu reacción ha sido guardada',
+      })
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Error al procesar el dislike',
+        variant: 'destructive',
+      })
+    }
   }
 
   const handleSave = () => {
@@ -158,6 +186,15 @@ export function VideoInteractions({
   }
 
   const handleRating = (newRating: number) => {
+    if (!user) {
+      toast({
+        title: 'Inicia sesión requerido',
+        description: 'Inicia sesión para calificar este video',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setCurrentUserRating(newRating)
 
     toast({
@@ -166,8 +203,17 @@ export function VideoInteractions({
     })
   }
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!user) {
+      toast({
+        title: 'Inicia sesión requerido',
+        description: 'Inicia sesión para comentar en los videos',
+        variant: 'destructive',
+      })
+      return
+    }
 
     if (!newComment.trim()) {
       toast({
@@ -178,46 +224,38 @@ export function VideoInteractions({
       return
     }
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      author: 'Usuario Actual',
-      content: newComment.trim(),
-      timestamp: 'Ahora',
-      likes: 0,
-      isLiked: false,
-    }
-
-    setLocalComments([comment, ...localComments])
-    setNewComment('')
-
-    // Update comment count in Redux
-    dispatch(
-      updateVideoInteraction({
-        videoId,
-        updates: {
-          commentCount: localComments.length + 1,
-        },
+    const success = await addNewComment(newComment.trim())
+    if (success) {
+      setNewComment('')
+      toast({
+        title: 'Comentario publicado',
+        description: 'Tu comentario se ha añadido al video',
       })
-    )
-
-    toast({
-      title: 'Comentario publicado',
-      description: 'Tu comentario se ha añadido al video',
-    })
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Error al publicar el comentario',
+        variant: 'destructive',
+      })
+    }
   }
 
-  const handleCommentLike = (commentId: string) => {
-    setLocalComments(
-      localComments.map(comment =>
-        comment.id === commentId
-          ? {
-              ...comment,
-              isLiked: !comment.isLiked,
-              likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-            }
-          : comment
-      )
-    )
+  const handleCommentLike = (_commentId: string) => {
+    if (!user) {
+      toast({
+        title: 'Inicia sesión requerido',
+        description: 'Inicia sesión para dar like a los comentarios',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Comment likes functionality would need to be implemented in Redux
+    // For now, just show a toast
+    toast({
+      title: 'Función en desarrollo',
+      description: 'Los likes de comentarios estarán disponibles pronto',
+    })
   }
 
   const formatNumber = (num: number) => {
@@ -234,25 +272,39 @@ export function VideoInteractions({
           <div className='flex flex-wrap items-center justify-between gap-4'>
             <div className='flex items-center gap-2'>
               <Button
-                variant={liked ? 'default' : 'outline'}
+                variant={user && userLikeStatus_isLiked ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleLike}
+                disabled={!user || likesLoading}
                 className='flex items-center gap-2'
-                aria-label={`${liked ? 'Quitar' : 'Dar'} like al video`}
+                aria-label={
+                  user
+                    ? `${userLikeStatus_isLiked ? 'Quitar' : 'Dar'} like al video`
+                    : 'Inicia sesión para dar like'
+                }
+                title={!user ? 'Inicia sesión para dar like' : ''}
               >
-                <ThumbsUp className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-                {formatNumber(likeCount)}
+                <ThumbsUp
+                  className={`h-4 w-4 ${user && userLikeStatus_isLiked ? 'fill-current' : ''}`}
+                />
+                {formatNumber(currentLikes)}
               </Button>
 
               <Button
-                variant='outline'
+                variant={user && userLikeStatus_isDisliked ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleDislike}
+                disabled={!user || likesLoading}
                 className='flex items-center gap-2'
-                aria-label='Dar feedback negativo al video'
+                aria-label={
+                  user ? 'Dar feedback negativo al video' : 'Inicia sesión para dar dislike'
+                }
+                title={!user ? 'Inicia sesión para dar dislike' : ''}
               >
-                <ThumbsDown className={`h-4 w-4`} />
-                {formatNumber(dislikes)}
+                <ThumbsDown
+                  className={`h-4 w-4 ${user && userLikeStatus_isDisliked ? 'fill-current' : ''}`}
+                />
+                {formatNumber(currentDislikes)}
               </Button>
             </div>
 
@@ -314,14 +366,18 @@ export function VideoInteractions({
                 <button
                   key={star}
                   onClick={() => handleRating(star)}
-                  className='transition-colors hover:scale-110 transform'
+                  disabled={!user}
+                  className={`transition-colors hover:scale-110 transform ${
+                    !user ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                   aria-label={`Calificar con ${star} estrella${star > 1 ? 's' : ''}`}
+                  title={!user ? 'Inicia sesión para calificar' : ''}
                 >
                   <Star
                     className={`h-6 w-6 transition-colors ${
                       star <= currentUserRating
                         ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-300 hover:text-yellow-400'
+                        : `text-gray-300 ${user ? 'hover:text-yellow-400' : ''}`
                     }`}
                   />
                 </button>
@@ -342,61 +398,83 @@ export function VideoInteractions({
         <CardHeader>
           <h3 className='text-lg font-semibold flex items-center gap-2'>
             <MessageCircle className='h-5 w-5' />
-            Comentarios ({commentCount})
+            Comentarios ({localComments.length})
           </h3>
         </CardHeader>
         <CardContent className='space-y-4'>
           {/* Formulario para nuevo comentario */}
-          <form onSubmit={handleCommentSubmit} className='space-y-3'>
-            <Textarea
-              placeholder='Escribe un comentario...'
-              value={newComment}
-              onChange={e => setNewComment(e.target.value)}
-              rows={3}
-              aria-label='Escribir comentario'
-            />
-            <div className='flex justify-end'>
-              <Button
-                type='submit'
-                size='sm'
-                disabled={!newComment.trim()}
-                className='flex items-center gap-2'
-              >
-                <MessageCircle className='h-4 w-4' />
-                Comentar
-              </Button>
+          {user ? (
+            <form onSubmit={handleCommentSubmit} className='space-y-3'>
+              <Textarea
+                placeholder='Escribe un comentario...'
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                rows={3}
+                aria-label='Escribir comentario'
+              />
+              <div className='flex justify-end'>
+                <Button
+                  type='submit'
+                  size='sm'
+                  disabled={!newComment.trim()}
+                  className='flex items-center gap-2'
+                >
+                  <MessageCircle className='h-4 w-4' />
+                  Comentar
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className='p-4 bg-muted/30 rounded-lg text-center'>
+              <p className='text-muted-foreground'>
+                <Button variant='link' className='p-0 h-auto font-normal'>
+                  Inicia sesión
+                </Button>{' '}
+                para comentar en este video
+              </p>
             </div>
-          </form>
+          )}
 
           <Separator />
 
           {/* Lista de comentarios */}
           <div className='space-y-4'>
-            {localComments.length > 0 ? (
+            {commentsLoading ? (
+              <div className='text-center py-8'>
+                <p>Cargando comentarios...</p>
+              </div>
+            ) : localComments.length > 0 ? (
               localComments.map(comment => (
                 <div key={comment.id} className='flex gap-3 p-3 bg-muted/30 rounded-lg'>
                   <Avatar className='h-8 w-8'>
-                    <AvatarImage src={comment.authorAvatar} alt={comment.author} />
-                    <AvatarFallback>{comment.author.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{comment.userName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className='flex-1 space-y-2'>
                     <div className='flex items-center gap-2'>
-                      <span className='font-semibold text-sm'>{comment.author}</span>
-                      <span className='text-xs text-muted-foreground'>{comment.timestamp}</span>
+                      <span className='font-semibold text-sm'>{comment.userName}</span>
+                      <span className='text-xs text-muted-foreground'>
+                        {comment.createdAt &&
+                        typeof comment.createdAt === 'object' &&
+                        'toDate' in comment.createdAt
+                          ? comment.createdAt.toDate().toLocaleDateString()
+                          : 'Ahora'}
+                      </span>
                     </div>
-                    <p className='text-sm'>{comment.content}</p>
+                    <p className='text-sm'>{comment.text}</p>
                     <div className='flex items-center gap-2'>
                       <Button
                         variant='ghost'
                         size='sm'
                         onClick={() => handleCommentLike(comment.id)}
-                        className={`flex items-center gap-1 h-7 px-2 ${
-                          comment.isLiked ? 'text-primary' : 'text-muted-foreground'
+                        disabled={!user}
+                        className={`flex items-center gap-1 h-7 px-2 text-muted-foreground ${
+                          !user ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        aria-label={`${comment.isLiked ? 'Quitar' : 'Dar'} like al comentario`}
+                        aria-label='Dar like al comentario'
+                        title={!user ? 'Inicia sesión para dar like' : ''}
                       >
-                        <Heart className={`h-3 w-3 ${comment.isLiked ? 'fill-current' : ''}`} />
-                        {comment.likes > 0 && formatNumber(comment.likes)}
+                        <Heart className='h-3 w-3' />
+                        {comment.likeCount > 0 && formatNumber(comment.likeCount)}
                       </Button>
                     </div>
                   </div>

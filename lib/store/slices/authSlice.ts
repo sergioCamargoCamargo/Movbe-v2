@@ -18,8 +18,8 @@ const initialState: AuthState = {
   error: null,
 }
 
-const serializeUserProfile = (profile: any): UserProfile => {
-  const toISOString = (timestamp: any) => {
+const serializeUserProfile = (profile: UserProfile): UserProfile => {
+  const toISOString = (timestamp: unknown) => {
     if (!timestamp) return timestamp
     if (timestamp.toDate) return timestamp.toDate().toISOString()
     if (timestamp instanceof Date) return timestamp.toISOString()
