@@ -174,7 +174,7 @@ export const createVideo = async (videoData: VideoData): Promise<Video> => {
       videoCount: increment(1),
     })
 
-    return { id: docRef.id, ...video } as Video
+    return { id: docRef.id, ...video } as unknown as Video
   } catch (error) {
     throw error
   }

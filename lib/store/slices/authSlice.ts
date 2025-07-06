@@ -21,7 +21,9 @@ const initialState: AuthState = {
 const serializeUserProfile = (profile: UserProfile): UserProfile => {
   const toISOString = (timestamp: unknown) => {
     if (!timestamp) return timestamp
-    if (timestamp.toDate) return timestamp.toDate().toISOString()
+    if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp) {
+      return (timestamp as any).toDate().toISOString()
+    }
     if (timestamp instanceof Date) return timestamp.toISOString()
     return timestamp
   }
@@ -46,7 +48,7 @@ export const refreshUserProfile = createAsyncThunk(
   'auth/refreshUserProfile',
   async (user: User) => {
     const profile = await createOrUpdateUser(user)
-    return serializeUserProfile(profile) as UserProfile
+    return profile ? (serializeUserProfile(profile) as UserProfile) : null
   }
 )
 

@@ -1,6 +1,15 @@
 'use client'
 
-import { Calendar, Eye, Heart, Play, Settings, Share2, Users, Video } from 'lucide-react'
+import {
+  Calendar,
+  Eye,
+  Heart,
+  Play,
+  Settings,
+  Share2,
+  Users,
+  Video as VideoIcon,
+} from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
@@ -14,11 +23,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { getVideosByUser } from '@/lib/firestore'
+import { getVideosByUser, Video as FirestoreVideoType } from '@/lib/firestore'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-import { FirestoreVideo, FirestoreTimestamp } from '@/types'
+import { FirestoreTimestamp } from '@/types'
 
 // Datos de ejemplo del perfil
 const mockProfile = {
@@ -122,7 +131,7 @@ export default function ProfilePage() {
 
   const [isSubscribed, setIsSubscribed] = useState(profileData.isSubscribed)
   const [subscriberCount, setSubscriberCountState] = useState(profileData.subscriberCount)
-  const [userVideos, setUserVideos] = useState<FirestoreVideo[]>([])
+  const [userVideos, setUserVideos] = useState<FirestoreVideoType[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
 
@@ -271,7 +280,7 @@ export default function ProfilePage() {
                         {formatNumber(subscriberCount)} suscriptores
                       </span>
                       <span className='flex items-center gap-1'>
-                        <Video className='h-4 w-4' />
+                        <VideoIcon className='h-4 w-4' />
                         {profileData.videoCount} videos
                       </span>
                       <span className='flex items-center gap-1'>
@@ -354,13 +363,13 @@ export default function ProfilePage() {
                   ) : videosError ? (
                     // Error state
                     <div className='text-center py-12'>
-                      <Video className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+                      <VideoIcon className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
                       <p className='text-muted-foreground'>{videosError}</p>
                     </div>
                   ) : userVideos.length === 0 ? (
                     // Empty state
                     <div className='text-center py-12'>
-                      <Video className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+                      <VideoIcon className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
                       <p className='text-muted-foreground'>
                         {isOwnProfile
                           ? 'Aún no has subido videos'
@@ -403,7 +412,14 @@ export default function ProfilePage() {
                             <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                               <span>{formatNumber(video.viewCount || 0)} vistas</span>
                               <span>•</span>
-                              <span>{formatUploadDate(video.uploadDate)}</span>
+                              <span>
+                                {video.uploadDate
+                                  ? formatUploadDate({
+                                      seconds: Math.floor(video.uploadDate.getTime() / 1000),
+                                      nanoseconds: 0,
+                                    })
+                                  : 'Fecha desconocida'}
+                              </span>
                             </div>
                           </CardContent>
                         </Card>
