@@ -1,3 +1,6 @@
+import { doc, setDoc } from 'firebase/firestore'
+
+import { db } from '@/lib/firebase'
 import { IUserService } from '@/lib/interfaces/IUserService'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { AuthService } from '@/lib/services/AuthService'
@@ -39,10 +42,6 @@ export class UserService implements IUserService {
           videoCount: 0,
           totalViews: 0,
         }
-
-        // Create user profile directly with setDoc to match existing structure
-        const { doc, setDoc } = await import('firebase/firestore')
-        const { db } = await import('@/lib/firebase')
 
         await setDoc(doc(db, 'users', currentUser.uid), newUser)
         user = newUser
@@ -202,12 +201,8 @@ export class UserService implements IUserService {
         firstName: userData.firstName,
         lastName: userData.lastName,
         termsAccepted: userData.termsAccepted,
-        termsAcceptedAt: userData.termsAccepted ? now : null,
+        termsAcceptedAt: userData.termsAccepted ? now : undefined,
       }
-
-      // Use direct Firestore operation to match existing structure
-      const { doc, setDoc } = await import('firebase/firestore')
-      const { db } = await import('@/lib/firebase')
 
       await setDoc(doc(db, 'users', userId), userProfile)
     } catch (error) {
