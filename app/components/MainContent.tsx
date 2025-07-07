@@ -6,7 +6,7 @@ import VideoCard from '@/components/VideoCard'
 import { useHomeVideos } from '@/lib/hooks/useVideoData'
 
 export default function MainContent() {
-  const { videos, loading, refetch } = useHomeVideos()
+  const { videos, loading, hasAttemptedLoad, refetch } = useHomeVideos()
 
   const categories = [
     'Todo',
@@ -34,13 +34,13 @@ export default function MainContent() {
           />
         </div>
 
-        <div className='flex space-x-2 pb-4 overflow-x-auto scrollbar-hide touch-pan-x w-full'>
+        <div className='categories-container flex space-x-2 pb-4 w-full'>
           {categories.map(category => (
             <Button
               key={category}
               variant='secondary'
               size='sm'
-              className='whitespace-nowrap text-xs md:text-sm px-3 py-2 md:px-4 md:py-2 min-w-[60px] touch-manipulation flex-shrink-0'
+              className='whitespace-nowrap text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 touch-manipulation flex-shrink-0 min-w-fit'
             >
               {category}
             </Button>
@@ -53,7 +53,7 @@ export default function MainContent() {
           </div>
         )}
 
-        {!loading && videos.length === 0 && (
+        {!loading && videos.length === 0 && hasAttemptedLoad && (
           <div className='text-center py-8 text-muted-foreground'>
             <p>No hay videos disponibles</p>
             <Button onClick={refetch} className='mt-4'>

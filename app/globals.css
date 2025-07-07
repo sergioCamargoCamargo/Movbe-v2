@@ -180,8 +180,21 @@
   }
 
   /* Fix for flex containers that might cause overflow */
-  .flex {
-    flex-wrap: wrap !important;
+  .flex:not(.categories-container) {
+    flex-wrap: wrap;
+  }
+
+  /* Categories horizontal scroll fix */
+  .categories-container {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .categories-container::-webkit-scrollbar {
+    display: none;
   }
 
   /* Ensure main containers can scroll properly */

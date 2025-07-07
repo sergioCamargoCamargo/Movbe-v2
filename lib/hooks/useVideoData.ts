@@ -51,6 +51,7 @@ export const useHomeVideos = () => {
   const videos = useAppSelector(selectHomeVideos)
   const loading = useAppSelector(selectIsVideosLoading)
   const shouldRefresh = useAppSelector(selectShouldRefreshHomeVideos)
+  const hasAttemptedLoad = useAppSelector(state => state.video.cache.lastFetch.home > 0)
 
   const fetchHomeVideos = useCallback(
     async (force = false) => {
@@ -70,14 +71,15 @@ export const useHomeVideos = () => {
   )
 
   useEffect(() => {
-    if (shouldRefresh && !loading) {
+    if (shouldRefresh) {
       fetchHomeVideos()
     }
-  }, [shouldRefresh, loading, fetchHomeVideos])
+  }, [shouldRefresh, fetchHomeVideos])
 
   return {
     videos,
     loading,
+    hasAttemptedLoad,
     refetch: () => fetchHomeVideos(true),
   }
 }
