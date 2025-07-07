@@ -1,6 +1,6 @@
 'use client'
 
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -14,7 +14,7 @@ import { Video, getVideoById, getPublicVideos, recordVideoView } from '@/lib/fir
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
-import Header from '../../components/Header'
+import HeaderDynamic from '../../components/HeaderDynamic'
 import Sidebar from '../../components/Sidebar'
 
 export default function WatchPage() {
@@ -109,7 +109,7 @@ export default function WatchPage() {
   if (loading) {
     return (
       <div className='flex flex-col min-h-screen'>
-        <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
@@ -123,7 +123,7 @@ export default function WatchPage() {
   if (error || !video) {
     return (
       <div className='flex flex-col min-h-screen'>
-        <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
@@ -161,7 +161,7 @@ export default function WatchPage() {
 
   return (
     <div className='flex flex-col min-h-screen'>
-      <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+      <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
       <div className='flex flex-1 overflow-hidden pt-16'>
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto'>
@@ -234,63 +234,10 @@ export default function WatchPage() {
                     </Button>
                   )}
                 </div>
-                <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
-                    disabled={!user}
-                    title={!user ? 'Inicia sesión para dar like' : ''}
-                  >
-                    <ThumbsUp className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='text-xs sm:text-sm'>{video.likeCount.toLocaleString()}</span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
-                    disabled={!user}
-                    title={!user ? 'Inicia sesión para dar dislike' : ''}
-                  >
-                    <ThumbsDown className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='text-xs sm:text-sm'>
-                      {video.dislikeCount.toLocaleString()}
-                    </span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation'
-                  >
-                    <Share2 className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='hidden sm:inline'>Compartir</span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default hidden sm:flex touch-manipulation'
-                  >
-                    <Download className='mr-2 h-4 w-4' /> Descargar
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[44px]'
-                  >
-                    <MoreHorizontal className='h-4 w-4' />
-                  </Button>
-                </div>
-              </div>
-              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
-                <p className='text-xs sm:text-sm'>
-                  {video.viewCount.toLocaleString()} visualizaciones
-                </p>
-                <p className='mt-2 text-sm sm:text-base'>
-                  {video.description || 'Sin descripción'}
-                </p>
+                {/* Video interactions moved to dedicated component below */}
               </div>
 
-              {/* Use VideoInteractions component for comments and interactions */}
+              {/* Video interactions component */}
               <VideoInteractions
                 videoId={video.id}
                 likes={video.likeCount}
@@ -302,6 +249,15 @@ export default function WatchPage() {
                 userRating={0}
                 comments={[]}
               />
+
+              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
+                <p className='text-xs sm:text-sm'>
+                  {video.viewCount.toLocaleString()} visualizaciones
+                </p>
+                <p className='mt-2 text-sm sm:text-base'>
+                  {video.description || 'Sin descripción'}
+                </p>
+              </div>
             </div>
           </div>
         </div>

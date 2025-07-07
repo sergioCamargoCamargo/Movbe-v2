@@ -1,9 +1,9 @@
-import { User, UserSettings } from '@/types'
+import { UserProfile, UserSettings } from '@/types'
 
 export interface IUserService {
-  getCurrentUser(): Promise<User | null>
-  getUserById(id: string): Promise<User | null>
-  updateUser(id: string, data: Partial<User>): Promise<User>
+  getCurrentUser(): Promise<UserProfile | null>
+  getUserById(id: string): Promise<UserProfile | null>
+  updateUser(id: string, data: Partial<UserProfile>): Promise<UserProfile>
   deleteUser(id: string): Promise<boolean>
   getUserSettings(userId: string): Promise<UserSettings | null>
   updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<UserSettings>

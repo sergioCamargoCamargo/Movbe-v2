@@ -1,20 +1,23 @@
+import { doc, setDoc } from 'firebase/firestore'
+
+import { db } from '@/lib/firebase'
 import { IUserService } from '@/lib/interfaces/IUserService'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { AuthService } from '@/lib/services/AuthService'
-import { User, UserSettings } from '@/types'
+import { UserProfile, UserSettings } from '@/types'
 
 export class UserService implements IUserService {
-  private repository: FirebaseRepository<User>
+  private repository: FirebaseRepository<UserProfile>
   private settingsRepository: FirebaseRepository<UserSettings>
   private authService: AuthService
 
   constructor() {
-    this.repository = new FirebaseRepository<User>('users')
+    this.repository = new FirebaseRepository<UserProfile>('users')
     this.settingsRepository = new FirebaseRepository<UserSettings>('userSettings')
     this.authService = new AuthService()
   }
 
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<UserProfile | null> {
     try {
       const currentUser = await this.authService.getCurrentUser()
       if (!currentUser) return null
@@ -24,20 +27,23 @@ export class UserService implements IUserService {
 
       // If user doesn't exist in Firestore, create it
       if (!user) {
-        const newUser: User = {
-          id: currentUser.uid,
-          email: currentUser.email || '',
-          displayName: currentUser.displayName || '',
-          avatar: currentUser.photoURL || undefined,
-          type: 'normal',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+        const now = new Date().toISOString()
+        const newUser: UserProfile = {
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          photoURL: currentUser.photoURL,
+          role: 'normal',
+          ageVerified: false,
+          dateOfBirth: null,
+          createdAt: now,
+          lastLoginAt: now,
+          subscriberCount: 0,
+          videoCount: 0,
+          totalViews: 0,
         }
 
-        // Remove id from newUser when creating (Firestore will use the provided ID)
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id: _id, ...userData } = newUser
-        await this.repository.create(currentUser.uid, userData)
+        await setDoc(doc(db, 'users', currentUser.uid), newUser)
         user = newUser
       }
 
@@ -48,7 +54,7 @@ export class UserService implements IUserService {
     }
   }
 
-  async getUserById(id: string): Promise<User | null> {
+  async getUserById(id: string): Promise<UserProfile | null> {
     try {
       return await this.repository.findById(id)
     } catch {
@@ -57,11 +63,11 @@ export class UserService implements IUserService {
     }
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
+  async updateUser(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
     try {
       const updatedData = {
         ...data,
-        updatedAt: new Date(),
+        lastLoginAt: new Date().toISOString(),
       }
 
       await this.repository.update(id, updatedData)
@@ -164,13 +170,54 @@ export class UserService implements IUserService {
     }
   }
 
+  async createUserProfile(
+    userId: string,
+    userData: {
+      email: string
+      displayName: string
+      firstName: string
+      lastName: string
+      termsAccepted: boolean
+      photoURL?: string | null
+    }
+  ): Promise<void> {
+    try {
+      const now = new Date().toISOString()
+
+      // Create user profile in the format that matches Firebase structure
+      const userProfile = {
+        uid: userId,
+        email: userData.email,
+        displayName: userData.displayName,
+        photoURL: userData.photoURL,
+        role: 'normal',
+        ageVerified: false,
+        dateOfBirth: null,
+        createdAt: now,
+        lastLoginAt: now,
+        subscriberCount: 0,
+        videoCount: 0,
+        totalViews: 0,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        termsAccepted: userData.termsAccepted,
+        termsAcceptedAt: userData.termsAccepted ? now : null,
+      }
+
+      await setDoc(doc(db, 'users', userId), userProfile)
+    } catch (error) {
+      // console.error('Error creating user profile:', error)
+      throw error
+    }
+  }
+
   async uploadAvatar(userId: string, _file: File): Promise<string> {
     try {
       // Implementar lógica de subida de archivo
       // Por ahora retornamos una URL placeholder
       const avatarUrl = `https://api.placeholder.com/avatar/${userId}`
 
-      await this.updateUser(userId, { avatar: avatarUrl })
+      await this.updateUser(userId, { photoURL: avatarUrl })
 
       return avatarUrl
     } catch (error) {

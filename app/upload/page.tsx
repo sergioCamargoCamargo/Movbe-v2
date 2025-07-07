@@ -3,7 +3,7 @@
 import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-import Header from '@/app/components/Header'
+import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
 import { PageTransition } from '@/components/PageTransition'
 import { Button } from '@/components/ui/button'
@@ -174,7 +174,7 @@ export default function UploadPage() {
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-2 sm:p-4'>
