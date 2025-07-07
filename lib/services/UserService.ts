@@ -201,7 +201,7 @@ export class UserService implements IUserService {
         firstName: userData.firstName,
         lastName: userData.lastName,
         termsAccepted: userData.termsAccepted,
-        termsAcceptedAt: userData.termsAccepted ? now : undefined,
+        termsAcceptedAt: userData.termsAccepted ? now : null,
       }
 
       await setDoc(doc(db, 'users', userId), userProfile)
