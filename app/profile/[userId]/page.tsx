@@ -163,8 +163,8 @@ export default function ProfilePage() {
           <Header onMenuClick={() => dispatch(toggleSidebar())} />
           <div className='flex flex-1 overflow-hidden pt-16'>
             <Sidebar />
-            <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30'>
-              <div className='max-w-7xl mx-auto p-4 sm:p-6 md:p-8'>
+            <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 w-full min-w-0 overflow-x-hidden'>
+              <div className='max-w-7xl mx-auto p-1 xs:p-4 sm:p-6 md:p-8 w-full min-w-0'>
                 <div className='animate-pulse'>
                   <div className='h-48 sm:h-64 md:h-80 lg:h-96 bg-muted rounded-lg mb-8'></div>
                   <div className='space-y-4'>
@@ -257,8 +257,8 @@ export default function ProfilePage() {
               <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
 
               {/* Profile Info Overlay */}
-              <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8'>
-                <div className='flex flex-col sm:flex-row items-start sm:items-end gap-4'>
+              <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 touch-manipulation'>
+                <div className='flex flex-col sm:flex-row items-start sm:items-end gap-3 sm:gap-4'>
                   <Avatar className='h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20'>
                     <AvatarImage src={profileData.avatar} alt={profileData.name} />
                     <AvatarFallback className='text-xl font-bold'>
@@ -290,12 +290,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className='flex gap-2'>
+                  <div className='flex gap-2 flex-wrap'>
                     {!profileData.isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
                         variant={isSubscribed ? 'outline' : 'default'}
-                        className={`${
+                        className={`touch-manipulation min-w-[100px] ${
                           isSubscribed
                             ? 'bg-white/20 hover:bg-white/30 text-white border-white/30'
                             : 'bg-primary hover:bg-primary/90'
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                       variant='outline'
                       size='icon'
                       onClick={handleShare}
-                      className='bg-white/20 hover:bg-white/30 text-white border-white/30'
+                      className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
                       aria-label='Compartir perfil'
                     >
                       <Share2 className='h-4 w-4' />
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                       <Button
                         variant='outline'
                         size='icon'
-                        className='bg-white/20 hover:bg-white/30 text-white border-white/30'
+                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
                         aria-label='Configurar perfil'
                       >
                         <Settings className='h-4 w-4' />
@@ -331,9 +331,9 @@ export default function ProfilePage() {
             </div>
 
             {/* Content */}
-            <div className='max-w-7xl mx-auto p-4 sm:p-6 md:p-8'>
+            <div className='max-w-7xl mx-auto p-1 xs:p-4 sm:p-6 md:p-8 w-full min-w-0'>
               <Tabs defaultValue='videos' className='space-y-6'>
-                <TabsList className='grid w-full grid-cols-3 md:w-96'>
+                <TabsList className='grid w-full grid-cols-3 md:w-96 touch-manipulation'>
                   <TabsTrigger value='videos'>Videos</TabsTrigger>
                   <TabsTrigger value='about'>Acerca de</TabsTrigger>
                   <TabsTrigger value='stats'>Estadísticas</TabsTrigger>
@@ -342,14 +342,14 @@ export default function ProfilePage() {
                 <TabsContent value='videos' className='space-y-4'>
                   <div className='flex items-center justify-between'>
                     <h2 className='text-xl font-semibold'>Videos ({userVideos.length})</h2>
-                    <Button variant='outline' size='sm'>
+                    <Button variant='outline' size='sm' className='touch-manipulation'>
                       Más recientes
                     </Button>
                   </div>
 
                   {videosLoading ? (
                     // Loading skeleton for videos
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6'>
                       {[...Array(8)].map((_, i) => (
                         <Card key={i} className='overflow-hidden'>
                           <div className='aspect-video bg-muted animate-pulse'></div>
@@ -376,18 +376,21 @@ export default function ProfilePage() {
                           : 'Este usuario no ha subido videos'}
                       </p>
                       {isOwnProfile && (
-                        <Button className='mt-4' onClick={() => navigateTo('/upload')}>
+                        <Button
+                          className='mt-4 touch-manipulation'
+                          onClick={() => navigateTo('/upload')}
+                        >
                           Subir tu primer video
                         </Button>
                       )}
                     </div>
                   ) : (
                     // Videos grid
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6'>
                       {userVideos.map(video => (
                         <Card
                           key={video.id}
-                          className='overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group'
+                          className='overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group touch-manipulation transform hover:scale-105 active:scale-95'
                           onClick={() => navigateTo(`/watch/${video.id}`)}
                         >
                           <div className='relative aspect-video'>

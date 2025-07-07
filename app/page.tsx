@@ -13,11 +13,13 @@ export default function Home() {
 
   return (
     <PageTransition>
-      <div className='flex flex-col h-screen'>
+      <div className='flex flex-col min-h-screen'>
         <Header onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 pt-16'>
           <Sidebar />
-          <MainContent />
+          <div className='flex-1 min-w-0 overflow-x-hidden w-full'>
+            <MainContent />
+          </div>
         </div>
       </div>
     </PageTransition>

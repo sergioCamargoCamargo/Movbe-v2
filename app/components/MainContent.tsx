@@ -2,7 +2,6 @@
 
 import { AdBanner } from '@/components/AdBanner'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import VideoCard from '@/components/VideoCard'
 import { useHomeVideos } from '@/lib/hooks/useVideoData'
 
@@ -20,8 +19,8 @@ export default function MainContent() {
   ]
 
   return (
-    <ScrollArea className='flex-1'>
-      <div className='p-2 md:p-4'>
+    <div className='w-full min-w-0'>
+      <div className='p-1 xs:p-2 sm:p-4 mobile-container'>
         {/* Banner publicitario principal */}
         <div className='mb-4'>
           <AdBanner
@@ -35,13 +34,13 @@ export default function MainContent() {
           />
         </div>
 
-        <div className='flex space-x-2 pb-4 overflow-x-auto scrollbar-hide'>
+        <div className='flex space-x-2 pb-4 overflow-x-auto scrollbar-hide touch-pan-x w-full'>
           {categories.map(category => (
             <Button
               key={category}
               variant='secondary'
               size='sm'
-              className='whitespace-nowrap text-xs md:text-sm px-2 md:px-3'
+              className='whitespace-nowrap text-xs md:text-sm px-3 py-2 md:px-4 md:py-2 min-w-[60px] touch-manipulation flex-shrink-0'
             >
               {category}
             </Button>
@@ -64,12 +63,12 @@ export default function MainContent() {
         )}
 
         {!loading && videos.length > 0 && (
-          <div className='grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 md:gap-4'>
+          <div className='video-grid'>
             {videos.map((video, i) => (
-              <div key={video.id}>
+              <div key={video.id} className='w-full min-w-0'>
                 {/* Mostrar banner publicitario cada 4 videos */}
                 {i > 0 && i % 4 === 0 && (
-                  <div className='col-span-full mb-4'>
+                  <div className='col-span-full mb-4 w-full'>
                     <AdBanner
                       type='banner'
                       size='medium'
@@ -81,12 +80,14 @@ export default function MainContent() {
                     />
                   </div>
                 )}
-                <VideoCard video={video} />
+                <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
+                  <VideoCard video={video} />
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </ScrollArea>
+    </div>
   )
 }

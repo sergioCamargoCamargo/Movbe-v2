@@ -74,6 +74,126 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Ensure proper scrolling on mobile */
+  @media (max-width: 768px) {
+    body {
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+  }
+}
+
+/* Prevent horizontal overflow on mobile */
+@layer components {
+  .mobile-container {
+    @apply w-full min-w-0 overflow-x-hidden max-w-full;
+    box-sizing: border-box;
+  }
+
+  .video-grid {
+    @apply w-full min-w-0 max-w-full grid gap-2 sm:gap-3 md:gap-4;
+    grid-template-columns: 1fr;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 640px) {
+    .video-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .video-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .video-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .video-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .video-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+}
+
+/* Ensure everything stays within viewport on very small screens */
+@media (max-width: 582px) {
+  /* Global viewport fix */
+  html,
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    min-height: 100vh !important;
+  }
+
+  /* Container fixes */
+  .mobile-container {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .video-grid {
+    gap: 0.5rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Ensure no element overflows */
+  *,
+  *::before,
+  *::after {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Specific fix for video cards and images */
+  .aspect-video,
+  .aspect-video img,
+  .aspect-video video {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Fix for main layout containers */
+  [data-radix-scroll-area-viewport] {
+    overflow-x: hidden !important;
+  }
+
+  /* Center text properly */
+  .text-center {
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Fix for flex containers that might cause overflow */
+  .flex {
+    flex-wrap: wrap !important;
+  }
+
+  /* Ensure main containers can scroll properly */
+  .flex-1 {
+    min-height: 0 !important;
+  }
+
+  /* Ensure sidebar doesn't interfere on mobile */
+  .sidebar-container {
+    position: fixed !important;
+    z-index: 50 !important;
+  }
 }
 
 .carousel-3d .slick-slide {
