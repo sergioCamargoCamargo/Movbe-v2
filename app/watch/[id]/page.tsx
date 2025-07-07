@@ -1,6 +1,6 @@
 'use client'
 
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -234,63 +234,10 @@ export default function WatchPage() {
                     </Button>
                   )}
                 </div>
-                <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
-                    disabled={!user}
-                    title={!user ? 'Inicia sesión para dar like' : ''}
-                  >
-                    <ThumbsUp className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='text-xs sm:text-sm'>{video.likeCount.toLocaleString()}</span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
-                    disabled={!user}
-                    title={!user ? 'Inicia sesión para dar dislike' : ''}
-                  >
-                    <ThumbsDown className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='text-xs sm:text-sm'>
-                      {video.dislikeCount.toLocaleString()}
-                    </span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation'
-                  >
-                    <Share2 className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='hidden sm:inline'>Compartir</span>
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default hidden sm:flex touch-manipulation'
-                  >
-                    <Download className='mr-2 h-4 w-4' /> Descargar
-                  </Button>
-                  <Button
-                    variant='secondary'
-                    size='sm'
-                    className='sm:size-default touch-manipulation min-w-[44px]'
-                  >
-                    <MoreHorizontal className='h-4 w-4' />
-                  </Button>
-                </div>
-              </div>
-              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
-                <p className='text-xs sm:text-sm'>
-                  {video.viewCount.toLocaleString()} visualizaciones
-                </p>
-                <p className='mt-2 text-sm sm:text-base'>
-                  {video.description || 'Sin descripción'}
-                </p>
+                {/* Video interactions moved to dedicated component below */}
               </div>
 
-              {/* Use VideoInteractions component for comments and interactions */}
+              {/* Video interactions component */}
               <VideoInteractions
                 videoId={video.id}
                 likes={video.likeCount}
@@ -302,6 +249,15 @@ export default function WatchPage() {
                 userRating={0}
                 comments={[]}
               />
+
+              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
+                <p className='text-xs sm:text-sm'>
+                  {video.viewCount.toLocaleString()} visualizaciones
+                </p>
+                <p className='mt-2 text-sm sm:text-base'>
+                  {video.description || 'Sin descripción'}
+                </p>
+              </div>
             </div>
           </div>
         </div>

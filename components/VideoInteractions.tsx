@@ -268,15 +268,16 @@ export function VideoInteractions({
     <div className={`space-y-6 ${className}`}>
       {/* Botones de interacción principales */}
       <Card>
-        <CardContent className='p-4'>
-          <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4'>
-            <div className='flex items-center gap-2 flex-wrap'>
+        <CardContent className='p-2 sm:p-4'>
+          {/* Mobile-first: Single row with scrollable buttons */}
+          <div className='flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide'>
+            <div className='flex items-center gap-2 flex-shrink-0'>
               <Button
                 variant={user && userLikeStatus_isLiked ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleLike}
                 disabled={!user || likesLoading}
-                className='flex items-center gap-2'
+                className='flex items-center gap-1 sm:gap-2 touch-manipulation min-w-[60px] sm:min-w-[80px] h-9 sm:h-10'
                 aria-label={
                   user
                     ? `${userLikeStatus_isLiked ? 'Quitar' : 'Dar'} like al video`
@@ -287,7 +288,7 @@ export function VideoInteractions({
                 <ThumbsUp
                   className={`h-4 w-4 ${user && userLikeStatus_isLiked ? 'fill-current' : ''}`}
                 />
-                {formatNumber(currentLikes)}
+                <span className='text-xs sm:text-sm'>{formatNumber(currentLikes)}</span>
               </Button>
 
               <Button
@@ -295,7 +296,7 @@ export function VideoInteractions({
                 size='sm'
                 onClick={handleDislike}
                 disabled={!user || likesLoading}
-                className='flex items-center gap-2'
+                className='flex items-center gap-1 sm:gap-2 touch-manipulation min-w-[60px] sm:min-w-[80px] h-9 sm:h-10'
                 aria-label={
                   user ? 'Dar feedback negativo al video' : 'Inicia sesión para dar dislike'
                 }
@@ -304,41 +305,43 @@ export function VideoInteractions({
                 <ThumbsDown
                   className={`h-4 w-4 ${user && userLikeStatus_isDisliked ? 'fill-current' : ''}`}
                 />
-                {formatNumber(currentDislikes)}
+                <span className='text-xs sm:text-sm'>{formatNumber(currentDislikes)}</span>
               </Button>
             </div>
 
-            <div className='flex items-center gap-2 flex-wrap w-full sm:w-auto'>
+            <div className='flex items-center gap-2 flex-shrink-0'>
               <Button
                 variant={saved ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleSave}
-                className='touch-manipulation flex items-center gap-2'
+                className='touch-manipulation flex items-center gap-1 sm:gap-2 h-9 sm:h-10'
                 aria-label={`${saved ? 'Remover de' : 'Añadir a'} guardados`}
               >
                 <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-                {saved ? 'Guardado' : 'Guardar'}
+                <span className='hidden xs:inline text-xs sm:text-sm'>
+                  {saved ? 'Guardado' : 'Guardar'}
+                </span>
               </Button>
 
               <Button
                 variant='outline'
                 size='sm'
                 onClick={handleShare}
-                className='flex items-center gap-2 touch-manipulation'
+                className='flex items-center gap-1 sm:gap-2 touch-manipulation h-9 sm:h-10'
                 aria-label='Compartir video'
               >
                 <Share2 className='h-4 w-4' />
-                Compartir
+                <span className='hidden xs:inline text-xs sm:text-sm'>Compartir</span>
               </Button>
 
               <Button
                 variant='outline'
                 size='sm'
-                className='flex items-center gap-2 touch-manipulation'
+                className='flex items-center gap-1 sm:gap-2 touch-manipulation h-9 sm:h-10'
                 aria-label='Reportar video'
               >
                 <Flag className='h-4 w-4' />
-                Reportar
+                <span className='hidden sm:inline text-xs sm:text-sm'>Reportar</span>
               </Button>
             </div>
           </div>
@@ -347,34 +350,34 @@ export function VideoInteractions({
 
       {/* Sistema de calificación por estrellas */}
       <Card>
-        <CardHeader>
-          <div className='flex items-center justify-between'>
-            <h3 className='text-lg font-semibold'>Calificación</h3>
+        <CardHeader className='pb-3'>
+          <div className='flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2'>
+            <h3 className='text-base sm:text-lg font-semibold'>Calificación</h3>
             <div className='flex items-center gap-2'>
               <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-              <span className='font-medium'>{rating.toFixed(1)}</span>
+              <span className='font-medium text-sm sm:text-base'>{rating.toFixed(1)}</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className='space-y-3'>
-            <p className='text-sm text-muted-foreground'>
+        <CardContent className='pt-0'>
+          <div className='space-y-3 sm:space-y-4'>
+            <p className='text-xs sm:text-sm text-muted-foreground'>
               Califica este video para ayudar a otros usuarios
             </p>
-            <div className='flex items-center gap-1'>
+            <div className='flex items-center justify-center sm:justify-start gap-1 sm:gap-2'>
               {[1, 2, 3, 4, 5].map(star => (
                 <button
                   key={star}
                   onClick={() => handleRating(star)}
                   disabled={!user}
-                  className={`transition-colors hover:scale-110 transform ${
-                    !user ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`transition-all duration-200 touch-manipulation p-1 ${
+                    !user ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
                   }`}
                   aria-label={`Calificar con ${star} estrella${star > 1 ? 's' : ''}`}
                   title={!user ? 'Inicia sesión para calificar' : ''}
                 >
                   <Star
-                    className={`h-6 w-6 transition-colors ${
+                    className={`h-7 w-7 sm:h-8 sm:w-8 transition-colors ${
                       star <= currentUserRating
                         ? 'fill-yellow-400 text-yellow-400'
                         : `text-gray-300 ${user ? 'hover:text-yellow-400' : ''}`
@@ -384,7 +387,7 @@ export function VideoInteractions({
               ))}
             </div>
             {currentUserRating > 0 && (
-              <p className='text-sm text-green-600'>
+              <p className='text-xs sm:text-sm text-green-600 text-center sm:text-left'>
                 Has calificado este video con {currentUserRating} estrella
                 {currentUserRating > 1 ? 's' : ''}
               </p>
@@ -395,13 +398,13 @@ export function VideoInteractions({
 
       {/* Sección de comentarios */}
       <Card>
-        <CardHeader>
-          <h3 className='text-lg font-semibold flex items-center gap-2'>
-            <MessageCircle className='h-5 w-5' />
+        <CardHeader className='pb-3'>
+          <h3 className='text-base sm:text-lg font-semibold flex items-center gap-2'>
+            <MessageCircle className='h-4 w-4 sm:h-5 sm:w-5' />
             Comentarios ({localComments.length})
           </h3>
         </CardHeader>
-        <CardContent className='space-y-4'>
+        <CardContent className='space-y-3 sm:space-y-4'>
           {/* Formulario para nuevo comentario */}
           {user ? (
             <form onSubmit={handleCommentSubmit} className='space-y-3'>
@@ -411,23 +414,24 @@ export function VideoInteractions({
                 onChange={e => setNewComment(e.target.value)}
                 rows={3}
                 aria-label='Escribir comentario'
+                className='resize-none touch-manipulation'
               />
               <div className='flex justify-end'>
                 <Button
                   type='submit'
                   size='sm'
                   disabled={!newComment.trim()}
-                  className='flex items-center gap-2'
+                  className='flex items-center gap-2 touch-manipulation h-9'
                 >
                   <MessageCircle className='h-4 w-4' />
-                  Comentar
+                  <span className='text-sm'>Comentar</span>
                 </Button>
               </div>
             </form>
           ) : (
-            <div className='p-4 bg-muted/30 rounded-lg text-center'>
-              <p className='text-muted-foreground'>
-                <Button variant='link' className='p-0 h-auto font-normal'>
+            <div className='p-3 sm:p-4 bg-muted/30 rounded-lg text-center'>
+              <p className='text-sm text-muted-foreground'>
+                <Button variant='link' className='p-0 h-auto font-normal text-sm'>
                   Inicia sesión
                 </Button>{' '}
                 para comentar en este video
@@ -438,21 +442,23 @@ export function VideoInteractions({
           <Separator />
 
           {/* Lista de comentarios */}
-          <div className='space-y-4'>
+          <div className='space-y-3 sm:space-y-4'>
             {commentsLoading ? (
-              <div className='text-center py-8'>
-                <p>Cargando comentarios...</p>
+              <div className='text-center py-6 sm:py-8'>
+                <p className='text-sm sm:text-base'>Cargando comentarios...</p>
               </div>
             ) : localComments.length > 0 ? (
               localComments.map(comment => (
-                <div key={comment.id} className='flex gap-3 p-3 bg-muted/30 rounded-lg'>
-                  <Avatar className='h-8 w-8'>
-                    <AvatarFallback>{comment.userName.charAt(0).toUpperCase()}</AvatarFallback>
+                <div key={comment.id} className='flex gap-2 sm:gap-3 p-3 bg-muted/30 rounded-lg'>
+                  <Avatar className='h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0'>
+                    <AvatarFallback className='text-xs sm:text-sm'>
+                      {comment.userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className='flex-1 space-y-2'>
-                    <div className='flex items-center gap-2'>
-                      <span className='font-semibold text-sm'>{comment.userName}</span>
-                      <span className='text-xs text-muted-foreground'>
+                  <div className='flex-1 space-y-2 min-w-0'>
+                    <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
+                      <span className='font-semibold text-sm truncate'>{comment.userName}</span>
+                      <span className='text-xs text-muted-foreground flex-shrink-0'>
                         {comment.createdAt &&
                         typeof comment.createdAt === 'object' &&
                         'toDate' in comment.createdAt
@@ -460,31 +466,33 @@ export function VideoInteractions({
                           : 'Ahora'}
                       </span>
                     </div>
-                    <p className='text-sm'>{comment.text}</p>
+                    <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
                     <div className='flex items-center gap-2'>
                       <Button
                         variant='ghost'
                         size='sm'
                         onClick={() => handleCommentLike(comment.id)}
                         disabled={!user}
-                        className={`flex items-center gap-1 h-7 px-2 text-muted-foreground ${
+                        className={`flex items-center gap-1 h-7 px-2 text-muted-foreground touch-manipulation ${
                           !user ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                         aria-label='Dar like al comentario'
                         title={!user ? 'Inicia sesión para dar like' : ''}
                       >
                         <Heart className='h-3 w-3' />
-                        {comment.likeCount > 0 && formatNumber(comment.likeCount)}
+                        {comment.likeCount > 0 && (
+                          <span className='text-xs'>{formatNumber(comment.likeCount)}</span>
+                        )}
                       </Button>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className='text-center py-8 text-muted-foreground'>
-                <MessageCircle className='h-12 w-12 mx-auto mb-3 opacity-50' />
-                <p>No hay comentarios aún</p>
-                <p className='text-sm'>¡Sé el primero en comentar!</p>
+              <div className='text-center py-6 sm:py-8 text-muted-foreground'>
+                <MessageCircle className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
+                <p className='text-sm sm:text-base'>No hay comentarios aún</p>
+                <p className='text-xs sm:text-sm'>¡Sé el primero en comentar!</p>
               </div>
             )}
           </div>
