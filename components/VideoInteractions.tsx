@@ -269,8 +269,8 @@ export function VideoInteractions({
       {/* Botones de interacción principales */}
       <Card>
         <CardContent className='p-4'>
-          <div className='flex flex-wrap items-center justify-between gap-4'>
-            <div className='flex items-center gap-2'>
+          <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4'>
+            <div className='flex items-center gap-2 flex-wrap'>
               <Button
                 variant={user && userLikeStatus_isLiked ? 'default' : 'outline'}
                 size='sm'
@@ -308,12 +308,12 @@ export function VideoInteractions({
               </Button>
             </div>
 
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 flex-wrap w-full sm:w-auto'>
               <Button
                 variant={saved ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleSave}
-                className='flex items-center gap-2'
+                className='touch-manipulation flex items-center gap-2'
                 aria-label={`${saved ? 'Remover de' : 'Añadir a'} guardados`}
               >
                 <Bookmark className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
@@ -324,7 +324,7 @@ export function VideoInteractions({
                 variant='outline'
                 size='sm'
                 onClick={handleShare}
-                className='flex items-center gap-2'
+                className='flex items-center gap-2 touch-manipulation'
                 aria-label='Compartir video'
               >
                 <Share2 className='h-4 w-4' />
@@ -334,7 +334,7 @@ export function VideoInteractions({
               <Button
                 variant='outline'
                 size='sm'
-                className='flex items-center gap-2'
+                className='flex items-center gap-2 touch-manipulation'
                 aria-label='Reportar video'
               >
                 <Flag className='h-4 w-4' />

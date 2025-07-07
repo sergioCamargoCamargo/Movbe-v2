@@ -8,7 +8,6 @@ import Slider from 'react-slick'
 
 import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
 import { Video, getVideoById, getPublicVideos, recordVideoView } from '@/lib/firestore'
@@ -113,8 +112,8 @@ export default function WatchPage() {
         <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 flex items-center justify-center'>
-            <p>Cargando video...</p>
+          <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
+            <p className='text-center'>Cargando video...</p>
           </div>
         </div>
       </div>
@@ -127,8 +126,8 @@ export default function WatchPage() {
         <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 flex items-center justify-center'>
-            <p className='text-red-600'>{error || 'Video no encontrado'}</p>
+          <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
+            <p className='text-red-600 text-center'>{error || 'Video no encontrado'}</p>
           </div>
         </div>
       </div>
@@ -165,16 +164,18 @@ export default function WatchPage() {
       <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
       <div className='flex flex-1 overflow-hidden pt-16'>
         <Sidebar />
-        <ScrollArea className='flex-1'>
-          <div className='p-2 sm:p-4 space-y-4'>
+        <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto'>
+          <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>
             <div className='relative' ref={videoRef}>
-              <div className='aspect-video bg-black'>
+              <div className='aspect-video bg-black rounded-lg overflow-hidden'>
                 <video
                   src={video.videoURLs.original}
                   poster={video.thumbnailURL}
                   controls
-                  className='w-full h-full'
+                  className='w-full h-full object-cover touch-manipulation'
                   preload='metadata'
+                  playsInline
+                  controlsList='nodownload'
                 >
                   Tu navegador no soporta el elemento de video.
                 </video>
@@ -212,8 +213,8 @@ export default function WatchPage() {
             </div>
             <div className='space-y-4'>
               <h1 className='text-lg sm:text-2xl font-bold'>{video.title}</h1>
-              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
-                <div className='flex items-center space-x-2 sm:space-x-4'>
+              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4'>
+                <div className='flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0'>
                   <Image
                     src='/placeholder.svg?text=Avatar'
                     alt='Avatar del canal'
@@ -221,8 +222,10 @@ export default function WatchPage() {
                     height={40}
                     className='rounded-full'
                   />
-                  <div className='flex-1'>
-                    <p className='font-semibold text-sm sm:text-base'>{video.uploaderName}</p>
+                  <div className='flex-1 min-w-0'>
+                    <p className='font-semibold text-sm sm:text-base truncate'>
+                      {video.uploaderName}
+                    </p>
                     <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
                   </div>
                   {user && (
@@ -231,40 +234,54 @@ export default function WatchPage() {
                     </Button>
                   )}
                 </div>
-                <div className='flex flex-wrap items-center gap-2'>
+                <div className='flex flex-wrap items-center gap-2 sm:gap-3'>
                   <Button
                     variant='secondary'
                     size='sm'
-                    className='sm:size-default'
+                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
                     disabled={!user}
                     title={!user ? 'Inicia sesión para dar like' : ''}
                   >
                     <ThumbsUp className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='hidden xs:inline'>{video.likeCount.toLocaleString()}</span>
+                    <span className='text-xs sm:text-sm'>{video.likeCount.toLocaleString()}</span>
                   </Button>
                   <Button
                     variant='secondary'
                     size='sm'
-                    className='sm:size-default'
+                    className='sm:size-default touch-manipulation min-w-[50px] sm:min-w-[70px]'
                     disabled={!user}
                     title={!user ? 'Inicia sesión para dar dislike' : ''}
                   >
                     <ThumbsDown className='mr-1 sm:mr-2 h-4 w-4' />
-                    <span className='hidden xs:inline'>{video.dislikeCount.toLocaleString()}</span>
+                    <span className='text-xs sm:text-sm'>
+                      {video.dislikeCount.toLocaleString()}
+                    </span>
                   </Button>
-                  <Button variant='secondary' size='sm' className='sm:size-default'>
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    className='sm:size-default touch-manipulation'
+                  >
                     <Share2 className='mr-1 sm:mr-2 h-4 w-4' />
                     <span className='hidden sm:inline'>Compartir</span>
                   </Button>
-                  <Button variant='secondary' size='sm' className='sm:size-default hidden sm:flex'>
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    className='sm:size-default hidden sm:flex touch-manipulation'
+                  >
                     <Download className='mr-2 h-4 w-4' /> Descargar
                   </Button>
-                  <Button variant='secondary' size='sm' className='sm:size-default'>
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    className='sm:size-default touch-manipulation min-w-[44px]'
+                  >
                     <MoreHorizontal className='h-4 w-4' />
                   </Button>
                 </div>
               </div>
-              <div className='bg-muted p-3 sm:p-4 rounded-lg'>
+              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
                 <p className='text-xs sm:text-sm'>
                   {video.viewCount.toLocaleString()} visualizaciones
                 </p>
@@ -287,7 +304,7 @@ export default function WatchPage() {
               />
             </div>
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   )

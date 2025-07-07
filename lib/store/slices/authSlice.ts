@@ -19,13 +19,14 @@ const initialState: AuthState = {
 }
 
 const serializeUserProfile = (profile: UserProfile): UserProfile => {
-  const toISOString = (timestamp: unknown) => {
-    if (!timestamp) return timestamp
+  const toISOString = (timestamp: unknown): string | null => {
+    if (!timestamp) return null
     if (timestamp && typeof timestamp === 'object' && 'toDate' in timestamp) {
-      return (timestamp as any).toDate().toISOString()
+      return (timestamp as { toDate: () => Date }).toDate().toISOString()
     }
     if (timestamp instanceof Date) return timestamp.toISOString()
-    return timestamp
+    if (typeof timestamp === 'string') return timestamp
+    return null
   }
 
   return {
@@ -36,8 +37,8 @@ const serializeUserProfile = (profile: UserProfile): UserProfile => {
     role: profile.role,
     ageVerified: profile.ageVerified,
     dateOfBirth: toISOString(profile.dateOfBirth),
-    createdAt: toISOString(profile.createdAt),
-    lastLoginAt: toISOString(profile.lastLoginAt),
+    createdAt: toISOString(profile.createdAt) || '',
+    lastLoginAt: toISOString(profile.lastLoginAt) || '',
     subscriberCount: profile.subscriberCount,
     videoCount: profile.videoCount,
     totalViews: profile.totalViews,

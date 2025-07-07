@@ -42,14 +42,14 @@ export default function VideoCard({ video, className = '' }: VideoCardProps) {
   }
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <NavigationLink href={`/watch/${video.id}`} className='space-y-2 block'>
-        <div className='aspect-video bg-muted rounded-lg overflow-hidden relative group'>
+    <div className={`space-y-2 w-full min-w-0 max-w-full ${className}`}>
+      <NavigationLink href={`/watch/${video.id}`} className='space-y-2 block w-full max-w-full'>
+        <div className='aspect-video bg-muted rounded-lg overflow-hidden relative group w-full max-w-full'>
           <Image
             src={video.thumbnailURL || '/placeholder.svg?text=Video'}
             alt={video.title}
-            width={320}
-            height={180}
+            fill
+            sizes='(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
             className='object-cover w-full h-full'
           />
           <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100'>
@@ -61,14 +61,20 @@ export default function VideoCard({ video, className = '' }: VideoCardProps) {
             </div>
           )}
         </div>
-        <div className='space-y-1'>
-          <h3 className='font-semibold text-sm md:text-base line-clamp-2' title={video.title}>
+        <div className='space-y-1 w-full min-w-0 max-w-full'>
+          <h3
+            className='font-semibold text-sm md:text-base line-clamp-2 w-full max-w-full break-words overflow-hidden'
+            title={video.title}
+          >
             {video.title}
           </h3>
-          <p className='text-xs md:text-sm text-muted-foreground' title={video.uploaderName}>
+          <p
+            className='text-xs md:text-sm text-muted-foreground truncate w-full max-w-full'
+            title={video.uploaderName}
+          >
             {video.uploaderName}
           </p>
-          <div className='text-xs text-muted-foreground'>
+          <div className='text-xs text-muted-foreground truncate w-full max-w-full'>
             {formatViewCount(video.viewCount)} vistas •{' '}
             {getTimeAgo(video.publishedAt || video.uploadDate)}
           </div>

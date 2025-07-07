@@ -18,7 +18,8 @@
       "Bash(convert:*)",
       "Bash(npx prettier:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
