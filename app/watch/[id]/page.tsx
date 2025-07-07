@@ -14,7 +14,7 @@ import { Video, getVideoById, getPublicVideos, recordVideoView } from '@/lib/fir
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
-import Header from '../../components/Header'
+import HeaderDynamic from '../../components/HeaderDynamic'
 import Sidebar from '../../components/Sidebar'
 
 export default function WatchPage() {
@@ -109,7 +109,7 @@ export default function WatchPage() {
   if (loading) {
     return (
       <div className='flex flex-col min-h-screen'>
-        <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
@@ -123,7 +123,7 @@ export default function WatchPage() {
   if (error || !video) {
     return (
       <div className='flex flex-col min-h-screen'>
-        <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
@@ -161,7 +161,7 @@ export default function WatchPage() {
 
   return (
     <div className='flex flex-col min-h-screen'>
-      <Header visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
+      <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
       <div className='flex flex-1 overflow-hidden pt-16'>
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto'>

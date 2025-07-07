@@ -4,7 +4,7 @@ import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from 'react'
 
-import Header from '@/app/components/Header'
+import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
 import { PageTransition } from '@/components/PageTransition'
 import {
@@ -234,7 +234,7 @@ export default function SettingsPage() {
   if (loading || authLoading) {
     return (
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-6'>
@@ -258,7 +258,7 @@ export default function SettingsPage() {
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/20 p-6'>

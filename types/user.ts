@@ -1,13 +1,3 @@
-export interface User {
-  id: string
-  email: string
-  displayName: string
-  avatar?: string
-  type: UserType
-  createdAt: Date
-  updatedAt: Date
-}
-
 export interface UserProfile {
   uid: string
   email: string | null
@@ -21,6 +11,10 @@ export interface UserProfile {
   subscriberCount: number
   videoCount: number
   totalViews: number
+  firstName?: string
+  lastName?: string
+  termsAccepted?: boolean
+  termsAcceptedAt?: string
 }
 
 export type UserType = 'normal' | 'creator' | 'business' | 'admin'

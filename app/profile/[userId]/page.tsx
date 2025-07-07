@@ -14,7 +14,7 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
-import Header from '@/app/components/Header'
+import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
 import { PageTransition } from '@/components/PageTransition'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -160,7 +160,7 @@ export default function ProfilePage() {
     return (
       <PageTransition>
         <div className='flex flex-col h-screen'>
-          <Header onMenuClick={() => dispatch(toggleSidebar())} />
+          <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
           <div className='flex flex-1 overflow-hidden pt-16'>
             <Sidebar />
             <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 w-full min-w-0 overflow-x-hidden'>
@@ -242,7 +242,7 @@ export default function ProfilePage() {
   return (
     <PageTransition>
       <div className='flex flex-col h-screen'>
-        <Header onMenuClick={() => dispatch(toggleSidebar())} />
+        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30'>

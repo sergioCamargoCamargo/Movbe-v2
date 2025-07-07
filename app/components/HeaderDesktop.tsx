@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut } from 'firebase/auth'
-import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings, X } from 'lucide-react'
+import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
@@ -21,7 +21,7 @@ import { auth } from '@/lib/firebase'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppSelector } from '@/lib/store/hooks'
 
-export default function Header({
+export default function HeaderDesktop({
   visible = true,
   onMenuClick,
 }: {
@@ -31,7 +31,6 @@ export default function Header({
   const { user, loading } = useAppSelector(state => state.auth)
   const { navigateTo } = useNavigation()
   const [mounted, setMounted] = useState(false)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -49,86 +48,47 @@ export default function Header({
     <header
       className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
     >
-      {/* Mobile Search Overlay */}
-      {showMobileSearch && (
-        <div className='absolute top-0 left-0 right-0 bg-background border-b p-4 sm:hidden'>
-          <div className='flex items-center gap-2'>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={() => setShowMobileSearch(false)}
-              className='touch-manipulation'
-            >
-              <X className='h-5 w-5' />
-            </Button>
-            <div className='flex-1 relative'>
-              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <Input
-                placeholder='Buscar videos...'
-                className='pl-10 touch-manipulation'
-                autoFocus
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Header Content */}
-      <div
-        className={`flex items-center justify-between p-4 ${showMobileSearch ? 'sm:flex hidden' : ''}`}
-      >
+      <div className='flex items-center justify-between p-4'>
         <div className='flex items-center'>
           <Button variant='ghost' size='icon' onClick={onMenuClick} className='touch-manipulation'>
             <Menu className='h-6 w-6' />
           </Button>
-          <NavigationLink href='/' className='flex items-center ml-2 md:ml-4'>
+          <NavigationLink href='/' className='flex items-center ml-4'>
             <Image
               src='/logo_black.png'
               alt='Movbe'
               width={100}
               height={32}
-              className='dark:hidden w-16 h-auto sm:w-20 md:w-[120px]'
+              className='dark:hidden w-[120px] h-auto'
             />
             <Image
               src='/logo_white.png'
               alt='Movbe'
               width={100}
               height={32}
-              className='hidden dark:block w-16 h-auto sm:w-20 md:w-[120px]'
+              className='hidden dark:block w-[120px] h-auto'
             />
           </NavigationLink>
         </div>
-        {/* Barra de búsqueda - visible solo en desktop */}
-        <div className='flex-1 max-w-2xl mx-2 md:mx-4 hidden sm:block'>
+
+        {/* Desktop Search Bar */}
+        <div className='flex-1 max-w-2xl mx-4'>
           <div className='flex'>
-            <Input
-              type='search'
-              placeholder='Buscar'
-              className='rounded-r-none text-sm md:text-base'
-            />
-            <Button className='rounded-l-none px-3 md:px-4'>
+            <Input type='search' placeholder='Buscar' className='rounded-r-none text-base' />
+            <Button className='rounded-l-none px-4'>
               <Search className='h-4 w-4' />
             </Button>
-            <Button variant='ghost' size='icon' className='ml-2 hidden md:flex touch-manipulation'>
+            <Button variant='ghost' size='icon' className='ml-2 touch-manipulation'>
               <Mic className='h-6 w-6' />
             </Button>
           </div>
         </div>
 
-        {/* Botones de la derecha */}
-        <div className='flex items-center space-x-2 md:space-x-4'>
-          {/* Buscar móvil */}
-          <Button
-            variant='ghost'
-            size='icon'
-            className='sm:hidden touch-manipulation'
-            onClick={() => setShowMobileSearch(true)}
-          >
-            <Search className='h-5 w-5' />
-          </Button>
+        {/* Desktop Right Section */}
+        <div className='flex items-center space-x-4'>
           {!mounted || loading ? (
-            // Loading state or initial render
-            <div className='flex items-center space-x-2 md:space-x-4'>
+            // Loading state
+            <div className='flex items-center space-x-4'>
               <Button variant='ghost' size='icon' disabled>
                 <Upload className='h-6 w-6' />
               </Button>
@@ -147,7 +107,7 @@ export default function Header({
               >
                 <Upload className='h-6 w-6' />
               </Button>
-              <Button variant='ghost' size='icon' className='hidden md:flex touch-manipulation'>
+              <Button variant='ghost' size='icon' className='touch-manipulation'>
                 <Bell className='h-6 w-6' />
               </Button>
               <DropdownMenu>
@@ -192,21 +152,14 @@ export default function Header({
             </>
           ) : (
             // User is not logged in
-            <div className='flex items-center space-x-1 md:space-x-2'>
-              <Button
-                variant='ghost'
-                onClick={() => navigateTo('/auth/login')}
-                className='touch-manipulation text-sm'
-              >
-                Iniciar sesión
-              </Button>
-              <Button
-                onClick={() => navigateTo('/auth/register')}
-                className='touch-manipulation text-sm'
-              >
-                Registrarse
-              </Button>
-            </div>
+            <Button
+              variant='outline'
+              onClick={() => navigateTo('/auth/login')}
+              className='touch-manipulation text-sm flex items-center gap-2 rounded-full border-2'
+            >
+              <User className='h-4 w-4' />
+              Iniciar sesión
+            </Button>
           )}
         </div>
       </div>

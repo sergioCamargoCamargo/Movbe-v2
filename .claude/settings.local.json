@@ -19,7 +19,8 @@
       "Bash(npx prettier:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
