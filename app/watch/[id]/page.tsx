@@ -237,6 +237,15 @@ export default function WatchPage() {
                 {/* Video interactions moved to dedicated component below */}
               </div>
 
+              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
+                <p className='text-xs sm:text-sm'>
+                  {video.viewCount.toLocaleString()} visualizaciones
+                </p>
+                <p className='mt-2 text-sm sm:text-base'>
+                  {video.description || 'Sin descripción'}
+                </p>
+              </div>
+
               {/* Video interactions component */}
               <VideoInteractions
                 videoId={video.id}
@@ -249,15 +258,6 @@ export default function WatchPage() {
                 userRating={0}
                 comments={[]}
               />
-
-              <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
-                <p className='text-xs sm:text-sm'>
-                  {video.viewCount.toLocaleString()} visualizaciones
-                </p>
-                <p className='mt-2 text-sm sm:text-base'>
-                  {video.description || 'Sin descripción'}
-                </p>
-              </div>
             </div>
           </div>
         </div>
