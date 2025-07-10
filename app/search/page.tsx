@@ -38,7 +38,6 @@ function SearchContent() {
     }
   }, [urlQuery, initializeFromUrl])
 
-
   const handleRecentSearch = (recentQuery: string) => {
     updateQuery(recentQuery)
     searchAndNavigate(recentQuery)
@@ -55,7 +54,6 @@ function SearchContent() {
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto'>
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>
-
             {/* Búsquedas recientes */}
             {!hasSearched && recentSearches.length > 0 && (
               <div className='max-w-2xl mx-auto'>

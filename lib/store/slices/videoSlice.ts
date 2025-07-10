@@ -280,8 +280,7 @@ const selectHomeVideoIds = (state: { video: VideoState }) => state.video.cache.h
 
 export const selectHomeVideos = createSelector(
   [selectVideoCache, selectHomeVideoIds],
-  (cache, homeVideoIds) => 
-    homeVideoIds.map(id => cache.videos[id]).filter(Boolean)
+  (cache, homeVideoIds) => homeVideoIds.map(id => cache.videos[id]).filter(Boolean)
 )
 
 export const selectUserVideos = (state: { video: VideoState }, userId: string) =>
