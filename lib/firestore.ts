@@ -344,7 +344,14 @@ export const searchVideos = async (searchTerm: string, limit = 20): Promise<Vide
         data.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       ) {
-        videos.push({ id: doc.id, ...data } as Video)
+        // Convert Firebase Timestamp to ISO string for Redux serialization
+        const videoData = {
+          id: doc.id,
+          ...data,
+          uploadDate: data.uploadDate?.toDate().toISOString() || new Date().toISOString(),
+          publishedAt: data.publishedAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Video
+        videos.push(videoData)
       }
     })
 

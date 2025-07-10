@@ -64,27 +64,41 @@ export default function MainContent() {
 
         {!loading && videos.length > 0 && (
           <div className='video-grid'>
-            {videos.map((video, i) => (
-              <div key={video.id} className='w-full min-w-0'>
-                {/* Mostrar banner publicitario cada 4 videos */}
-                {i > 0 && i % 4 === 0 && (
-                  <div className='col-span-full mb-4 w-full'>
-                    <AdBanner
-                      type='banner'
-                      size='medium'
-                      title={`Producto Patrocinado ${Math.floor(i / 4)}`}
-                      description='Descubre ofertas increíbles que no puedes perderte'
-                      ctaText='Ver Oferta'
-                      sponsor='Patrocinado'
-                      imageUrl={`/placeholder.svg?text=Ad+${Math.floor(i / 4)}`}
-                    />
+            {videos
+              .map((video, i) => {
+                const items = []
+
+                // Insertar banner publicitario cada 4 videos como si fuera un video más
+                if (i > 0 && i % 4 === 0) {
+                  items.push(
+                    <div key={`ad-${Math.floor(i / 4)}`} className='w-full min-w-0'>
+                      <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
+                        <AdBanner
+                          type='banner'
+                          size='medium'
+                          title={`Producto Patrocinado ${Math.floor(i / 4)}`}
+                          description='Descubre ofertas increíbles que no puedes perderte'
+                          ctaText='Ver Oferta'
+                          sponsor='Patrocinado'
+                          imageUrl={`/placeholder.svg?text=Ad+${Math.floor(i / 4)}`}
+                        />
+                      </div>
+                    </div>
+                  )
+                }
+
+                // Agregar el video
+                items.push(
+                  <div key={video.id} className='w-full min-w-0'>
+                    <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
+                      <VideoCard video={video} priority={i < 4} />
+                    </div>
                   </div>
-                )}
-                <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
-                  <VideoCard video={video} />
-                </div>
-              </div>
-            ))}
+                )
+
+                return items
+              })
+              .flat()}
           </div>
         )}
       </div>

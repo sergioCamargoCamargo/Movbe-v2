@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { auth } from '@/lib/firebase'
 import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppSelector } from '@/lib/store/hooks'
 
 export default function HeaderMobile({
@@ -30,8 +31,14 @@ export default function HeaderMobile({
 }) {
   const { user, loading } = useAppSelector(state => state.auth)
   const { navigateTo } = useNavigation()
+  const { query, updateQuery, searchAndNavigate } = useSearch()
   const [mounted, setMounted] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [localQuery, setLocalQuery] = useState('')
+
+  useEffect(() => {
+    setLocalQuery(query)
+  }, [query])
 
   useEffect(() => {
     setMounted(true)
@@ -45,6 +52,30 @@ export default function HeaderMobile({
     }
   }
 
+  const handleMobileSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (localQuery.trim()) {
+      updateQuery(localQuery)
+      searchAndNavigate(localQuery)
+      setShowMobileSearch(false)
+    }
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalQuery(e.target.value)
+  }
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setLocalQuery('')
+      updateQuery('')
+    }
+  }
+
+  const toggleMobileSearch = () => {
+    setShowMobileSearch(!showMobileSearch)
+  }
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
@@ -52,11 +83,12 @@ export default function HeaderMobile({
       {/* Mobile Search Overlay */}
       {showMobileSearch && (
         <div className='absolute top-0 left-0 right-0 bg-background border-b p-4'>
-          <div className='flex items-center gap-2'>
+          <form onSubmit={handleMobileSearch} className='flex items-center gap-2'>
             <Button
+              type='button'
               variant='ghost'
               size='icon'
-              onClick={() => setShowMobileSearch(false)}
+              onClick={toggleMobileSearch}
               className='touch-manipulation'
             >
               <X className='h-5 w-5' />
@@ -66,10 +98,13 @@ export default function HeaderMobile({
               <Input
                 placeholder='Buscar videos...'
                 className='pl-10 touch-manipulation'
+                value={localQuery}
+                onChange={handleSearchInputChange}
+                onKeyDown={handleInputKeyDown}
                 autoFocus
               />
             </div>
-          </div>
+          </form>
         </div>
       )}
 
@@ -104,7 +139,7 @@ export default function HeaderMobile({
             variant='ghost'
             size='icon'
             className='touch-manipulation'
-            onClick={() => setShowMobileSearch(true)}
+            onClick={toggleMobileSearch}
           >
             <Search className='h-5 w-5' />
           </Button>

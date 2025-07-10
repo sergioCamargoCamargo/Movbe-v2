@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit'
 
 import { Video } from '../../firestore'
 import { Comment, VideoLike, UserLikeStatus } from '../../interfaces/IVideoInteractions'
@@ -275,8 +275,14 @@ export const {
 } = videoSlice.actions
 
 // Selectores optimizados
-export const selectHomeVideos = (state: { video: VideoState }) =>
-  state.video.cache.homeVideos.map(id => state.video.cache.videos[id]).filter(Boolean)
+const selectVideoCache = (state: { video: VideoState }) => state.video.cache
+const selectHomeVideoIds = (state: { video: VideoState }) => state.video.cache.homeVideos
+
+export const selectHomeVideos = createSelector(
+  [selectVideoCache, selectHomeVideoIds],
+  (cache, homeVideoIds) => 
+    homeVideoIds.map(id => cache.videos[id]).filter(Boolean)
+)
 
 export const selectUserVideos = (state: { video: VideoState }, userId: string) =>
   (state.video.cache.userVideos[userId] || [])
