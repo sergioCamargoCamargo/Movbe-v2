@@ -6,6 +6,7 @@ import { Play } from 'lucide-react'
 import Image from 'next/image'
 
 import { NavigationLink } from '@/components/NavigationLink'
+import StarRating from '@/components/StarRating'
 import { Video } from '@/lib/firestore'
 
 interface VideoCardProps {
@@ -76,9 +77,20 @@ export default function VideoCard({ video, className = '', priority = false }: V
           >
             {video.uploaderName}
           </p>
-          <div className='text-xs text-muted-foreground truncate w-full max-w-full'>
-            {formatViewCount(video.viewCount)} vistas •{' '}
-            {getTimeAgo(video.publishedAt || video.uploadDate)}
+          <div className='flex items-center justify-between w-full'>
+            <div className='text-xs text-muted-foreground truncate flex-1'>
+              {formatViewCount(video.viewCount)} vistas •{' '}
+              {getTimeAgo(video.publishedAt || video.uploadDate)}
+            </div>
+            {video?.rating && video?.rating > 0 && (
+              <StarRating
+                rating={video?.rating || 0}
+                readonly
+                size='sm'
+                showValue
+                className='flex-shrink-0'
+              />
+            )}
           </div>
         </div>
       </NavigationLink>

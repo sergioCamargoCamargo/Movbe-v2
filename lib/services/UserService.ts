@@ -179,6 +179,8 @@ export class UserService implements IUserService {
       lastName: string
       termsAccepted: boolean
       photoURL?: string | null
+      dateOfBirth?: string
+      isAdult?: boolean
     }
   ): Promise<void> {
     try {
@@ -191,8 +193,8 @@ export class UserService implements IUserService {
         displayName: userData.displayName,
         photoURL: userData.photoURL,
         role: 'normal',
-        ageVerified: false,
-        dateOfBirth: null,
+        ageVerified: userData.isAdult || false,
+        dateOfBirth: userData.dateOfBirth || null,
         createdAt: now,
         lastLoginAt: now,
         subscriberCount: 0,
@@ -202,6 +204,7 @@ export class UserService implements IUserService {
         lastName: userData.lastName,
         termsAccepted: userData.termsAccepted,
         termsAcceptedAt: userData.termsAccepted ? now : null,
+        isAdult: userData.isAdult || false,
       }
 
       await setDoc(doc(db, 'users', userId), userProfile)

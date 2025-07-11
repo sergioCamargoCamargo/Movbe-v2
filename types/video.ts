@@ -10,7 +10,8 @@ export interface Video {
   viewCount: number
   likeCount: number
   dislikeCount: number
-  rating: number
+  rating?: number
+  ratingCount?: number
   duration: string
   uploadedAt: Date | string
   isPublic: boolean
@@ -39,6 +40,8 @@ export interface FirestoreVideo {
   publishedAt: FirestoreTimestamp | string
   duration: number
   viewCount: number
+  rating?: number
+  ratingCount?: number
 }
 
 export interface FirestoreTimestamp {

@@ -49,8 +49,21 @@ export default function RegisterPage() {
       const lastName = formData.get('lastName') as string
       const email = formData.get('email') as string
       const password = formData.get('password') as string
+      const birthDate = formData.get('birthDate') as string
       const termsAccepted = formData.get('terms') === 'on'
       const displayName = `${firstName} ${lastName}`
+
+      // Calcular si el usuario es mayor de 18 años
+      const birthDateObj = new Date(birthDate)
+      const today = new Date()
+      let age = today.getFullYear() - birthDateObj.getFullYear()
+      const monthDiff = today.getMonth() - birthDateObj.getMonth()
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--
+      }
+
+      const isAdult = age >= 18
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
@@ -67,6 +80,8 @@ export default function RegisterPage() {
         lastName,
         termsAccepted,
         photoURL: user.photoURL,
+        dateOfBirth: birthDate,
+        isAdult,
       })
 
       // Send email verification
@@ -167,6 +182,13 @@ export default function RegisterPage() {
                   required
                   disabled={isLoading}
                 />
+              </div>
+              <div className='space-y-2'>
+                <Label htmlFor='birthDate'>Fecha de nacimiento</Label>
+                <Input id='birthDate' name='birthDate' type='date' required disabled={isLoading} />
+                <p className='text-xs text-muted-foreground'>
+                  Esta información nos ayuda a personalizar tu experiencia
+                </p>
               </div>
               <div className='space-y-2'>
                 <Label htmlFor='password'>Contraseña</Label>
