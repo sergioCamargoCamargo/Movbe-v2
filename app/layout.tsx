@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
+import { ClientLayout } from '@/components/ClientLayout'
 import { StoreProvider } from '@/components/StoreProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -106,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StoreProvider>
           <AuthProvider>
             <SidebarProvider>
-              {children}
+              <ClientLayout>{children}</ClientLayout>
               <Toaster />
             </SidebarProvider>
           </AuthProvider>

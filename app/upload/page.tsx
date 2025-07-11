@@ -66,10 +66,10 @@ export default function UploadPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const validation = validateVideoFile(file)
+      const validation = await validateVideoFile(file)
       if (!validation.isValid) {
         toast({
           variant: 'destructive',
@@ -259,7 +259,7 @@ export default function UploadPage() {
                           {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
                         </span>
                         <span className='text-xs text-muted-foreground block mt-1'>
-                          Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB)
+                          Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB, 20 min)
                         </span>
                       </label>
                     </div>

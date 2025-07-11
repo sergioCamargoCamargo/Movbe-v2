@@ -95,10 +95,10 @@ export function AdBanner({
             e.stopPropagation()
             handleClose()
           }}
-          className='absolute top-2 right-2 z-10 h-6 w-6 p-0 bg-black/70 hover:bg-black/90 text-white rounded-full'
+          className='absolute top-2 right-2 z-10 h-7 w-7 p-0 bg-black/60 hover:bg-red-500/80 text-white rounded-full transition-all duration-200 opacity-70 hover:opacity-100 hover:scale-110 active:scale-95 backdrop-blur-sm'
           aria-label='Cerrar publicidad'
         >
-          <X className='h-3 w-3' />
+          <X className='h-3.5 w-3.5 transition-transform duration-200' />
         </Button>
       )}
 

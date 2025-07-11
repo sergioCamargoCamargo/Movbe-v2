@@ -59,7 +59,6 @@ export default function UploadVideoComponent() {
       }
 
       const newVideo = await createVideo(videoData)
-      console.log('Video creado:', newVideo)
 
       // Limpiar formulario
       setTitle('')

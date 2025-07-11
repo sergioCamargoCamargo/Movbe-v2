@@ -1,17 +1,9 @@
 'use client'
 
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Star,
-  ThumbsUp,
-  ThumbsDown,
-  Bookmark,
-  Flag,
-} from 'lucide-react'
+import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Bookmark, Flag } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
+import StarRating from '@/components/StarRating'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -19,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { getUserVideoRating, rateVideo } from '@/lib/firestore'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
 import { VideoInteractionsProps } from '@/lib/interfaces/IVideoInteractions'
 import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
@@ -32,6 +25,7 @@ export function VideoInteractions({
   isDisliked: _isDisliked = false,
   isSaved = false,
   rating = 0,
+  ratingCount = 0,
   userRating = 0,
   comments: _comments = [],
   className = '',
@@ -65,6 +59,25 @@ export function VideoInteractions({
 
   const [currentUserRating, setCurrentUserRating] = useState(userRating)
   const [newComment, setNewComment] = useState('')
+  const [ratingLoading, setRatingLoading] = useState(false)
+
+  // Load user's rating on component mount
+  useEffect(() => {
+    const loadUserRating = async () => {
+      if (user?.uid) {
+        try {
+          const userRatingData = await getUserVideoRating(videoId, user.uid)
+          if (userRatingData) {
+            setCurrentUserRating(userRatingData.rating)
+          }
+        } catch {
+          // Error loading rating - continue without it
+        }
+      }
+    }
+
+    loadUserRating()
+  }, [videoId, user?.uid])
   const { toast } = useToast()
 
   // Data is automatically loaded by hooks, no need for manual loading
@@ -113,12 +126,7 @@ export function VideoInteractions({
     }
 
     const success = await toggleLike(true)
-    if (success) {
-      toast({
-        title: userLikeStatus_isLiked ? 'Like removido' : 'Video liked',
-        description: userLikeStatus_isLiked ? 'Has removido tu like' : 'Te gusta este video',
-      })
-    } else {
+    if (!success) {
       toast({
         title: 'Error',
         description: 'Error al procesar el like',
@@ -138,12 +146,7 @@ export function VideoInteractions({
     }
 
     const success = await toggleLike(false)
-    if (success) {
-      toast({
-        title: 'Video feedback registrado',
-        description: 'Tu reacción ha sido guardada',
-      })
-    } else {
+    if (!success) {
       toast({
         title: 'Error',
         description: 'Error al procesar el dislike',
@@ -185,7 +188,7 @@ export function VideoInteractions({
     }
   }
 
-  const handleRating = (newRating: number) => {
+  const handleRating = async (newRating: number) => {
     if (!user) {
       toast({
         title: 'Inicia sesión requerido',
@@ -195,12 +198,24 @@ export function VideoInteractions({
       return
     }
 
-    setCurrentUserRating(newRating)
+    setRatingLoading(true)
+    try {
+      await rateVideo(videoId, user.uid, newRating)
+      setCurrentUserRating(newRating)
 
-    toast({
-      title: 'Calificación enviada',
-      description: `Has calificado este video con ${newRating} estrellas`,
-    })
+      toast({
+        title: 'Calificación enviada',
+        description: `Has calificado este video con ${newRating} estrellas`,
+      })
+    } catch {
+      toast({
+        title: 'Error al calificar',
+        description: 'No se pudo enviar tu calificación. Intenta de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setRatingLoading(false)
+    }
   }
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -353,39 +368,39 @@ export function VideoInteractions({
         <CardHeader className='pb-3'>
           <div className='flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2'>
             <h3 className='text-base sm:text-lg font-semibold'>Calificación</h3>
-            <div className='flex items-center gap-2'>
-              <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-              <span className='font-medium text-sm sm:text-base'>{rating.toFixed(1)}</span>
+            <div className='flex flex-col xs:items-end gap-1'>
+              <StarRating rating={rating} readonly size='md' showValue />
+              {ratingCount && ratingCount > 0 && (
+                <span className='text-xs text-muted-foreground'>
+                  ({ratingCount} calificación{ratingCount !== 1 ? 'es' : ''})
+                </span>
+              )}
             </div>
           </div>
         </CardHeader>
         <CardContent className='pt-0'>
           <div className='space-y-3 sm:space-y-4'>
             <p className='text-xs sm:text-sm text-muted-foreground'>
-              Califica este video para ayudar a otros usuarios
+              {user
+                ? 'Califica este video para ayudar a otros usuarios'
+                : 'Inicia sesión para calificar este video'}
             </p>
-            <div className='flex items-center justify-center sm:justify-start gap-1 sm:gap-2'>
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  onClick={() => handleRating(star)}
-                  disabled={!user}
-                  className={`transition-all duration-200 touch-manipulation p-1 ${
-                    !user ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-                  }`}
-                  aria-label={`Calificar con ${star} estrella${star > 1 ? 's' : ''}`}
-                  title={!user ? 'Inicia sesión para calificar' : ''}
-                >
-                  <Star
-                    className={`h-7 w-7 sm:h-8 sm:w-8 transition-colors ${
-                      star <= currentUserRating
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : `text-gray-300 ${user ? 'hover:text-yellow-400' : ''}`
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
+            {user && (
+              <div className='flex items-center justify-center sm:justify-start'>
+                <StarRating
+                  rating={currentUserRating}
+                  onRatingChange={handleRating}
+                  readonly={ratingLoading}
+                  size='lg'
+                  className={ratingLoading ? 'opacity-50' : ''}
+                />
+              </div>
+            )}
+            {!user && rating > 0 && (
+              <div className='text-center sm:text-left text-sm text-muted-foreground'>
+                Este video tiene una calificación promedio de {rating.toFixed(1)} estrellas
+              </div>
+            )}
             {currentUserRating > 0 && (
               <p className='text-xs sm:text-sm text-green-600 text-center sm:text-left'>
                 Has calificado este video con {currentUserRating} estrella

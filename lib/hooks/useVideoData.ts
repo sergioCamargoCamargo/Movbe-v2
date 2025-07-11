@@ -254,7 +254,7 @@ export const useVideoLikes = (videoId: string) => {
 
     try {
       const like = await checkUserVideoLike(videoId, user.uid)
-      dispatch(setUserLike({ videoId, like }))
+      dispatch(setUserLike({ videoId, like, userId: user.uid }))
     } catch {
       // Error handling is managed by the component
     }
@@ -271,7 +271,7 @@ export const useVideoLikes = (videoId: string) => {
 
         // Update user like status
         const newLike = await checkUserVideoLike(videoId, user.uid)
-        dispatch(setUserLike({ videoId, like: newLike }))
+        dispatch(setUserLike({ videoId, like: newLike, userId: user.uid }))
 
         // Fetch updated video to get new counts
         const updatedVideo = await getVideoById(videoId)

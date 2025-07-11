@@ -44,6 +44,18 @@ export interface VideoView {
 }
 
 /**
+ * Interfaz para las calificaciones de video
+ * Corresponde a la colección 'videoRatings' en Firebase
+ */
+export interface VideoRating {
+  id: string
+  videoId: string
+  userId: string
+  rating: number // 1-5 stars
+  ratedAt: Timestamp | Date
+}
+
+/**
  * Interfaz para el componente VideoInteractions
  */
 export interface VideoInteractionsProps {
@@ -54,6 +66,7 @@ export interface VideoInteractionsProps {
   isDisliked: boolean
   isSaved: boolean
   rating: number
+  ratingCount?: number
   userRating: number
   comments: Comment[]
   className?: string

@@ -254,7 +254,8 @@ export default function WatchPage() {
                 isLiked={false}
                 isDisliked={false}
                 isSaved={false}
-                rating={0}
+                rating={video.rating || 0}
+                ratingCount={video.ratingCount || 0}
                 userRating={0}
                 comments={[]}
               />
