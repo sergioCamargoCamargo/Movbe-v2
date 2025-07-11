@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { canViewAnalytics } from '@/lib/auth/permissions'
 import { auth } from '@/lib/firebase'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useSearch } from '@/lib/hooks/useSearch'
@@ -29,7 +30,7 @@ export default function HeaderDesktop({
   visible?: boolean
   onMenuClick?: () => void
 }) {
-  const { user, loading } = useAppSelector(state => state.auth)
+  const { user, userProfile, loading } = useAppSelector(state => state.auth)
   const { navigateTo } = useNavigation()
   const { query, updateQuery, searchAndNavigate } = useSearch()
   const [mounted, setMounted] = useState(false)
@@ -170,10 +171,12 @@ export default function HeaderDesktop({
                     <User className='mr-2 h-4 w-4' />
                     Mi Perfil
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
-                    <BarChart3 className='mr-2 h-4 w-4' />
-                    Analytics
-                  </DropdownMenuItem>
+                  {userProfile && canViewAnalytics(userProfile.role) && (
+                    <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
+                      <BarChart3 className='mr-2 h-4 w-4' />
+                      Analytics
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => navigateTo('/settings')}>
                     <Settings className='mr-2 h-4 w-4' />
                     Configuración

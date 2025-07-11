@@ -154,9 +154,12 @@ const videoSlice = createSlice({
     },
 
     // Like Management
-    setUserLike: (state, action: PayloadAction<{ videoId: string; like: VideoLike | null }>) => {
-      const { videoId, like } = action.payload
-      const likeKey = `${videoId}_${like?.userId}`
+    setUserLike: (
+      state,
+      action: PayloadAction<{ videoId: string; like: VideoLike | null; userId?: string }>
+    ) => {
+      const { videoId, like, userId } = action.payload
+      const likeKey = `${videoId}_${like?.userId || userId}`
       if (like) {
         state.cache.likes[likeKey] = like
       } else {

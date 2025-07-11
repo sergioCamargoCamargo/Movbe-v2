@@ -126,12 +126,7 @@ export function VideoInteractions({
     }
 
     const success = await toggleLike(true)
-    if (success) {
-      toast({
-        title: userLikeStatus_isLiked ? 'Like removido' : 'Video liked',
-        description: userLikeStatus_isLiked ? 'Has removido tu like' : 'Te gusta este video',
-      })
-    } else {
+    if (!success) {
       toast({
         title: 'Error',
         description: 'Error al procesar el like',
@@ -151,12 +146,7 @@ export function VideoInteractions({
     }
 
     const success = await toggleLike(false)
-    if (success) {
-      toast({
-        title: 'Video feedback registrado',
-        description: 'Tu reacción ha sido guardada',
-      })
-    } else {
+    if (!success) {
       toast({
         title: 'Error',
         description: 'Error al procesar el dislike',
