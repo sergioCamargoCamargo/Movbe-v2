@@ -29,12 +29,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         router.replace('/auth/login')
         return
       }
-      
+
       if (user && userProfile && !userProfile.ageVerified) {
         router.replace('/auth/verify-age')
         return
       }
-      
+
       if (user && userProfile && userProfile.ageVerified && userProfile.isAdult === false) {
         router.replace('/auth/login?error=underage')
         return

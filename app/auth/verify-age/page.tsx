@@ -27,7 +27,7 @@ export default function VerifyAgePage() {
         navigateTo('/auth/login')
         return
       }
-      
+
       if (userProfile?.ageVerified) {
         navigateTo('/')
         return
@@ -40,17 +40,17 @@ export default function VerifyAgePage() {
     const birth = new Date(birthDate)
     let age = today.getFullYear() - birth.getFullYear()
     const monthDiff = today.getMonth() - birth.getMonth()
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
       age--
     }
-    
+
     return age
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!user || !userProfile) {
       toast({
         title: 'Error de autenticación',
@@ -79,7 +79,7 @@ export default function VerifyAgePage() {
     }
 
     const age = calculateAge(birthDate)
-    
+
     if (age < 18) {
       toast({
         title: 'Edad insuficiente',
@@ -149,7 +149,7 @@ export default function VerifyAgePage() {
             Para cumplir con nuestras políticas, necesitamos verificar que eres mayor de 18 años
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-6'>
             <div className='space-y-2'>
@@ -161,7 +161,7 @@ export default function VerifyAgePage() {
                 id='birthDate'
                 type='date'
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={e => setBirthDate(e.target.value)}
                 max={maxDate.toISOString().split('T')[0]}
                 required
                 className='w-full'
@@ -179,7 +179,7 @@ export default function VerifyAgePage() {
                   type='checkbox'
                   id='terms'
                   checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  onChange={e => setAcceptedTerms(e.target.checked)}
                   className='mt-1'
                   required
                 />
@@ -218,8 +218,9 @@ export default function VerifyAgePage() {
               <div className='space-y-1'>
                 <p className='text-sm font-medium'>¿Por qué necesitamos verificar tu edad?</p>
                 <p className='text-xs text-muted-foreground'>
-                  Nuestra plataforma contiene contenido para adultos y cumplimos con regulaciones internacionales 
-                  que requieren verificación de edad para usuarios mayores de 18 años.
+                  Nuestra plataforma contiene contenido para adultos y cumplimos con regulaciones
+                  internacionales que requieren verificación de edad para usuarios mayores de 18
+                  años.
                 </p>
               </div>
             </div>

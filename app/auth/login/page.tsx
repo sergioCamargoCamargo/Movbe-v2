@@ -31,7 +31,9 @@ export default function LoginPage() {
   useEffect(() => {
     const errorParam = searchParams?.get('error')
     if (errorParam === 'underage') {
-      setError('No puedes acceder a esta plataforma. Debes ser mayor de 18 años para usar nuestros servicios.')
+      setError(
+        'No puedes acceder a esta plataforma. Debes ser mayor de 18 años para usar nuestros servicios.'
+      )
     }
   }, [searchParams])
 
@@ -72,11 +74,11 @@ export default function LoginPage() {
         prompt: 'select_account',
       })
       const result = await signInWithPopup(auth, provider)
-      
+
       // Check if this is a new user or existing user without age verification
       const { createOrUpdateUser } = await import('@/lib/firestore')
       const userProfile = await createOrUpdateUser(result.user)
-      
+
       if (!userProfile?.ageVerified) {
         // Redirect directly to age verification
         router.push('/auth/verify-age')

@@ -16,19 +16,19 @@ const PUBLIC_ROUTES = [
 ]
 
 // Routes that are allowed for non-verified users
-const ALLOWED_UNVERIFIED_ROUTES = [
-  ...PUBLIC_ROUTES,
-  '/auth/logout',
-]
+const ALLOWED_UNVERIFIED_ROUTES = [...PUBLIC_ROUTES, '/auth/logout']
 
 export function useAgeVerification() {
   const { user, userProfile, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
-  const navigateTo = useCallback((url: string) => {
-    router.push(url)
-  }, [router])
+  const navigateTo = useCallback(
+    (url: string) => {
+      router.push(url)
+    },
+    [router]
+  )
 
   // Calculate if user needs age verification synchronously
   const needsAgeVerification = !loading && user && userProfile && !userProfile.ageVerified
@@ -52,7 +52,7 @@ export function useAgeVerification() {
     // Check age verification
     if (!userProfile.ageVerified) {
       if (ALLOWED_UNVERIFIED_ROUTES.includes(pathname)) return
-      
+
       navigateTo('/auth/verify-age')
       return
     }

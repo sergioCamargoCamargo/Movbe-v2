@@ -107,9 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StoreProvider>
           <AuthProvider>
             <SidebarProvider>
-              <ClientLayout>
-                {children}
-              </ClientLayout>
+              <ClientLayout>{children}</ClientLayout>
               <Toaster />
             </SidebarProvider>
           </AuthProvider>
