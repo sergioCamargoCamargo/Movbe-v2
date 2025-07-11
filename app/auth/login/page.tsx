@@ -4,8 +4,8 @@ import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,14 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const errorParam = searchParams?.get('error')
+    if (errorParam === 'underage') {
+      setError('No puedes acceder a esta plataforma. Debes ser mayor de 18 años para usar nuestros servicios.')
+    }
+  }, [searchParams])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -63,8 +71,22 @@ export default function LoginPage() {
       provider.setCustomParameters({
         prompt: 'select_account',
       })
-      await signInWithPopup(auth, provider)
-      router.push('/')
+      const result = await signInWithPopup(auth, provider)
+      
+      // Check if this is a new user or existing user without age verification
+      const { createOrUpdateUser } = await import('@/lib/firestore')
+      const userProfile = await createOrUpdateUser(result.user)
+      
+      if (!userProfile?.ageVerified) {
+        // Redirect directly to age verification
+        router.push('/auth/verify-age')
+      } else if (userProfile.ageVerified && userProfile.isAdult === false) {
+        // User is underage
+        router.push('/auth/login?error=underage')
+      } else {
+        // User is verified and adult, go to home
+        router.push('/')
+      }
     } catch (error) {
       setError(getFirebaseErrorMessage(error))
     } finally {

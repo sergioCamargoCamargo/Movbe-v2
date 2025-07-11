@@ -132,8 +132,25 @@ export default function RegisterPage() {
     setError('')
     try {
       const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-      router.push('/')
+      provider.setCustomParameters({
+        prompt: 'select_account',
+      })
+      const result = await signInWithPopup(auth, provider)
+      
+      // Check if this is a new user or existing user without age verification
+      const { createOrUpdateUser } = await import('@/lib/firestore')
+      const userProfile = await createOrUpdateUser(result.user)
+      
+      if (!userProfile?.ageVerified) {
+        // Redirect directly to age verification
+        router.push('/auth/verify-age')
+      } else if (userProfile.ageVerified && userProfile.isAdult === false) {
+        // User is underage
+        router.push('/auth/login?error=underage')
+      } else {
+        // User is verified and adult, go to home
+        router.push('/')
+      }
     } catch (error) {
       setError(getFirebaseErrorMessage(error))
     } finally {

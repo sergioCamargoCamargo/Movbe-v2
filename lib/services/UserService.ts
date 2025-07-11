@@ -84,6 +84,11 @@ export class UserService implements IUserService {
     }
   }
 
+  // Alias for consistency with age verification component
+  async updateUserProfile(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
+    return this.updateUser(id, data)
+  }
+
   async deleteUser(id: string): Promise<boolean> {
     try {
       await this.repository.delete(id)
