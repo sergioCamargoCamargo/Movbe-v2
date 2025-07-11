@@ -28,7 +28,7 @@ export const performSearch = createAsyncThunk(
   'search/performSearch',
   async ({ query, limit = 20 }: { query: string; limit?: number }) => {
     if (!query.trim()) {
-      return []
+      return { results: [], query: query.trim() }
     }
     const results = await searchVideos(query.trim(), limit)
     return { results, query: query.trim() }
