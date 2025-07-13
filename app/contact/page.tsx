@@ -1,11 +1,8 @@
 'use client'
 
+import emailjs from '@emailjs/browser'
 import { Building, Mail, MapPin, MessageSquare, Phone, Send, Users } from 'lucide-react'
 import { useState } from 'react'
-
-
-import emailjs from '@emailjs/browser'
-
 
 import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
@@ -36,58 +33,51 @@ export default function ContactPage() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
 
-
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
+    e.preventDefault()
 
-  if (!name || !email || !userType || !subject || !message) {
-    toast({
-      title: 'Campos incompletos',
-      description: 'Por favor, completa todos los campos del formulario.',
-      variant: 'destructive',
-    })
-    return
+    if (!name || !email || !userType || !subject || !message) {
+      toast({
+        title: 'Campos incompletos',
+        description: 'Por favor, completa todos los campos del formulario.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setSubmitting(true)
+
+    const templateParams = {
+      from_name: name,
+      from_email: email,
+      user_type: userType,
+      subject,
+      message,
+    }
+
+    try {
+      await emailjs.send('service_fp573ye', 'template_vbre92a', templateParams, '_3BrZbapj5mOKHeXy')
+
+      toast({
+        title: 'Mensaje enviado',
+        description: 'Gracias por contactarnos. Te responderemos pronto.',
+      })
+
+      setName('')
+      setEmail('')
+      setUserType('')
+      setSubject('')
+      setMessage('')
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'No se pudo enviar el mensaje.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
-
-  setSubmitting(true)
-
-  const templateParams = {
-    from_name: name,
-    from_email: email,
-    user_type: userType,
-    subject,
-    message,
-  }
-
-  try {
-    await emailjs.send(
-      'service_fp573ye',
-      'template_vbre92a',
-      templateParams,
-      '_3BrZbapj5mOKHeXy'       
-    )
-
-    toast({
-      title: 'Mensaje enviado',
-      description: 'Gracias por contactarnos. Te responderemos pronto.',
-    })
-
-    setName('')
-    setEmail('')
-    setUserType('')
-    setSubject('')
-    setMessage('')
-  } catch (error) {
-    console.error('EmailJS error', error)
-    toast({
-      title: 'Error',
-      description: 'No se pudo enviar el mensaje.',
-      variant: 'destructive',
-    })
-  } finally {
-    setSubmitting(false)
-  }
-}
 
   return (
     <PageTransition>
