@@ -5,6 +5,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   addDoc,
   query,
@@ -21,10 +22,10 @@ import {
 import { UserProfile } from '@/types/user'
 
 import app from './firebase'
-import { Comment, VideoLike } from './interfaces'
+import { Comment, VideoLike, VideoRating } from './interfaces'
 
 // Re-export interfaces for external use
-export type { Comment, VideoLike } from './interfaces'
+export type { Comment, VideoLike, VideoRating } from './interfaces'
 
 const db = getFirestore(app)
 
@@ -128,6 +129,8 @@ export interface Video extends VideoData {
   commentCount: number
   uploadDate: Date | null
   publishedAt: Date | null
+  rating?: number
+  ratingCount?: number
 }
 
 export const createVideo = async (videoData: VideoData): Promise<Video> => {
@@ -344,7 +347,14 @@ export const searchVideos = async (searchTerm: string, limit = 20): Promise<Vide
         data.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         data.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       ) {
-        videos.push({ id: doc.id, ...data } as Video)
+        // Convert Firebase Timestamp to ISO string for Redux serialization
+        const videoData = {
+          id: doc.id,
+          ...data,
+          uploadDate: data.uploadDate?.toDate().toISOString() || new Date().toISOString(),
+          publishedAt: data.publishedAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Video
+        videos.push(videoData)
       }
     })
 
@@ -447,15 +457,14 @@ export const toggleVideoLike = async (
     const videoRef = doc(db, 'videos', videoId)
 
     if (existingLike) {
-      // Update existing like/dislike
       const likeRef = doc(db, 'videoLikes', existingLike.id)
 
       if (existingLike.isLike === isLike) {
-        // Remove like/dislike
-        await updateDoc(likeRef, { isLike: !isLike })
+        // Remove like/dislike - delete the record entirely
+        await deleteDoc(likeRef)
         await updateDoc(videoRef, {
           likeCount: isLike ? increment(-1) : increment(0),
-          dislikeCount: !isLike ? increment(-1) : increment(0),
+          dislikeCount: isLike ? increment(0) : increment(-1),
         })
       } else {
         // Change from like to dislike or vice versa
@@ -465,7 +474,7 @@ export const toggleVideoLike = async (
         })
         await updateDoc(videoRef, {
           likeCount: isLike ? increment(1) : increment(-1),
-          dislikeCount: !isLike ? increment(1) : increment(-1),
+          dislikeCount: isLike ? increment(-1) : increment(1),
         })
       }
     } else {
@@ -480,7 +489,7 @@ export const toggleVideoLike = async (
 
       await updateDoc(videoRef, {
         likeCount: isLike ? increment(1) : increment(0),
-        dislikeCount: !isLike ? increment(1) : increment(0),
+        dislikeCount: isLike ? increment(0) : increment(1),
       })
     }
 
@@ -520,6 +529,134 @@ export const recordVideoView = async (videoId: string, userId: string): Promise<
     // If user already viewed, don't increment again
 
     return true
+  } catch (error) {
+    throw error
+  }
+}
+
+// ========== COLECCIÓN VIDEORATINGS ==========
+
+export const getUserVideoRating = async (
+  videoId: string,
+  userId: string
+): Promise<VideoRating | null> => {
+  try {
+    const ratingsRef = collection(db, 'videoRatings')
+    const q = query(ratingsRef, where('videoId', '==', videoId), where('userId', '==', userId))
+
+    const querySnapshot = await getDocs(q)
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        ratedAt: data.ratedAt?.toDate() || new Date(),
+      } as VideoRating
+    }
+
+    return null
+  } catch (error) {
+    throw error
+  }
+}
+
+export const rateVideo = async (
+  videoId: string,
+  userId: string,
+  rating: number
+): Promise<boolean> => {
+  try {
+    if (rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5')
+    }
+
+    const existingRating = await getUserVideoRating(videoId, userId)
+    const ratingsRef = collection(db, 'videoRatings')
+
+    if (existingRating) {
+      // Update existing rating
+      const ratingRef = doc(db, 'videoRatings', existingRating.id)
+      await updateDoc(ratingRef, {
+        rating,
+        ratedAt: serverTimestamp(),
+      })
+    } else {
+      // Create new rating
+      await addDoc(ratingsRef, {
+        videoId,
+        userId,
+        rating,
+        ratedAt: serverTimestamp(),
+      })
+    }
+
+    // Recalculate video average rating
+    await updateVideoAverageRating(videoId)
+
+    return true
+  } catch (error) {
+    throw error
+  }
+}
+
+export const updateVideoAverageRating = async (videoId: string): Promise<void> => {
+  try {
+    const ratingsRef = collection(db, 'videoRatings')
+    const q = query(ratingsRef, where('videoId', '==', videoId))
+    const querySnapshot = await getDocs(q)
+
+    if (querySnapshot.empty) {
+      // No ratings, set to 0
+      const videoRef = doc(db, 'videos', videoId)
+      await updateDoc(videoRef, {
+        rating: 0,
+        ratingCount: 0,
+      })
+      return
+    }
+
+    let totalRating = 0
+    let ratingCount = 0
+
+    querySnapshot.forEach(doc => {
+      const data = doc.data()
+      totalRating += data.rating
+      ratingCount++
+    })
+
+    const averageRating = totalRating / ratingCount
+
+    // Update video with new average rating
+    const videoRef = doc(db, 'videos', videoId)
+    await updateDoc(videoRef, {
+      rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      ratingCount,
+    })
+  } catch (error) {
+    throw error
+  }
+}
+
+export const getVideoRatings = async (videoId: string): Promise<VideoRating[]> => {
+  try {
+    const ratingsRef = collection(db, 'videoRatings')
+    const q = query(ratingsRef, where('videoId', '==', videoId), orderBy('ratedAt', 'desc'))
+
+    const querySnapshot = await getDocs(q)
+    const ratings: VideoRating[] = []
+
+    querySnapshot.forEach(doc => {
+      const data = doc.data()
+      ratings.push({
+        id: doc.id,
+        ...data,
+        ratedAt: data.ratedAt?.toDate() || new Date(),
+      } as VideoRating)
+    })
+
+    return ratings
   } catch (error) {
     throw error
   }

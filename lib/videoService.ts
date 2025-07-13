@@ -212,8 +212,11 @@ export const getVideoMetadata = (
   })
 }
 
-export const validateVideoFile = (file: File): { isValid: boolean; error?: string } => {
+export const validateVideoFile = async (
+  file: File
+): Promise<{ isValid: boolean; error?: string }> => {
   const maxSize = 500 * 1024 * 1024 // 500MB
+  const maxDuration = 20 * 60 // 20 minutes in seconds
   const allowedTypes = ['video/mp4', 'video/mov', 'video/avi', 'video/mkv', 'video/webm']
 
   if (!allowedTypes.includes(file.type)) {
@@ -230,5 +233,40 @@ export const validateVideoFile = (file: File): { isValid: boolean; error?: strin
     }
   }
 
+  // Check video duration
+  try {
+    const duration = await getVideoDuration(file)
+    if (duration > maxDuration) {
+      return {
+        isValid: false,
+        error: 'El video es demasiado largo. Máximo 20 minutos.',
+      }
+    }
+  } catch {
+    return {
+      isValid: false,
+      error: 'No se pudo verificar la duración del video.',
+    }
+  }
+
   return { isValid: true }
+}
+
+const getVideoDuration = (file: File): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video')
+    video.preload = 'metadata'
+
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src)
+      resolve(video.duration)
+    }
+
+    video.onerror = () => {
+      window.URL.revokeObjectURL(video.src)
+      reject(new Error('Error loading video metadata'))
+    }
+
+    video.src = window.URL.createObjectURL(file)
+  })
 }

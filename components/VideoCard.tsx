@@ -6,14 +6,16 @@ import { Play } from 'lucide-react'
 import Image from 'next/image'
 
 import { NavigationLink } from '@/components/NavigationLink'
+import StarRating from '@/components/StarRating'
 import { Video } from '@/lib/firestore'
 
 interface VideoCardProps {
   video: Video
   className?: string
+  priority?: boolean
 }
 
-export default function VideoCard({ video, className = '' }: VideoCardProps) {
+export default function VideoCard({ video, className = '', priority = false }: VideoCardProps) {
   const formatViewCount = (views: number) => {
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
     if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
@@ -51,6 +53,7 @@ export default function VideoCard({ video, className = '' }: VideoCardProps) {
             fill
             sizes='(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw'
             className='object-cover w-full h-full'
+            priority={priority}
           />
           <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100'>
             <Play className='text-white w-12 h-12' />
@@ -74,9 +77,20 @@ export default function VideoCard({ video, className = '' }: VideoCardProps) {
           >
             {video.uploaderName}
           </p>
-          <div className='text-xs text-muted-foreground truncate w-full max-w-full'>
-            {formatViewCount(video.viewCount)} vistas •{' '}
-            {getTimeAgo(video.publishedAt || video.uploadDate)}
+          <div className='flex items-center justify-between w-full'>
+            <div className='text-xs text-muted-foreground truncate flex-1'>
+              {formatViewCount(video.viewCount)} vistas •{' '}
+              {getTimeAgo(video.publishedAt || video.uploadDate)}
+            </div>
+            {video?.rating && video?.rating > 0 && (
+              <StarRating
+                rating={video?.rating || 0}
+                readonly
+                size='sm'
+                showValue
+                className='flex-shrink-0'
+              />
+            )}
           </div>
         </div>
       </NavigationLink>

@@ -84,6 +84,11 @@ export class UserService implements IUserService {
     }
   }
 
+  // Alias for consistency with age verification component
+  async updateUserProfile(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
+    return this.updateUser(id, data)
+  }
+
   async deleteUser(id: string): Promise<boolean> {
     try {
       await this.repository.delete(id)
@@ -179,9 +184,27 @@ export class UserService implements IUserService {
       lastName: string
       termsAccepted: boolean
       photoURL?: string | null
+      dateOfBirth?: string
+      isAdult?: boolean
     }
   ): Promise<void> {
     try {
+      // Verificar edad del lado del servidor
+      if (userData.dateOfBirth) {
+        const birthDate = new Date(userData.dateOfBirth)
+        const today = new Date()
+        let age = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--
+        }
+
+        if (age < 18) {
+          throw new Error('Debes ser mayor de 18 años para registrarte en esta plataforma')
+        }
+      }
+
       const now = new Date().toISOString()
 
       // Create user profile in the format that matches Firebase structure
@@ -191,8 +214,8 @@ export class UserService implements IUserService {
         displayName: userData.displayName,
         photoURL: userData.photoURL,
         role: 'normal',
-        ageVerified: false,
-        dateOfBirth: null,
+        ageVerified: userData.isAdult || false,
+        dateOfBirth: userData.dateOfBirth || null,
         createdAt: now,
         lastLoginAt: now,
         subscriberCount: 0,
@@ -202,6 +225,7 @@ export class UserService implements IUserService {
         lastName: userData.lastName,
         termsAccepted: userData.termsAccepted,
         termsAcceptedAt: userData.termsAccepted ? now : null,
+        isAdult: userData.isAdult || false,
       }
 
       await setDoc(doc(db, 'users', userId), userProfile)

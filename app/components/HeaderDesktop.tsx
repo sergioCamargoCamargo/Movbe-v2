@@ -17,8 +17,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
+import { canViewAnalytics } from '@/lib/auth/permissions'
 import { auth } from '@/lib/firebase'
 import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppSelector } from '@/lib/store/hooks'
 
 export default function HeaderDesktop({
@@ -28,9 +30,15 @@ export default function HeaderDesktop({
   visible?: boolean
   onMenuClick?: () => void
 }) {
-  const { user, loading } = useAppSelector(state => state.auth)
+  const { user, userProfile, loading } = useAppSelector(state => state.auth)
   const { navigateTo } = useNavigation()
+  const { query, updateQuery, searchAndNavigate } = useSearch()
   const [mounted, setMounted] = useState(false)
+  const [localQuery, setLocalQuery] = useState('')
+
+  useEffect(() => {
+    setLocalQuery(query)
+  }, [query])
 
   useEffect(() => {
     setMounted(true)
@@ -41,6 +49,25 @@ export default function HeaderDesktop({
       await signOut(auth)
     } catch {
       // Error handled silently
+    }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (localQuery.trim()) {
+      updateQuery(localQuery)
+      searchAndNavigate(localQuery)
+    }
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalQuery(e.target.value)
+  }
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setLocalQuery('')
+      updateQuery('')
     }
   }
 
@@ -73,15 +100,22 @@ export default function HeaderDesktop({
 
         {/* Desktop Search Bar */}
         <div className='flex-1 max-w-2xl mx-4'>
-          <div className='flex'>
-            <Input type='search' placeholder='Buscar' className='rounded-r-none text-base' />
-            <Button className='rounded-l-none px-4'>
+          <form onSubmit={handleSearch} className='flex'>
+            <Input
+              type='search'
+              placeholder='Buscar'
+              className='rounded-r-none text-base'
+              value={localQuery}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleInputKeyDown}
+            />
+            <Button type='submit' className='rounded-l-none px-4'>
               <Search className='h-4 w-4' />
             </Button>
             <Button variant='ghost' size='icon' className='ml-2 touch-manipulation'>
               <Mic className='h-6 w-6' />
             </Button>
-          </div>
+          </form>
         </div>
 
         {/* Desktop Right Section */}
@@ -137,10 +171,12 @@ export default function HeaderDesktop({
                     <User className='mr-2 h-4 w-4' />
                     Mi Perfil
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
-                    <BarChart3 className='mr-2 h-4 w-4' />
-                    Analytics
-                  </DropdownMenuItem>
+                  {userProfile && canViewAnalytics(userProfile.role) && (
+                    <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
+                      <BarChart3 className='mr-2 h-4 w-4' />
+                      Analytics
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => navigateTo('/settings')}>
                     <Settings className='mr-2 h-4 w-4' />
                     Configuración

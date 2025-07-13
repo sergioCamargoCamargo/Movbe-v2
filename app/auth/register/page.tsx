@@ -34,8 +34,39 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [birthDate, setBirthDate] = useState('')
+  const [ageWarning, setAgeWarning] = useState('')
   const router = useRouter()
   const userService = new UserService()
+
+  // Función para calcular la edad
+  const calculateAge = (birthDateStr: string) => {
+    if (!birthDateStr) return null
+
+    const birthDateObj = new Date(birthDateStr)
+    const today = new Date()
+    let age = today.getFullYear() - birthDateObj.getFullYear()
+    const monthDiff = today.getMonth() - birthDateObj.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+      age--
+    }
+
+    return age
+  }
+
+  // Manejar cambio en fecha de nacimiento
+  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newBirthDate = e.target.value
+    setBirthDate(newBirthDate)
+
+    const age = calculateAge(newBirthDate)
+    if (age !== null && age < 18) {
+      setAgeWarning('Debes ser mayor de 18 años para registrarte en esta plataforma')
+    } else {
+      setAgeWarning('')
+    }
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,8 +80,19 @@ export default function RegisterPage() {
       const lastName = formData.get('lastName') as string
       const email = formData.get('email') as string
       const password = formData.get('password') as string
+      const birthDate = formData.get('birthDate') as string
       const termsAccepted = formData.get('terms') === 'on'
       const displayName = `${firstName} ${lastName}`
+
+      // Calcular si el usuario es mayor de 18 años
+      const age = calculateAge(birthDate)
+      const isAdult = age !== null && age >= 18
+
+      // Verificar que el usuario sea mayor de edad
+      if (!isAdult) {
+        setError('Debes ser mayor de 18 años para registrarte en esta plataforma')
+        return
+      }
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
@@ -67,6 +109,8 @@ export default function RegisterPage() {
         lastName,
         termsAccepted,
         photoURL: user.photoURL,
+        dateOfBirth: birthDate,
+        isAdult,
       })
 
       // Send email verification
@@ -88,8 +132,25 @@ export default function RegisterPage() {
     setError('')
     try {
       const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
-      router.push('/')
+      provider.setCustomParameters({
+        prompt: 'select_account',
+      })
+      const result = await signInWithPopup(auth, provider)
+
+      // Check if this is a new user or existing user without age verification
+      const { createOrUpdateUser } = await import('@/lib/firestore')
+      const userProfile = await createOrUpdateUser(result.user)
+
+      if (!userProfile?.ageVerified) {
+        // Redirect directly to age verification
+        router.push('/auth/verify-age')
+      } else if (userProfile.ageVerified && userProfile.isAdult === false) {
+        // User is underage
+        router.push('/auth/login?error=underage')
+      } else {
+        // User is verified and adult, go to home
+        router.push('/')
+      }
     } catch (error) {
       setError(getFirebaseErrorMessage(error))
     } finally {
@@ -169,6 +230,28 @@ export default function RegisterPage() {
                 />
               </div>
               <div className='space-y-2'>
+                <Label htmlFor='birthDate'>Fecha de nacimiento</Label>
+                <Input
+                  id='birthDate'
+                  name='birthDate'
+                  type='date'
+                  value={birthDate}
+                  onChange={handleBirthDateChange}
+                  max={new Date().toISOString().split('T')[0]}
+                  required
+                  disabled={isLoading}
+                  className={ageWarning ? 'border-red-500' : ''}
+                />
+                {ageWarning && (
+                  <Alert variant='destructive'>
+                    <AlertDescription>{ageWarning}</AlertDescription>
+                  </Alert>
+                )}
+                <p className='text-xs text-muted-foreground'>
+                  Esta información nos ayuda a personalizar tu experiencia
+                </p>
+              </div>
+              <div className='space-y-2'>
                 <Label htmlFor='password'>Contraseña</Label>
                 <div className='relative'>
                   <Input
@@ -206,7 +289,7 @@ export default function RegisterPage() {
                 </Label>
               </div>
               <div className='space-y-4'>
-                <Button className='w-full' disabled={isLoading}>
+                <Button className='w-full' disabled={isLoading || ageWarning !== ''}>
                   {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </Button>
                 <div className='relative'>

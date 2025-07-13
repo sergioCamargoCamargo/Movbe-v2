@@ -15,6 +15,7 @@ export interface UserProfile {
   lastName?: string
   termsAccepted?: boolean
   termsAcceptedAt?: string
+  isAdult?: boolean
 }
 
 export type UserType = 'normal' | 'creator' | 'business' | 'admin'

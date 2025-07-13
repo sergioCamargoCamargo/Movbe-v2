@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 
 import { createAuthMiddleware } from './authMiddleware'
 import authSlice from './slices/authSlice'
+import searchSlice from './slices/searchSlice'
 import settingsSlice from './slices/settingsSlice'
 import sidebarSlice from './slices/sidebarSlice'
 import uiSlice from './slices/uiSlice'
@@ -11,6 +12,7 @@ import videoSlice from './slices/videoSlice'
 export const store = configureStore({
   reducer: {
     auth: authSlice,
+    search: searchSlice,
     settings: settingsSlice,
     sidebar: sidebarSlice,
     ui: uiSlice,
