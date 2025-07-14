@@ -1,9 +1,9 @@
+// Importaciones de bibliotecas externas
 import { doc, setDoc } from 'firebase/firestore'
-
-import app from '@/lib/firebase'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 
-import { db } from '@/lib/firebase'
+// Importaciones internas del proyecto
+import app, { db } from '@/lib/firebase'
 import { IUserService } from '@/lib/interfaces/IUserService'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { AuthService } from '@/lib/services/AuthService'
@@ -238,25 +238,22 @@ export class UserService implements IUserService {
     }
   }
 
+  async uploadAvatar(userId: string, file: File): Promise<string> {
+    try {
+      const storage = getStorage(app) // Obtener instancia de storage
+      const avatarRef = ref(storage, `avatars/${userId}/${file.name}`)
 
-async uploadAvatar(userId: string, file: File): Promise<string> {
-  try {
-    const storage = getStorage(app) // Obtener instancia de storage
-    const avatarRef = ref(storage, `avatars/${userId}/${file.name}`)
+      await uploadBytes(avatarRef, file)
+      const downloadURL = await getDownloadURL(avatarRef)
 
-    await uploadBytes(avatarRef, file)
-    const downloadURL = await getDownloadURL(avatarRef)
+      // Actualizar el campo photoURL en el perfil del usuario
+      await this.updateUser(userId, { photoURL: downloadURL })
 
-    // Actualizar el campo photoURL en el perfil del usuario
-    await this.updateUser(userId, { photoURL: downloadURL })
-
-    return downloadURL
-  } catch (error) {
-    console.error('Error uploading avatar:', error)
-    throw error
+      return downloadURL
+    } catch (error) {
+      throw error
+    }
   }
-}
-
 
   // async uploadAvatar(userId: string, _file: File): Promise<string> {
   //   try {

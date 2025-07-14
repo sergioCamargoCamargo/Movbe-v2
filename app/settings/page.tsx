@@ -1,5 +1,6 @@
 'use client'
 
+import { getAuth, updateProfile } from 'firebase/auth'
 import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -30,7 +31,6 @@ import { useToast } from '@/hooks/use-toast'
 import { getUserService } from '@/lib/di/serviceRegistration'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-import { getAuth, updateProfile } from 'firebase/auth'
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAppSelector(state => state.auth)
@@ -141,7 +141,7 @@ export default function SettingsPage() {
       const auth = getAuth()
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { photoURL })
-      } 
+      }
 
       toast({
         title: 'Avatar actualizado',
@@ -149,7 +149,7 @@ export default function SettingsPage() {
       })
 
       window.location.reload()
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'No se pudo actualizar tu foto de perfil',
