@@ -1,6 +1,5 @@
 'use client'
 
-import { getAuth, updateProfile } from 'firebase/auth'
 import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -29,6 +28,7 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { getUserService } from '@/lib/di/serviceRegistration'
+import { avatarService } from '@/lib/services/AvatarService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
@@ -135,22 +135,17 @@ export default function SettingsPage() {
     try {
       setSaving(true)
 
-      const photoURL = await userService.uploadAvatar(user.uid, file)
-
-      // 2. (Opcional pero recomendable) Actualizar el photoURL en Firebase Auth
-      const auth = getAuth()
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL })
-      }
+      await avatarService.uploadAvatar(user.uid, file, dispatch)
 
       toast({
         title: 'Avatar actualizado',
         description: 'Tu foto de perfil ha sido actualizada correctamente',
       })
-    } catch {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar tu foto de perfil',
+        description:
+          error instanceof Error ? error.message : 'No se pudo actualizar tu foto de perfil',
         variant: 'destructive',
       })
     } finally {
@@ -339,22 +334,6 @@ export default function SettingsPage() {
                       >
                         <Camera className='h-4 w-4 text-muted-foreground' />
                       </label>
-
-                      {/* <input
-                        type='file'
-                        accept='image/*'
-                        id='avatarUpload'
-                        className='hidden'
-                        onChange={handleAvatarChange}
-                      />
-
-                      <Button
-                        size='sm'
-                        variant='secondary'
-                        className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0'
-                      >
-                        <Camera className='h-4 w-4' />
-                      </Button> */}
                     </div>
 
                     <div className='flex-1 space-y-4'>
