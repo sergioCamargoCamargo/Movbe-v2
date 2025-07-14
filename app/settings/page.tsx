@@ -148,7 +148,6 @@ export default function SettingsPage() {
         description: 'Tu foto de perfil ha sido actualizada correctamente',
       })
 
-      window.location.reload()
     } catch {
       toast({
         title: 'Error',

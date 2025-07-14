@@ -56,7 +56,12 @@ export default function ContactPage() {
     }
 
     try {
-      await emailjs.send('service_fp573ye', 'template_vbre92a', templateParams, '_3BrZbapj5mOKHeXy')
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!, 
+        templateParams, 
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+      )
 
       toast({
         title: 'Mensaje enviado',

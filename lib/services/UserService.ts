@@ -254,19 +254,4 @@ export class UserService implements IUserService {
       throw error
     }
   }
-
-  // async uploadAvatar(userId: string, _file: File): Promise<string> {
-  //   try {
-  //     // Implementar lógica de subida de archivo
-  //     // Por ahora retornamos una URL placeholder
-  //     const avatarUrl = `https://api.placeholder.com/avatar/${userId}`
-
-  //     await this.updateUser(userId, { photoURL: avatarUrl })
-
-  //     return avatarUrl
-  //   } catch (error) {
-  //     // console.error('Error uploading avatar:', error)
-  //     throw error
-  //   }
-  // }
 }
