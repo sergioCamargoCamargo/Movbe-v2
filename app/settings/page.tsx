@@ -147,7 +147,6 @@ export default function SettingsPage() {
         title: 'Avatar actualizado',
         description: 'Tu foto de perfil ha sido actualizada correctamente',
       })
-
     } catch {
       toast({
         title: 'Error',
