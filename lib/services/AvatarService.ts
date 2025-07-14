@@ -3,7 +3,7 @@ import { updateProfile, getAuth } from 'firebase/auth'
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 
 import app from '@/lib/firebase'
-import { IAvatarService } from '@/lib/interfaces'
+import { IAvatarService, AvatarUploadResult } from '@/lib/interfaces'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { setUserProfile } from '@/lib/store/slices/authSlice'
 import { UserProfile } from '@/types/user'
@@ -17,16 +17,24 @@ export class AvatarService implements IAvatarService {
     this.userRepository = new FirebaseRepository<UserProfile>('users')
   }
 
-  async uploadAvatar(userId: string, file: File, dispatch?: Dispatch): Promise<string> {
+  async uploadAvatar(userId: string, file: File, dispatch?: Dispatch): Promise<AvatarUploadResult> {
     try {
       // Validar el archivo
       if (!file.type.startsWith('image/')) {
-        throw new Error('El archivo debe ser una imagen')
+        return {
+          success: false,
+          photoURL: '',
+          message: 'El archivo debe ser una imagen'
+        }
       }
 
       // Validar tamaño (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
-        throw new Error('El archivo no puede ser mayor a 5MB')
+        return {
+          success: false,
+          photoURL: '',
+          message: 'El archivo no puede ser mayor a 5MB'
+        }
       }
 
       // Crear referencia única para el archivo
@@ -57,11 +65,17 @@ export class AvatarService implements IAvatarService {
         }
       }
 
-      return downloadURL
+      return {
+        success: true,
+        photoURL: downloadURL,
+        message: 'Avatar actualizado correctamente'
+      }
     } catch (error) {
-      throw new Error(
-        `Error al subir avatar: ${error instanceof Error ? error.message : 'Error desconocido'}`
-      )
+      return {
+        success: false,
+        photoURL: '',
+        message: `Error al subir avatar: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      }
     }
   }
 

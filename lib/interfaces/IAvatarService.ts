@@ -1,7 +1,3 @@
-export interface AvatarUploadData {
-  file: File
-  userId: string
-}
 
 export interface AvatarUploadResult {
   photoURL: string
@@ -12,7 +8,7 @@ export interface AvatarUploadResult {
 import { Dispatch } from '@reduxjs/toolkit'
 
 export interface IAvatarService {
-  uploadAvatar(userId: string, file: File, dispatch?: Dispatch): Promise<string>
+  uploadAvatar(userId: string, file: File, dispatch?: Dispatch): Promise<AvatarUploadResult>
   deleteAvatar(userId: string, dispatch?: Dispatch): Promise<void>
   getAvatarUrl(userId: string): Promise<string | null>
 }

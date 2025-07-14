@@ -8,9 +8,17 @@ export class EmailService implements IEmailService {
   private publicKey: string
 
   constructor() {
-    this.serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!
-    this.templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!
-    this.publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+    this.serviceId = EmailService.validateEnvVariable('NEXT_PUBLIC_EMAILJS_SERVICE_ID')
+    this.templateId = EmailService.validateEnvVariable('NEXT_PUBLIC_EMAILJS_TEMPLATE_ID')
+    this.publicKey = EmailService.validateEnvVariable('NEXT_PUBLIC_EMAILJS_PUBLIC_KEY')
+  }
+
+  private static validateEnvVariable(key: string): string {
+    const value = process.env[key]
+    if (!value) {
+      throw new Error(`Environment variable ${key} is missing or undefined.`)
+    }
+    return value
   }
 
   async sendContactEmail(data: ContactFormData): Promise<void> {

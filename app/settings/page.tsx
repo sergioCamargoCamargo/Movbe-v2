@@ -135,12 +135,20 @@ export default function SettingsPage() {
     try {
       setSaving(true)
 
-      await avatarService.uploadAvatar(user.uid, file, dispatch)
+      const result = await avatarService.uploadAvatar(user.uid, file, dispatch)
 
-      toast({
-        title: 'Avatar actualizado',
-        description: 'Tu foto de perfil ha sido actualizada correctamente',
-      })
+      if (result.success) {
+        toast({
+          title: 'Avatar actualizado',
+          description: result.message || 'Tu foto de perfil ha sido actualizada correctamente',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'No se pudo actualizar tu foto de perfil',
+          variant: 'destructive',
+        })
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -331,6 +339,7 @@ export default function SettingsPage() {
                       <label
                         htmlFor='avatar-upload'
                         className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-white shadow cursor-pointer flex items-center justify-center'
+                        aria-label='Cambiar avatar'
                       >
                         <Camera className='h-4 w-4 text-muted-foreground' />
                       </label>

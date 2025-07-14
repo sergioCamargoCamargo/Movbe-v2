@@ -1,12 +1,12 @@
 // Importaciones de bibliotecas externas
 import { doc, setDoc } from 'firebase/firestore'
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 
 // Importaciones internas del proyecto
-import app, { db } from '@/lib/firebase'
+import { db } from '@/lib/firebase'
 import { IUserService } from '@/lib/interfaces/IUserService'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { AuthService } from '@/lib/services/AuthService'
+import { avatarService } from '@/lib/services/AvatarService'
 import { UserProfile, UserSettings } from '@/types'
 
 export class UserService implements IUserService {
@@ -239,19 +239,10 @@ export class UserService implements IUserService {
   }
 
   async uploadAvatar(userId: string, file: File): Promise<string> {
-    try {
-      const storage = getStorage(app) // Obtener instancia de storage
-      const avatarRef = ref(storage, `avatars/${userId}/${file.name}`)
-
-      await uploadBytes(avatarRef, file)
-      const downloadURL = await getDownloadURL(avatarRef)
-
-      // Actualizar el campo photoURL en el perfil del usuario
-      await this.updateUser(userId, { photoURL: downloadURL })
-
-      return downloadURL
-    } catch (error) {
-      throw error
+    const result = await avatarService.uploadAvatar(userId, file)
+    if (!result.success) {
+      throw new Error(result.message)
     }
+    return result.photoURL
   }
 }
