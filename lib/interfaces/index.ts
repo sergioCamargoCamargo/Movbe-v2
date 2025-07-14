@@ -4,6 +4,8 @@
 
 // Servicios existentes
 export * from './IAnalyticsService'
+export * from './IAvatarService'
+export * from './IEmailService'
 export * from './INotificationService'
 export * from './IUserService'
 export * from './IVideoService'

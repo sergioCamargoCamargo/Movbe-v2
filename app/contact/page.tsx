@@ -1,6 +1,6 @@
 'use client'
 
-import { Mail, Phone, MapPin, Send, MessageSquare, Users, Building } from 'lucide-react'
+import { Building, Mail, MapPin, MessageSquare, Phone, Send, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import HeaderDynamic from '@/app/components/HeaderDynamic'
@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
+import { ContactFormData } from '@/lib/interfaces'
+import { emailService } from '@/lib/services/EmailService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
@@ -46,44 +48,59 @@ export default function ContactPage() {
 
     setSubmitting(true)
 
-    // Simular envío (aquí iría la lógica real)
-    setTimeout(() => {
+    const formData: ContactFormData = {
+      name,
+      email,
+      userType,
+      subject,
+      message,
+    }
+
+    try {
+      await emailService.sendContactEmail(formData)
+
       toast({
         title: 'Mensaje enviado',
         description: 'Gracias por contactarnos. Te responderemos pronto.',
       })
 
-      // Limpiar formulario
       setName('')
       setEmail('')
       setUserType('')
       setSubject('')
       setMessage('')
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'No se pudo enviar el mensaje.',
+        variant: 'destructive',
+      })
+    } finally {
       setSubmitting(false)
-    }, 2000)
+    }
   }
 
   return (
     <PageTransition>
-      <div className='flex flex-col h-screen'>
+      <div className='flex flex-col min-h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 pt-12 sm:pt-16'>
           <Sidebar />
-          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 p-2 sm:p-4 md:p-6 lg:p-8'>
-            <div className='max-w-6xl mx-auto'>
-              <div className='mb-6 sm:mb-8 text-center'>
-                <h1 className='text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-4'>
+          <div className='flex-1 bg-gradient-to-br from-background via-background to-muted/30 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto'>
+            <div className='w-full max-w-6xl mx-auto px-2 sm:px-0 py-4'>
+              <div className='mb-4 sm:mb-8 text-center'>
+                <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2 sm:mb-4'>
                   Contáctanos
                 </h1>
-                <p className='text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto'>
+                <p className='text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl text-muted-foreground max-w-2xl mx-auto px-2 sm:px-4'>
                   Estamos aquí para ayudarte. Ponte en contacto con nosotros para cualquier consulta
                   o soporte.
                 </p>
               </div>
 
-              <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-8'>
+              <div className='space-y-4 sm:space-y-6 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0 mb-4 sm:mb-8'>
                 {/* Información de contacto */}
-                <div className='lg:col-span-1 space-y-6'>
+                <div className='w-full lg:col-span-1 space-y-6 order-2 lg:order-1'>
                   <Card className='border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10'>
                     <CardHeader>
                       <CardTitle className='flex items-center gap-2 text-xl'>
@@ -153,30 +170,30 @@ export default function ContactPage() {
                 </div>
 
                 {/* Formulario de contacto */}
-                <div className='lg:col-span-2'>
-                  <Card className='border-0 shadow-xl'>
+                <div className='w-full lg:col-span-2 order-1 lg:order-2'>
+                  <Card className='border-0 shadow-xl w-full'>
                     <CardHeader>
-                      <CardTitle className='flex items-center gap-2 text-2xl'>
+                      <CardTitle className='flex items-center gap-2 text-xl sm:text-2xl'>
                         <Send className='h-6 w-6 text-primary' />
                         Envíanos un Mensaje
                       </CardTitle>
-                      <CardDescription className='text-base'>
+                      <CardDescription className='text-sm sm:text-base'>
                         Completa el formulario y nos pondremos en contacto contigo lo antes posible.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='p-4 sm:p-6'>
                       <form onSubmit={handleSubmit} className='space-y-6'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                        <div className='grid grid-cols-1 gap-4'>
                           <div className='space-y-2'>
                             <Label htmlFor='name'>Nombre completo *</Label>
                             <Input
                               id='name'
                               type='text'
-                              placeholder='Tu nombre completo'
+                              placeholder='Tu nombre'
                               value={name}
                               onChange={e => setName(e.target.value)}
                               disabled={submitting}
-                              className='h-12'
+                              className='h-11 text-sm'
                               required
                               aria-describedby='name-help'
                             />
@@ -190,11 +207,11 @@ export default function ContactPage() {
                             <Input
                               id='email'
                               type='email'
-                              placeholder='tu@email.com'
+                              placeholder='email@ejemplo.com'
                               value={email}
                               onChange={e => setEmail(e.target.value)}
                               disabled={submitting}
-                              className='h-12'
+                              className='h-11 text-sm'
                               required
                               aria-describedby='email-help'
                             />
@@ -212,7 +229,10 @@ export default function ContactPage() {
                             disabled={submitting}
                             required
                           >
-                            <SelectTrigger className='h-12' aria-describedby='usertype-help'>
+                            <SelectTrigger
+                              className='h-11 text-sm'
+                              aria-describedby='usertype-help'
+                            >
                               <SelectValue placeholder='Selecciona tu tipo de usuario' />
                             </SelectTrigger>
                             <SelectContent>
@@ -232,11 +252,11 @@ export default function ContactPage() {
                           <Input
                             id='subject'
                             type='text'
-                            placeholder='Describe brevemente tu consulta'
+                            placeholder='Asunto de tu consulta'
                             value={subject}
                             onChange={e => setSubject(e.target.value)}
                             disabled={submitting}
-                            className='h-12'
+                            className='h-11 text-sm'
                             required
                             aria-describedby='subject-help'
                           />
@@ -249,11 +269,12 @@ export default function ContactPage() {
                           <Label htmlFor='message'>Mensaje *</Label>
                           <Textarea
                             id='message'
-                            placeholder='Describe tu consulta, problema o sugerencia en detalle...'
+                            placeholder='Describe tu consulta...'
                             value={message}
                             onChange={e => setMessage(e.target.value)}
                             disabled={submitting}
-                            rows={6}
+                            rows={4}
+                            className='min-h-[100px] text-sm resize-none'
                             required
                             aria-describedby='message-help'
                           />
@@ -262,11 +283,11 @@ export default function ContactPage() {
                           </p>
                         </div>
 
-                        <div className='flex flex-col sm:flex-row gap-4 pt-4'>
+                        <div className='flex flex-col gap-4 pt-4'>
                           <Button
                             type='submit'
                             disabled={submitting}
-                            className='flex-1 h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary'
+                            className='w-full h-11 text-sm bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary'
                           >
                             {submitting ? (
                               <>
@@ -292,7 +313,7 @@ export default function ContactPage() {
                               setMessage('')
                             }}
                             disabled={submitting}
-                            className='h-12'
+                            className='h-11 text-sm'
                           >
                             Limpiar
                           </Button>
@@ -304,7 +325,7 @@ export default function ContactPage() {
               </div>
 
               {/* Información adicional */}
-              <Card className='border-0 shadow-lg bg-gradient-to-r from-muted/30 to-muted/10'>
+              <Card className='border-0 shadow-lg bg-gradient-to-r from-muted/30 to-muted/10 w-full mt-4 sm:mt-8'>
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2 text-xl'>
                     <Building className='h-5 w-5 text-primary' />

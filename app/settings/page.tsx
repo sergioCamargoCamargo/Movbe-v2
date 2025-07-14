@@ -2,7 +2,7 @@
 
 import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
@@ -28,6 +28,7 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { getUserService } from '@/lib/di/serviceRegistration'
+import { avatarService } from '@/lib/services/AvatarService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
@@ -126,6 +127,39 @@ export default function SettingsPage() {
     }
     loadUserData()
   }, [user, authLoading, router, loadUserData])
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user) return
+
+    try {
+      setSaving(true)
+
+      const result = await avatarService.uploadAvatar(user.uid, file, dispatch)
+
+      if (result.success) {
+        toast({
+          title: 'Avatar actualizado',
+          description: result.message || 'Tu foto de perfil ha sido actualizada correctamente',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'No se pudo actualizar tu foto de perfil',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'No se pudo actualizar tu foto de perfil',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleSaveAll = async () => {
     if (!user) return
@@ -292,13 +326,23 @@ export default function SettingsPage() {
                             : user.email?.charAt(0).toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <Button
-                        size='sm'
-                        variant='secondary'
-                        className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0'
+
+                      {/* Botón invisible que activa el input file */}
+                      <input
+                        type='file'
+                        accept='image/*'
+                        className='hidden'
+                        id='avatar-upload'
+                        onChange={handleAvatarChange} // Este método ya lo tienes
+                      />
+
+                      <label
+                        htmlFor='avatar-upload'
+                        className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-white shadow cursor-pointer flex items-center justify-center'
+                        aria-label='Cambiar avatar'
                       >
-                        <Camera className='h-4 w-4' />
-                      </Button>
+                        <Camera className='h-4 w-4 text-muted-foreground' />
+                      </label>
                     </div>
 
                     <div className='flex-1 space-y-4'>
