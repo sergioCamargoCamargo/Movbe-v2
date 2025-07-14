@@ -295,7 +295,7 @@ export default function SettingsPage() {
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/20 p-6'>
+          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/20 p-6 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-4xl mx-auto space-y-8'>
               {/* Header */}
               <div className='space-y-2'>

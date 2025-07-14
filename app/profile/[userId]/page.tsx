@@ -163,7 +163,7 @@ export default function ProfilePage() {
           <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
           <div className='flex flex-1 overflow-hidden pt-16'>
             <Sidebar />
-            <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 w-full min-w-0 overflow-x-hidden'>
+            <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 w-full min-w-0 overflow-x-hidden md:h-auto mobile-scroll-container ios-scroll-fix'>
               <div className='max-w-7xl mx-auto p-1 xs:p-4 sm:p-6 md:p-8 w-full min-w-0'>
                 <div className='animate-pulse'>
                   <div className='h-48 sm:h-64 md:h-80 lg:h-96 bg-muted rounded-lg mb-8'></div>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30'>
+          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 md:h-auto mobile-scroll-container ios-scroll-fix'>
             {/* Cover Image */}
             <div className='relative h-48 sm:h-64 md:h-80 lg:h-96'>
               <Image

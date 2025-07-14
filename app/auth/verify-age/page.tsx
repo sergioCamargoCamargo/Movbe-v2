@@ -138,7 +138,7 @@ export default function VerifyAgePage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4'>
+    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4 overflow-y-auto mobile-scroll-container ios-scroll-fix'>
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
           <div className='mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4'>

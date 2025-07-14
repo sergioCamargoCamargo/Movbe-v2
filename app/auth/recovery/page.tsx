@@ -40,7 +40,7 @@ export default function RecoveryPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-4'>
+    <div className='min-h-screen flex items-center justify-center bg-muted/50 p-4 overflow-y-auto mobile-scroll-container ios-scroll-fix'>
       <Card className='w-full max-w-md'>
         <CardHeader className='space-y-1'>
           <CardTitle className='text-2xl text-center'>Recuperar contraseña</CardTitle>

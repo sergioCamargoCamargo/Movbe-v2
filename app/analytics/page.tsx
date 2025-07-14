@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 p-2 sm:p-4 md:p-6 lg:p-8'>
+          <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 p-2 sm:p-4 md:p-6 lg:p-8 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-7xl mx-auto'>
               {/* Loading State */}
               {analyticsLoading && (
