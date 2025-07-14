@@ -175,16 +175,7 @@ export default function WatchPage() {
                   className='w-full h-full object-cover touch-manipulation'
                   preload='metadata'
                   playsInline
-                  webkit-playsinline='true'
-                  x-webkit-airplay='allow'
                   controlsList='nodownload'
-                  crossOrigin='anonymous'
-                  style={{
-                    WebkitTransform: 'translateZ(0)',
-                    transform: 'translateZ(0)',
-                    WebkitBackfaceVisibility: 'hidden',
-                    backfaceVisibility: 'hidden',
-                  }}
                 >
                   Tu navegador no soporta el elemento de video.
                 </video>
