@@ -12,6 +12,7 @@ interface UiState {
   isLoading: boolean
   loadingMessage?: string
   globalError: string | null
+  isMobile: boolean
 }
 
 const initialState: UiState = {
@@ -19,6 +20,7 @@ const initialState: UiState = {
   isLoading: false,
   loadingMessage: undefined,
   globalError: null,
+  isMobile: false,
 }
 
 const uiSlice = createSlice({
@@ -49,6 +51,9 @@ const uiSlice = createSlice({
     clearGlobalError: state => {
       state.globalError = null
     },
+    setIsMobile: (state, action: PayloadAction<boolean>) => {
+      state.isMobile = action.payload
+    },
   },
 })
 
@@ -60,6 +65,7 @@ export const {
   setLoadingMessage,
   setGlobalError,
   clearGlobalError,
+  setIsMobile,
 } = uiSlice.actions
 
 export default uiSlice.reducer

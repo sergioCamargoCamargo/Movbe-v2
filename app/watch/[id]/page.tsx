@@ -11,8 +11,9 @@ import { Button } from '@/components/ui/button'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
 import { Video, getVideoById, getPublicVideos, recordVideoView } from '@/lib/firestore'
-import { useAppDispatch } from '@/lib/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import { setIsMobile } from '@/lib/store/slices/uiSlice'
 
 import HeaderDynamic from '../../components/HeaderDynamic'
 import Sidebar from '../../components/Sidebar'
@@ -21,6 +22,7 @@ export default function WatchPage() {
   const { id } = useParams()
   const dispatch = useAppDispatch()
   const { user } = useAuth()
+  const isMobile = useAppSelector(state => state.ui.isMobile)
   const [video, setVideo] = useState<Video | null>(null)
   const [recommendedVideos, setRecommendedVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +66,19 @@ export default function WatchPage() {
 
     fetchVideo()
   }, [id, user?.uid])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      dispatch(setIsMobile(window.innerWidth <= 768))
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [dispatch])
 
   useEffect(() => {
     const carousel = carouselRef.current
@@ -180,7 +195,7 @@ export default function WatchPage() {
                   Tu navegador no soporta el elemento de video.
                 </video>
               </div>
-              {showRecommendations && recommendedVideos.length > 0 && (
+              {!isMobile && showRecommendations && recommendedVideos.length > 0 && (
                 <div
                   ref={carouselRef}
                   className='absolute top-0 left-0 right-0 bg-background bg-opacity-80 backdrop-blur-sm p-4 transition-opacity duration-300'
