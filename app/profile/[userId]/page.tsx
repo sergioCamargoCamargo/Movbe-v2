@@ -161,7 +161,7 @@ export default function ProfilePage() {
       <PageTransition>
         <div className='flex flex-col h-screen'>
           <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-          <div className='flex flex-1 overflow-hidden pt-16'>
+          <div className='flex flex-1 overflow-hidden pt-20'>
             <Sidebar />
             <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 w-full min-w-0 overflow-x-hidden md:h-auto mobile-scroll-container ios-scroll-fix'>
               <div className='max-w-7xl mx-auto p-1 xs:p-4 sm:p-6 md:p-8 w-full min-w-0'>
@@ -243,7 +243,7 @@ export default function ProfilePage() {
     <PageTransition>
       <div className='flex flex-col h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30 md:h-auto mobile-scroll-container ios-scroll-fix'>
             {/* Cover Image */}

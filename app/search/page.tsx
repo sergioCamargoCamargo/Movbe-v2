@@ -50,7 +50,7 @@ function SearchContent() {
   return (
     <div className='flex flex-col min-h-screen'>
       <HeaderDynamic onMenuClick={onMenuClick} />
-      <div className='flex flex-1 pt-16'>
+      <div className='flex flex-1 pt-20'>
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>

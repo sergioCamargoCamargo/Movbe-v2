@@ -110,7 +110,7 @@ export default function WatchPage() {
     return (
       <div className='flex flex-col min-h-screen'>
         <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
             <p className='text-center'>Cargando video...</p>
@@ -124,7 +124,7 @@ export default function WatchPage() {
     return (
       <div className='flex flex-col min-h-screen'>
         <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 flex items-center justify-center w-full min-w-0 overflow-x-hidden'>
             <p className='text-red-600 text-center'>{error || 'Video no encontrado'}</p>
@@ -162,7 +162,7 @@ export default function WatchPage() {
   return (
     <div className='flex flex-col min-h-screen'>
       <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
-      <div className='flex flex-1 overflow-hidden pt-16'>
+      <div className='flex flex-1 overflow-hidden pt-20'>
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>

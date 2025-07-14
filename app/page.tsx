@@ -15,7 +15,7 @@ export default function Home() {
     <PageTransition>
       <div className='flex flex-col min-h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 pt-16 overflow-hidden'>
+        <div className='flex flex-1 pt-20 overflow-hidden'>
           <Sidebar />
           <div className='flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-full md:h-auto mobile-scroll-container ios-scroll-fix'>
             <MainContent />

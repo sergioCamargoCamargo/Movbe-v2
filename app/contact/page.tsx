@@ -84,7 +84,7 @@ export default function ContactPage() {
     <PageTransition>
       <div className='flex flex-col min-h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 pt-12 sm:pt-16'>
+        <div className='flex flex-1 pt-16 sm:pt-20'>
           <Sidebar />
           <div className='flex-1 bg-gradient-to-br from-background via-background to-muted/30 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='w-full max-w-6xl mx-auto px-2 sm:px-0 py-4'>

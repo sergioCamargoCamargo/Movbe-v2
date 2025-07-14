@@ -175,7 +175,7 @@ export default function UploadPage() {
     <PageTransition>
       <div className='flex flex-col h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-2 sm:p-4 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-2xl mx-auto px-2 sm:px-0'>

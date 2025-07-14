@@ -270,7 +270,7 @@ export default function SettingsPage() {
     return (
       <div className='flex flex-col h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-background p-6'>
             <div className='max-w-4xl mx-auto'>
@@ -294,7 +294,7 @@ export default function SettingsPage() {
     <PageTransition>
       <div className='flex flex-col h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 overflow-hidden pt-16'>
+        <div className='flex flex-1 overflow-hidden pt-20'>
           <Sidebar />
           <div className='flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/20 p-6 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-4xl mx-auto space-y-8'>
