@@ -177,7 +177,7 @@ export default function UploadPage() {
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 overflow-hidden pt-16'>
           <Sidebar />
-          <div className='flex-1 overflow-auto bg-background p-2 sm:p-4'>
+          <div className='flex-1 overflow-auto bg-background p-2 sm:p-4 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-2xl mx-auto px-2 sm:px-0'>
               <div className='mb-4 sm:mb-6'>
                 <h1 className='text-2xl sm:text-3xl font-bold mt-2 sm:mt-4'>Subir Video</h1>

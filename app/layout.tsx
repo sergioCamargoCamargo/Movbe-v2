@@ -103,7 +103,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es'>
-      <body className={`${inter.className} antialiased overflow-x-hidden`}>
+      <body className={`${inter.className} antialiased overflow-x-hidden overflow-y-auto`}>
         <StoreProvider>
           <AuthProvider>
             <SidebarProvider>

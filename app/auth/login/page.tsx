@@ -97,7 +97,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className='min-h-screen bg-muted/50 p-2 sm:p-4 relative'>
+    <div className='min-h-screen bg-muted/50 p-2 sm:p-4 relative overflow-y-auto mobile-scroll-container ios-scroll-fix'>
       {/* Logo - top left */}
       <Link href='/' className='absolute top-4 left-4 z-10'>
         <Image

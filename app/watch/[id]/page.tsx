@@ -164,7 +164,7 @@ export default function WatchPage() {
       <HeaderDynamic visible={showHeader} onMenuClick={() => dispatch(toggleSidebar())} />
       <div className='flex flex-1 overflow-hidden pt-16'>
         <Sidebar />
-        <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto'>
+        <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>
             <div className='relative' ref={videoRef}>
               <div className='aspect-video bg-black rounded-lg overflow-hidden'>
