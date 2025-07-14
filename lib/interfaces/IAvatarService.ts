@@ -1,4 +1,3 @@
-
 export interface AvatarUploadResult {
   photoURL: string
   success: boolean

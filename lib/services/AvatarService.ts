@@ -24,7 +24,7 @@ export class AvatarService implements IAvatarService {
         return {
           success: false,
           photoURL: '',
-          message: 'El archivo debe ser una imagen'
+          message: 'El archivo debe ser una imagen',
         }
       }
 
@@ -33,7 +33,7 @@ export class AvatarService implements IAvatarService {
         return {
           success: false,
           photoURL: '',
-          message: 'El archivo no puede ser mayor a 5MB'
+          message: 'El archivo no puede ser mayor a 5MB',
         }
       }
 
@@ -68,13 +68,13 @@ export class AvatarService implements IAvatarService {
       return {
         success: true,
         photoURL: downloadURL,
-        message: 'Avatar actualizado correctamente'
+        message: 'Avatar actualizado correctamente',
       }
     } catch (error) {
       return {
         success: false,
         photoURL: '',
-        message: `Error al subir avatar: ${error instanceof Error ? error.message : 'Error desconocido'}`
+        message: `Error al subir avatar: ${error instanceof Error ? error.message : 'Error desconocido'}`,
       }
     }
   }
