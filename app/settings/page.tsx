@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -416,14 +417,32 @@ export default function SettingsPage() {
                     </>
                   )}
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Autenticación de dos factores</Label>
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        Autenticación de dos factores
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
                         Añade una capa extra de seguridad
                       </p>
                     </div>
-                    <Switch checked={twoFactorEnabled} onCheckedChange={setTwoFactorEnabled} />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={twoFactorEnabled}
+                        onCheckedChange={checked => setTwoFactorEnabled(checked === true)}
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={twoFactorEnabled}
+                        onCheckedChange={checked => setTwoFactorEnabled(checked === true)}
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
                   {isGoogleUser && (
@@ -453,108 +472,242 @@ export default function SettingsPage() {
                   </CardTitle>
                   <CardDescription>Personaliza qué notificaciones quieres recibir</CardDescription>
                 </CardHeader>
-                <CardContent className='space-y-6'>
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Notificaciones por email</Label>
+                <CardContent className='space-y-4'>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('email', !emailNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        Notificaciones por email
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
                         Recibe actualizaciones importantes por correo
                       </p>
                     </div>
-                    <Switch
-                      checked={emailNotifications}
-                      onCheckedChange={checked => handleNotificationChange('email', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={emailNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('email', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={emailNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('email', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Notificaciones push</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('push', !pushNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        Notificaciones push
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
                         Notificaciones en tiempo real en tu dispositivo
                       </p>
                     </div>
-                    <Switch
-                      checked={pushNotifications}
-                      onCheckedChange={checked => handleNotificationChange('push', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={pushNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('push', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={pushNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('push', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Emails de marketing</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('marketing', !marketingEmails)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        Emails de marketing
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
                         Ofertas especiales y noticias del producto
                       </p>
                     </div>
-                    <Switch
-                      checked={marketingEmails}
-                      onCheckedChange={checked => handleNotificationChange('marketing', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={marketingEmails}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('marketing', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={marketingEmails}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('marketing', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Nuevos videos</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('newVideos', !newVideosNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>Nuevos videos</Label>
                       <p className='text-sm text-muted-foreground'>
                         Notificaciones cuando se suban nuevos videos
                       </p>
                     </div>
-                    <Switch
-                      checked={newVideosNotifications}
-                      onCheckedChange={checked => handleNotificationChange('newVideos', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={newVideosNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('newVideos', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={newVideosNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('newVideos', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Comentarios</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('comments', !commentsNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>Comentarios</Label>
                       <p className='text-sm text-muted-foreground'>
                         Notificaciones de comentarios en tus videos
                       </p>
                     </div>
-                    <Switch
-                      checked={commentsNotifications}
-                      onCheckedChange={checked => handleNotificationChange('comments', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={commentsNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('comments', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={commentsNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('comments', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Likes</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('likes', !likesNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>Likes</Label>
                       <p className='text-sm text-muted-foreground'>
                         Notificaciones cuando recibas likes
                       </p>
                     </div>
-                    <Switch
-                      checked={likesNotifications}
-                      onCheckedChange={checked => handleNotificationChange('likes', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={likesNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('likes', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={likesNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('likes', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
 
-                  <Separator />
+                  <Separator className='md:block hidden' />
 
-                  <div className='flex items-center justify-between'>
-                    <div className='space-y-1'>
-                      <Label>Nuevos seguidores</Label>
+                  {/* Notification Item */}
+                  <div
+                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
+                    onClick={() => handleNotificationChange('followers', !followersNotifications)}
+                  >
+                    <div className='space-y-1 flex-1 mr-4'>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        Nuevos seguidores
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
                         Notificaciones cuando tengas nuevos seguidores
                       </p>
                     </div>
-                    <Switch
-                      checked={followersNotifications}
-                      onCheckedChange={checked => handleNotificationChange('followers', checked)}
-                    />
+                    <div className='flex-shrink-0'>
+                      {/* Mobile: Checkbox */}
+                      <Checkbox
+                        checked={followersNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('followers', checked === true)
+                        }
+                        className='h-4 w-4 rounded-md md:hidden'
+                      />
+                      {/* Desktop: Switch */}
+                      <Switch
+                        checked={followersNotifications}
+                        onCheckedChange={checked =>
+                          handleNotificationChange('followers', checked === true)
+                        }
+                        className='hidden md:flex'
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -607,19 +760,24 @@ export default function SettingsPage() {
               </Card>
 
               {/* Botón de guardar fijo */}
-              <div className='sticky bottom-0 bg-background/80 backdrop-blur-sm border-t p-4 -mx-6'>
-                <div className='max-w-4xl mx-auto flex justify-end gap-2'>
+              <div className='sticky bottom-0 bg-background/80 backdrop-blur-sm border-t p-4 -mx-6 md:p-4'>
+                <div className='max-w-4xl mx-auto flex flex-col-reverse md:flex-row justify-end gap-3 md:gap-2'>
                   {hasAnyChanges && (
-                    <Button variant='outline' onClick={handleCancelChanges} disabled={saving}>
+                    <Button
+                      variant='outline'
+                      onClick={handleCancelChanges}
+                      disabled={saving}
+                      className='w-full md:w-auto h-12 md:h-10 text-base md:text-sm'
+                    >
                       Cancelar cambios
                     </Button>
                   )}
                   <Button
                     onClick={handleSaveAll}
                     disabled={!hasAnyChanges || saving}
-                    className='min-w-[140px]'
+                    className='w-full md:w-auto min-w-[140px] h-12 md:h-10 text-base md:text-sm'
                   >
-                    <Save className='h-4 w-4 mr-2' />
+                    <Save className='h-5 w-5 mr-2 md:h-4 md:w-4' />
                     {saving ? 'Guardando...' : 'Guardar cambios'}
                   </Button>
                 </div>
