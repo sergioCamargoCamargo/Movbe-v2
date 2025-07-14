@@ -217,12 +217,24 @@ export const validateVideoFile = async (
 ): Promise<{ isValid: boolean; error?: string }> => {
   const maxSize = 500 * 1024 * 1024 // 500MB
   const maxDuration = 20 * 60 // 20 minutes in seconds
-  const allowedTypes = ['video/mp4', 'video/mov', 'video/avi', 'video/mkv', 'video/webm']
+  const allowedTypes = [
+    'video/mp4',
+    'video/mov',
+    'video/avi',
+    'video/mkv',
+    'video/webm',
+    'video/x-msvideo',
+    'video/quicktime',
+    'video/mp4v-es',
+    'video/h264',
+    'video/h265',
+    'video/hevc',
+  ]
 
   if (!allowedTypes.includes(file.type)) {
     return {
       isValid: false,
-      error: 'Formato de archivo no soportado. Use MP4, MOV, AVI, MKV o WebM.',
+      error: 'Formato de archivo no soportado. Use MP4, MOV, AVI, MKV, WebM o HEVC.',
     }
   }
 

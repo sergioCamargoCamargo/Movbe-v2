@@ -178,9 +178,12 @@ export default function WatchPage() {
                   webkit-playsinline='true'
                   x-webkit-airplay='allow'
                   controlsList='nodownload'
+                  crossOrigin='anonymous'
                   style={{
                     WebkitTransform: 'translateZ(0)',
                     transform: 'translateZ(0)',
+                    WebkitBackfaceVisibility: 'hidden',
+                    backfaceVisibility: 'hidden',
                   }}
                 >
                   Tu navegador no soporta el elemento de video.

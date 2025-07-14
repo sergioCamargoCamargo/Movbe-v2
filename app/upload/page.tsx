@@ -259,7 +259,7 @@ export default function UploadPage() {
                           {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
                         </span>
                         <span className='text-xs text-muted-foreground block mt-1'>
-                          Formatos soportados: MP4, MOV, AVI, MKV, WebM (máx. 500MB, 20 min)
+                          Formatos soportados: MP4, MOV, AVI, MKV, WebM, HEVC (máx. 500MB, 20 min)
                         </span>
                       </label>
                     </div>
