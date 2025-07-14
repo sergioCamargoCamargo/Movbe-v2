@@ -16,20 +16,20 @@ interface SEOHeadProps {
 }
 
 export function SEOHead({
-  title = 'MOBVE - Plataforma de Videos para Creadores',
-  description = 'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
-  keywords = ['videos', 'streaming', 'creadores', 'contenido', 'entertainment', 'MOBVE'],
+  title = 'MOVBE - Plataforma de Videos para Creadores',
+  description = 'MOVBE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
+  keywords = ['videos', 'streaming', 'creadores', 'contenido', 'entertainment', 'MOVBE'],
   image = '/og-image.jpg',
-  url = 'https://mobve.com',
+  url = 'https://movbe.com',
   type = 'website',
   publishedTime,
   modifiedTime,
-  author = 'MOBVE',
-  siteName = 'MOBVE',
+  author = 'MOVBE',
+  siteName = 'MOVBE',
   locale = 'es_CO',
   noIndex = false,
 }: SEOHeadProps) {
-  const fullTitle = title.includes('MOBVE') ? title : `${title} | MOBVE`
+  const fullTitle = title.includes('MOVBE') ? title : `${title} | MOVBE`
   const keywordsString = keywords.join(', ')
 
   return (
@@ -57,8 +57,8 @@ export function SEOHead({
       <meta name='twitter:title' content={fullTitle} />
       <meta name='twitter:description' content={description} />
       <meta name='twitter:image' content={image} />
-      <meta name='twitter:site' content='@MOBVE' />
-      <meta name='twitter:creator' content='@MOBVE' />
+      <meta name='twitter:site' content='@MOVBE' />
+      <meta name='twitter:creator' content='@MOVBE' />
 
       {/* Fechas de artículo/video */}
       {publishedTime && <meta property='article:published_time' content={publishedTime} />}
@@ -80,10 +80,10 @@ export function SEOHead({
       <meta name='msapplication-TileColor' content='#1a1a1a' />
 
       {/* Metadatos de aplicación web */}
-      <meta name='application-name' content='MOBVE' />
+      <meta name='application-name' content='MOVBE' />
       <meta name='apple-mobile-web-app-capable' content='yes' />
       <meta name='apple-mobile-web-app-status-bar-style' content='default' />
-      <meta name='apple-mobile-web-app-title' content='MOBVE' />
+      <meta name='apple-mobile-web-app-title' content='MOVBE' />
       <meta name='format-detection' content='telephone=no' />
       <meta name='mobile-web-app-capable' content='yes' />
 
@@ -203,7 +203,7 @@ export function VideoSEOHead({
               }),
               publisher: {
                 '@type': 'Organization',
-                name: 'MOBVE',
+                name: 'MOVBE',
                 logo: {
                   '@type': 'ImageObject',
                   url: '/logo.png',
@@ -235,7 +235,7 @@ export function ProfileSEOHead({
   return (
     <>
       <SEOHead
-        title={`${creatorName} - Creador en MOBVE`}
+        title={`${creatorName} - Creador en MOVBE`}
         description={creatorBio}
         image={profileImage}
         type='website'

@@ -116,7 +116,7 @@ export default function ContactPage() {
                         <Mail className='h-5 w-5 text-primary' />
                         <div>
                           <p className='font-semibold'>Email</p>
-                          <p className='text-sm text-muted-foreground'>contacto@mobve.com</p>
+                          <p className='text-sm text-muted-foreground'>contacto@movbe.com</p>
                         </div>
                       </div>
 

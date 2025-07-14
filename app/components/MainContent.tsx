@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AdBanner } from '@/components/AdBanner'
 import { Button } from '@/components/ui/button'
@@ -119,11 +119,11 @@ export default function MainContent() {
         <MainAdBannerWrapper
           type='interactive'
           size='fullwidth'
-          title='¡Promoción Especial en MOBVE!'
-          description='Únete a MOBVE Premium y disfruta de contenido exclusivo sin anuncios'
+          title='¡Promoción Especial en MOVBE!'
+          description='Únete a MOVBE Premium y disfruta de contenido exclusivo sin anuncios'
           ctaText='Suscríbete Ahora'
-          sponsor='MOBVE Premium'
-          imageUrl='/placeholder.svg?text=MOBVE+Premium'
+          sponsor='MOVBE Premium'
+          imageUrl='/placeholder.svg?text=MOVBE+Premium'
         />
 
         <div className='categories-container flex space-x-2 pb-4 w-full'>

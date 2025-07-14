@@ -1,7 +1,7 @@
 'use client'
 
-import { Heart, MessageCircle, Share2, ThumbsUp, ThumbsDown, Bookmark, Flag } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Bookmark, Flag, Heart, MessageCircle, Share2, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import StarRating from '@/components/StarRating'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import { getUserVideoRating, rateVideo } from '@/lib/firestore'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
 import { VideoInteractionsProps } from '@/lib/interfaces/IVideoInteractions'
-import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
 
 export function VideoInteractions({
@@ -176,7 +176,7 @@ export function VideoInteractions({
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: 'Video en MOBVE',
+        title: 'Video en MOVBE',
         url: window.location.href,
       })
     } else {

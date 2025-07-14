@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Clock, X } from 'lucide-react'
+import { Clock, Search, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect } from 'react'
 
@@ -145,7 +145,7 @@ function SearchContent() {
             {!hasSearched && !loading && recentSearches.length === 0 && (
               <div className='text-center py-12'>
                 <Search className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
-                <p className='text-lg text-muted-foreground mb-2'>Busca videos en MOBVE</p>
+                <p className='text-lg text-muted-foreground mb-2'>Busca videos en MOVBE</p>
                 <p className='text-sm text-muted-foreground'>
                   Escribe algo en la barra de búsqueda para comenzar
                 </p>

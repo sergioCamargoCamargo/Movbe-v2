@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
@@ -23,7 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { getVideosByUser, Video as FirestoreVideoType } from '@/lib/firestore'
+import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
@@ -107,7 +107,7 @@ export default function ProfilePage() {
           id: userProfile.uid,
           name: userProfile.displayName || user?.displayName || 'Usuario',
           username: `@${userProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
-          bio: 'Creador de contenido en MOBVE', // TODO: Add bio field to user profile
+          bio: 'Creador de contenido en MOVBE', // TODO: Add bio field to user profile
           avatar: userProfile.photoURL || user?.photoURL || '/placeholder.svg?text=USER',
           coverImage: '/placeholder.svg?text=Cover', // TODO: Add cover image field
           subscriberCount: userProfile.subscriberCount || 0,
@@ -196,7 +196,7 @@ export default function ProfilePage() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `Perfil de ${profileData.name} en MOBVE`,
+        title: `Perfil de ${profileData.name} en MOVBE`,
         url: window.location.href,
       })
     } else {

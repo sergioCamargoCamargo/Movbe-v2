@@ -7,32 +7,32 @@ import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
 
-import './globals.css'
-import 'slick-carousel/slick/slick.css'
 import 'slick-carousel/slick/slick-theme.css'
+import 'slick-carousel/slick/slick.css'
+import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mobve.com'),
-  title: 'MOBVE - Plataforma de Videos para Creadores',
+  metadataBase: new URL('https://movbe.com'),
+  title: 'MOVBE - Plataforma de Videos para Creadores',
   description:
-    'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
+    'MOVBE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
   keywords: [
     'videos',
     'streaming',
     'creadores',
     'contenido',
     'entertainment',
-    'MOBVE',
+    'MOVBE',
     'plataforma',
     'monetización',
   ],
-  authors: [{ name: 'MOBVE Team' }],
-  creator: 'MOBVE',
-  publisher: 'MOBVE',
+  authors: [{ name: 'MOVBE Team' }],
+  creator: 'MOVBE',
+  publisher: 'MOVBE',
   generator: 'Next.js',
-  applicationName: 'MOBVE',
+  applicationName: 'MOVBE',
   referrer: 'origin-when-cross-origin',
   robots: {
     index: true,
@@ -48,27 +48,27 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_CO',
-    url: 'https://mobve.com',
-    siteName: 'MOBVE',
-    title: 'MOBVE - Plataforma de Videos para Creadores',
+    url: 'https://movbe.com',
+    siteName: 'MOVBE',
+    title: 'MOVBE - Plataforma de Videos para Creadores',
     description:
-      'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
+      'MOVBE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'MOBVE - Plataforma de Videos',
+        alt: 'MOVBE - Plataforma de Videos',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@MOBVE',
-    creator: '@MOBVE',
-    title: 'MOBVE - Plataforma de Videos para Creadores',
+    site: '@MOVBE',
+    creator: '@MOVBE',
+    title: 'MOVBE - Plataforma de Videos para Creadores',
     description:
-      'MOBVE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
+      'MOVBE es la plataforma definitiva para creadores de contenido. Publica videos sin restricciones, conecta con tu audiencia y monetiza tu contenido.',
     images: ['/og-image.jpg'],
   },
   icons: {
