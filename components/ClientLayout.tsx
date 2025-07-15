@@ -3,7 +3,9 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+import { AgeVerificationAlert } from '@/components/AgeVerificationAlert'
 import { useAuth } from '@/contexts/AuthContext'
+import { useGuestAgeVerification } from '@/hooks/useGuestAgeVerification'
 import { useAgeVerification } from '@/lib/hooks/useAgeVerification'
 
 // Routes that don't require age verification
@@ -20,8 +22,10 @@ const PUBLIC_ROUTES = [
 ]
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
+  // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL, UNCONDITIONALLY
   const { user, userProfile, loading } = useAuth()
   const { needsAgeVerification } = useAgeVerification()
+  const { showAlert, confirmAge, isLoading: isGuestLoading } = useGuestAgeVerification()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -30,6 +34,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     return PUBLIC_ROUTES.includes(path) || path.startsWith('/watch/')
   }
 
+  // Handle guest age verification for non-authenticated users
+  const handleGuestAgeConfirm = () => {
+    confirmAge()
+  }
+
+  // ALL useEffect HOOKS MUST BE CALLED UNCONDITIONALLY
   // Immediately redirect if needed (before any render)
   useEffect(() => {
     if (!loading && pathname && !isPublicRoute(pathname)) {
@@ -50,6 +60,8 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     }
   }, [loading, pathname, user, userProfile, router])
 
+  // No need for redirection effect since we only have confirm button
+
   // Show loading while auth is loading
   if (loading) {
     return (
@@ -64,6 +76,21 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
 
   // Allow public routes
   if (!pathname || isPublicRoute(pathname)) {
+    // For guest users (not logged in), show age verification alert
+    if (!user && !isGuestLoading) {
+      // Show age verification modal over the content
+      return (
+        <div className='relative'>
+          {/* Background content */}
+          <div className={`${showAlert ? 'pointer-events-none' : ''}`}>{children}</div>
+
+          {/* Age verification modal */}
+          {showAlert && (
+            <AgeVerificationAlert isOpen={showAlert} onConfirm={handleGuestAgeConfirm} />
+          )}
+        </div>
+      )
+    }
     return <>{children}</>
   }
 
