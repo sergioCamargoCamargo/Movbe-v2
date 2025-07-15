@@ -30,7 +30,7 @@ export function AgeVerificationAlert({ onConfirm, isOpen }: AgeVerificationAlert
             Verificación de Edad Requerida
           </h1>
           <p className='text-gray-600 dark:text-gray-300'>
-            Este sitio contiene contenido para adultos
+            Este sitio contiene contenido para una comunidad mayor de 18 años
           </p>
         </div>
 
