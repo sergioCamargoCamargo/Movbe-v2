@@ -107,6 +107,14 @@
     box-sizing: border-box;
   }
 
+  /* Add horizontal padding for mobile devices */
+  @media (max-width: 768px) {
+    .mobile-container {
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+  }
+
   .video-grid {
     @apply w-full min-w-0 max-w-full grid gap-2 sm:gap-3 md:gap-4;
     grid-template-columns: 1fr;
@@ -156,8 +164,8 @@
 
   /* Container fixes */
   .mobile-container {
-    padding-left: 0.25rem !important;
-    padding-right: 0.25rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }

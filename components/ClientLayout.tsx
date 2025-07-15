@@ -14,6 +14,9 @@ const PUBLIC_ROUTES = [
   '/terms',
   '/privacy',
   '/about',
+  '/',
+  '/watch',
+  '/search',
 ]
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
@@ -22,9 +25,14 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
 
+  // Check if current path is public (including dynamic routes)
+  const isPublicRoute = (path: string) => {
+    return PUBLIC_ROUTES.includes(path) || path.startsWith('/watch/')
+  }
+
   // Immediately redirect if needed (before any render)
   useEffect(() => {
-    if (!loading && pathname && !PUBLIC_ROUTES.includes(pathname)) {
+    if (!loading && pathname && !isPublicRoute(pathname)) {
       if (!user) {
         router.replace('/auth/login')
         return
@@ -55,7 +63,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   }
 
   // Allow public routes
-  if (!pathname || PUBLIC_ROUTES.includes(pathname)) {
+  if (!pathname || isPublicRoute(pathname)) {
     return <>{children}</>
   }
 
