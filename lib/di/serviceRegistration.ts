@@ -1,4 +1,5 @@
 import { AuthService } from '@/lib/services/AuthService'
+import { SubscriptionService } from '@/lib/services/SubscriptionService'
 import { UserService } from '@/lib/services/UserService'
 
 import { serviceContainer } from './ServiceContainer'
@@ -10,6 +11,7 @@ export const SERVICE_KEYS = {
   VIDEO_SERVICE: 'VideoService',
   ANALYTICS_SERVICE: 'AnalyticsService',
   NOTIFICATION_SERVICE: 'NotificationService',
+  SUBSCRIPTION_SERVICE: 'SubscriptionService',
 } as const
 
 // Register all services
@@ -17,6 +19,7 @@ export function registerServices(): void {
   // Register singleton services
   serviceContainer.registerSingleton(SERVICE_KEYS.AUTH_SERVICE, AuthService)
   serviceContainer.registerSingleton(SERVICE_KEYS.USER_SERVICE, UserService)
+  serviceContainer.registerSingleton(SERVICE_KEYS.SUBSCRIPTION_SERVICE, SubscriptionService)
 
   // Add other services when implemented
   // serviceContainer.registerSingleton(SERVICE_KEYS.VIDEO_SERVICE, VideoService)
@@ -31,6 +34,10 @@ export function getUserService(): UserService {
 
 export function getAuthService(): AuthService {
   return serviceContainer.resolve<AuthService>(SERVICE_KEYS.AUTH_SERVICE)
+}
+
+export function getSubscriptionService(): SubscriptionService {
+  return serviceContainer.resolve<SubscriptionService>(SERVICE_KEYS.SUBSCRIPTION_SERVICE)
 }
 
 // Initialize services on app startup

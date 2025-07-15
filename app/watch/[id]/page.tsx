@@ -3,14 +3,16 @@
 import { Play } from 'lucide-react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Slider from 'react-slick'
 
 import { NavigationLink } from '@/components/NavigationLink'
 import { Button } from '@/components/ui/button'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
-import { Video, getVideoById, getPublicVideos, recordVideoView } from '@/lib/firestore'
+import { useToast } from '@/hooks/use-toast'
+import { getSubscriptionService } from '@/lib/di/serviceRegistration'
+import { Video, getPublicVideos, getVideoById, recordVideoView } from '@/lib/firestore'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
@@ -22,6 +24,7 @@ export default function WatchPage() {
   const { id } = useParams()
   const dispatch = useAppDispatch()
   const { user } = useAuth()
+  const { toast } = useToast()
   const isMobile = useAppSelector(state => state.ui.isMobile)
   const [video, setVideo] = useState<Video | null>(null)
   const [recommendedVideos, setRecommendedVideos] = useState<Video[]>([])
@@ -29,9 +32,13 @@ export default function WatchPage() {
   const [error, setError] = useState<string | null>(null)
   const [showRecommendations, setShowRecommendations] = useState(false)
   const [showHeader, setShowHeader] = useState(true)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const lastScrollTop = useRef(0)
   const videoRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
+
+  const subscriptionService = getSubscriptionService()
 
   useEffect(() => {
     if (!id || typeof id !== 'string') return
@@ -54,6 +61,19 @@ export default function WatchPage() {
           await recordVideoView(id, user.uid)
         }
 
+        // Check subscription status if user is logged in and not own video
+        if (user?.uid && videoData.uploaderId !== user.uid) {
+          try {
+            const subscriptionRelation = await subscriptionService.getSubscriptionRelation(
+              videoData.uploaderId,
+              user.uid
+            )
+            setIsSubscribed(subscriptionRelation.isSubscribed)
+          } catch {
+            // Error loading subscription status
+          }
+        }
+
         // Fetch recommended videos
         const recommended = await getPublicVideos(10)
         setRecommendedVideos(recommended.filter(v => v.id !== id))
@@ -65,7 +85,7 @@ export default function WatchPage() {
     }
 
     fetchVideo()
-  }, [id, user?.uid])
+  }, [id, user?.uid, subscriptionService])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -120,6 +140,41 @@ export default function WatchPage() {
       }
     }
   }, [])
+
+  const handleSubscribe = async () => {
+    if (!user || !video || video.uploaderId === user.uid || subscriptionLoading) {
+      return
+    }
+
+    setSubscriptionLoading(true)
+
+    try {
+      if (isSubscribed) {
+        await subscriptionService.unsubscribe(video.uploaderId, user.uid)
+        setIsSubscribed(false)
+        toast({
+          title: 'Te has desuscrito',
+          description: `Ya no seguirás a ${video.uploaderName}`,
+        })
+      } else {
+        await subscriptionService.subscribe(video.uploaderId, user.uid)
+        setIsSubscribed(true)
+        toast({
+          title: '¡Suscrito!',
+          description: `Ahora sigues a ${video.uploaderName}`,
+        })
+      }
+    } catch {
+      // Error in subscription process
+      toast({
+        title: 'Error',
+        description: 'Hubo un problema al procesar tu suscripción. Inténtalo de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSubscriptionLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -243,9 +298,21 @@ export default function WatchPage() {
                     </p>
                     <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
                   </div>
-                  {user && (
-                    <Button size='sm' className='sm:size-default'>
-                      Suscribirse
+                  {user && video && video.uploaderId !== user.uid && (
+                    <Button
+                      size='sm'
+                      className='sm:size-default'
+                      onClick={handleSubscribe}
+                      disabled={subscriptionLoading}
+                      variant={isSubscribed ? 'outline' : 'default'}
+                    >
+                      {subscriptionLoading
+                        ? isSubscribed
+                          ? 'Cancelando...'
+                          : 'Suscribiendo...'
+                        : isSubscribed
+                          ? 'Suscrito'
+                          : 'Suscribirse'}
                     </Button>
                   )}
                 </div>

@@ -23,6 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
+import { getSubscriptionService } from '@/lib/di/serviceRegistration'
 import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
@@ -42,7 +43,7 @@ const mockProfile = {
   totalViews: 1250000,
   joinDate: 'Marzo 2023',
   isSubscribed: false,
-  isOwnProfile: false,
+  isOwnProfile: false, // This will be overridden by the real isOwnProfile calculation
   socialLinks: {
     twitter: 'https://twitter.com/juanperez',
     instagram: 'https://instagram.com/juanperez',
@@ -134,6 +135,9 @@ export default function ProfilePage() {
   const [userVideos, setUserVideos] = useState<FirestoreVideoType[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
+
+  const subscriptionService = getSubscriptionService()
 
   // Load user videos when component mounts or userId changes
   useEffect(() => {
@@ -154,6 +158,29 @@ export default function ProfilePage() {
 
     loadUserVideos()
   }, [userId])
+
+  // Load subscription state when component mounts or userId changes
+  useEffect(() => {
+    const loadSubscriptionState = async () => {
+      if (!userId || !user || userId === user.uid) {
+        return
+      }
+
+      try {
+        const [subscriptionRelation, subscriberCount] = await Promise.all([
+          subscriptionService.getSubscriptionRelation(userId, user.uid),
+          subscriptionService.getSubscriberCount(userId),
+        ])
+
+        setIsSubscribed(subscriptionRelation.isSubscribed)
+        setSubscriberCountState(subscriberCount)
+      } catch {
+        // Error loading subscription state
+      }
+    }
+
+    loadSubscriptionState()
+  }, [userId, user, subscriptionService])
 
   // Show loading state while auth is loading
   if (loading) {
@@ -181,16 +208,41 @@ export default function ProfilePage() {
     )
   }
 
-  const handleSubscribe = () => {
-    setIsSubscribed(!isSubscribed)
-    setSubscriberCountState(prev => (isSubscribed ? prev - 1 : prev + 1))
+  const handleSubscribe = async () => {
+    if (!user || !userId || userId === user.uid || subscriptionLoading) {
+      return
+    }
 
-    toast({
-      title: isSubscribed ? 'Te has desuscrito' : '¡Suscrito!',
-      description: isSubscribed
-        ? `Ya no seguirás a ${profileData.name}`
-        : `Ahora sigues a ${profileData.name}`,
-    })
+    setSubscriptionLoading(true)
+
+    try {
+      if (isSubscribed) {
+        await subscriptionService.unsubscribe(userId, user.uid)
+        setIsSubscribed(false)
+        setSubscriberCountState(prev => prev - 1)
+        toast({
+          title: 'Te has desuscrito',
+          description: `Ya no seguirás a ${profileData.name}`,
+        })
+      } else {
+        await subscriptionService.subscribe(userId, user.uid)
+        setIsSubscribed(true)
+        setSubscriberCountState(prev => prev + 1)
+        toast({
+          title: '¡Suscrito!',
+          description: `Ahora sigues a ${profileData.name}`,
+        })
+      }
+    } catch {
+      // Error in subscription process
+      toast({
+        title: 'Error',
+        description: 'Hubo un problema al procesar tu suscripción. Inténtalo de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSubscriptionLoading(false)
+    }
   }
 
   const handleShare = () => {
@@ -291,9 +343,10 @@ export default function ProfilePage() {
                   </div>
 
                   <div className='flex gap-2 flex-wrap'>
-                    {!profileData.isOwnProfile && (
+                    {!isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
+                        disabled={subscriptionLoading || !user}
                         variant={isSubscribed ? 'outline' : 'default'}
                         className={`touch-manipulation min-w-[100px] ${
                           isSubscribed
@@ -301,7 +354,13 @@ export default function ProfilePage() {
                             : 'bg-primary hover:bg-primary/90'
                         }`}
                       >
-                        {isSubscribed ? 'Suscrito' : 'Suscribirse'}
+                        {subscriptionLoading
+                          ? isSubscribed
+                            ? 'Cancelando...'
+                            : 'Suscribiendo...'
+                          : isSubscribed
+                            ? 'Suscrito'
+                            : 'Suscribirse'}
                       </Button>
                     )}
 
@@ -315,7 +374,7 @@ export default function ProfilePage() {
                       <Share2 className='h-4 w-4' />
                     </Button>
 
-                    {profileData.isOwnProfile && (
+                    {isOwnProfile && (
                       <Button
                         variant='outline'
                         size='icon'
