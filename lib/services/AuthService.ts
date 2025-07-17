@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updatePassword,
+  sendPasswordResetEmail,
   User as FirebaseUser,
 } from 'firebase/auth'
 
@@ -64,6 +65,14 @@ export class AuthService {
     } catch {
       // console.error('Error changing password:', error)
       return false
+    }
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    try {
+      await sendPasswordResetEmail(auth, email)
+    } catch (error) {
+      throw error
     }
   }
 }

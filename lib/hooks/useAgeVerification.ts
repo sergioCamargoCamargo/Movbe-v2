@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const PUBLIC_ROUTES = [
   '/auth/login',
   '/auth/register',
+  '/auth/recovery',
   '/auth/verify-age',
   '/terms',
   '/privacy',

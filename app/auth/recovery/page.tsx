@@ -14,26 +14,33 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useService } from '@/components/ui/hooks/useService'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SERVICE_KEYS } from '@/lib/di/serviceRegistration'
+import { getFirebaseErrorMessage } from '@/lib/firebase'
+import { AuthService } from '@/lib/services/AuthService'
 
 export default function RecoveryPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const authService = useService<AuthService>(SERVICE_KEYS.AUTH_SERVICE)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
     setError('')
 
+    const formData = new FormData(event.currentTarget)
+    const email = formData.get('email') as string
+
     try {
-      // Aquí iría la lógica de recuperación
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulación
+      await authService.resetPassword(email)
       setSuccess(true)
-    } catch {
-      setError('Error al enviar el correo de recuperación')
+    } catch (error) {
+      setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
     }

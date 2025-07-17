@@ -12,6 +12,7 @@ import { useAgeVerification } from '@/lib/hooks/useAgeVerification'
 const PUBLIC_ROUTES = [
   '/auth/login',
   '/auth/register',
+  '/auth/recovery',
   '/auth/verify-age',
   '/terms',
   '/privacy',
