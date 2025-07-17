@@ -1,24 +1,25 @@
 import { User } from 'firebase/auth'
 import {
-  getFirestore,
+  addDoc,
+  collection,
+  deleteDoc,
   doc,
+  DocumentData,
+  FieldValue,
   getDoc,
+  getDocs,
+  getFirestore,
+  increment,
+  orderBy,
+  query,
+  QueryDocumentSnapshot,
+  serverTimestamp,
   setDoc,
   updateDoc,
-  deleteDoc,
-  collection,
-  addDoc,
-  query,
   where,
-  orderBy,
-  getDocs,
-  serverTimestamp,
-  increment,
-  DocumentData,
-  QueryDocumentSnapshot,
-  FieldValue,
 } from 'firebase/firestore'
 
+import { Category } from '@/types/category'
 import { UserProfile } from '@/types/user'
 
 import app from './firebase'
@@ -216,6 +217,38 @@ export const getPublicVideos = async (_limit = 20): Promise<Video[]> => {
       videosRef,
       where('visibility', '==', 'public'),
       where('status', '==', 'published'),
+      orderBy('uploadDate', 'desc')
+    )
+
+    const querySnapshot = await getDocs(q)
+    const videos: Video[] = []
+
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      const data = doc.data()
+      // Convert Firebase Timestamps to Date for Redux serialization
+      const video = {
+        id: doc.id,
+        ...data,
+        uploadDate: data.uploadDate?.toDate() || new Date(),
+        publishedAt: data.publishedAt?.toDate() || new Date(),
+      } as Video
+      videos.push(video)
+    })
+
+    return videos
+  } catch (error) {
+    throw error
+  }
+}
+
+export const getVideosByCategory = async (category: string, _limit = 20): Promise<Video[]> => {
+  try {
+    const videosRef = collection(db, 'videos')
+    const q = query(
+      videosRef,
+      where('visibility', '==', 'public'),
+      where('status', '==', 'published'),
+      where('category', '==', category),
       orderBy('uploadDate', 'desc')
     )
 
@@ -657,6 +690,83 @@ export const getVideoRatings = async (videoId: string): Promise<VideoRating[]> =
     })
 
     return ratings
+  } catch (error) {
+    throw error
+  }
+}
+
+// ========== COLECCIÓN CATEGORIES ==========
+
+export const getCategories = async (): Promise<Category[]> => {
+  try {
+    const categoriesRef = collection(db, 'categories')
+    const q = query(categoriesRef, where('isActive', '==', true))
+
+    const querySnapshot = await getDocs(q)
+    const categories: Category[] = []
+
+    querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+      const data = doc.data()
+      const category: Category = {
+        id: doc.id,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        color: data.color,
+        isActive: data.isActive,
+        order: data.order,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      }
+      categories.push(category)
+    })
+
+    // Ordenar por order después de obtener los datos
+    categories.sort((a, b) => a.order - b.order)
+
+    return categories
+  } catch (error) {
+    throw error
+  }
+}
+
+export const createCategory = async (
+  categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<string> => {
+  try {
+    const categoriesRef = collection(db, 'categories')
+    const docRef = await addDoc(categoriesRef, {
+      ...categoryData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+    return docRef.id
+  } catch (error) {
+    throw error
+  }
+}
+
+export const updateCategory = async (
+  categoryId: string,
+  updates: Partial<Category>
+): Promise<boolean> => {
+  try {
+    const categoryRef = doc(db, 'categories', categoryId)
+    await updateDoc(categoryRef, {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    })
+    return true
+  } catch (error) {
+    throw error
+  }
+}
+
+export const deleteCategory = async (categoryId: string): Promise<boolean> => {
+  try {
+    const categoryRef = doc(db, 'categories', categoryId)
+    await deleteDoc(categoryRef)
+    return true
   } catch (error) {
     throw error
   }

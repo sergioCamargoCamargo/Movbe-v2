@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { AdBanner } from '@/components/AdBanner'
 import { Button } from '@/components/ui/button'
 import VideoCard from '@/components/VideoCard'
+import { useCategories } from '@/lib/hooks/useCategories'
 import { useHomeVideos } from '@/lib/hooks/useVideoData'
 
 // Wrapper component para banners en el grid con animaciones suaves
@@ -100,17 +102,40 @@ function MainAdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
 }
 
 export default function MainContent() {
+  const { t } = useTranslation()
   const { videos, loading, hasAttemptedLoad, refetch } = useHomeVideos()
+  const { categories: categoriesData, loading: categoriesLoading } = useCategories()
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todo')
 
-  const categories = [
-    'Todo',
-    'Música',
-    'Videojuegos',
-    'Noticias',
-    'En vivo',
-    'Deportes',
-    'Educación',
-  ]
+  // Combine "Todo" with dynamic categories
+  const categories = useMemo(() => {
+    return ['Todo', ...categoriesData.map(cat => cat.name)]
+  }, [categoriesData])
+
+  // Create display categories with translations
+  const displayCategories = useMemo(() => {
+    return categories.map(cat => ({
+      key: cat,
+      displayName: cat === 'Todo' ? t('common.all') : t(`categories.${cat}`, { defaultValue: cat }),
+    }))
+  }, [categories, t])
+
+  // Filter videos based on selected category using useMemo for performance
+  const filteredVideos = useMemo(() => {
+    if (selectedCategory === 'Todo') {
+      return videos
+    }
+    return videos.filter(video => video.category === selectedCategory)
+  }, [videos, selectedCategory])
+
+  // Get video count per category for display
+  const categoryVideoCounts = useMemo(() => {
+    const counts: { [key: string]: number } = {}
+    videos.forEach(video => {
+      counts[video.category] = (counts[video.category] || 0) + 1
+    })
+    return counts
+  }, [videos])
 
   return (
     <div className='w-full min-w-0'>
@@ -126,17 +151,30 @@ export default function MainContent() {
           imageUrl='/placeholder.svg?text=MOVBE+Premium'
         />
 
-        <div className='categories-container flex space-x-2 pb-4 w-full'>
-          {categories.map(category => (
-            <Button
-              key={category}
-              variant='secondary'
-              size='sm'
-              className='whitespace-nowrap text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 touch-manipulation flex-shrink-0 min-w-fit'
-            >
-              {category}
-            </Button>
-          ))}
+        <div className='categories-container flex space-x-2 pb-4 w-full overflow-x-auto'>
+          {categoriesLoading
+            ? // Skeleton for categories loading
+              Array.from({ length: 7 }).map((_, i) => (
+                <div
+                  key={i}
+                  className='h-8 w-20 bg-gray-200 rounded-md animate-pulse flex-shrink-0'
+                />
+              ))
+            : displayCategories.map(({ key, displayName }) => {
+                const count = key === 'Todo' ? videos.length : categoryVideoCounts[key] || 0
+                return (
+                  <Button
+                    key={key}
+                    variant={selectedCategory === key ? 'default' : 'secondary'}
+                    size='sm'
+                    className='whitespace-nowrap text-xs md:text-sm px-2 py-1.5 md:px-4 md:py-2 touch-manipulation flex-shrink-0 min-w-fit'
+                    onClick={() => setSelectedCategory(key)}
+                  >
+                    {displayName}
+                    {count > 0 && <span className='ml-1 text-xs opacity-70'>({count})</span>}
+                  </Button>
+                )
+              })}
         </div>
 
         {loading && (
@@ -154,9 +192,18 @@ export default function MainContent() {
           </div>
         )}
 
-        {!loading && videos.length > 0 && (
+        {!loading && filteredVideos.length === 0 && videos.length > 0 && (
+          <div className='text-center py-8 text-muted-foreground'>
+            <p>{t('common.noVideosInCategory', { category: selectedCategory })}</p>
+            <Button onClick={() => setSelectedCategory('Todo')} className='mt-4'>
+              {t('common.viewAllVideos')}
+            </Button>
+          </div>
+        )}
+
+        {!loading && filteredVideos.length > 0 && (
           <div className='video-grid'>
-            {videos
+            {filteredVideos
               .map((video, i) => {
                 const items = []
 

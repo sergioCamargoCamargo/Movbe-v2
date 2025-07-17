@@ -19,9 +19,9 @@
       "Bash(npx prettier:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(grep:*)",
       "Bash(find:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": []
   }

@@ -1,7 +1,8 @@
 'use client'
 
-import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, Upload, Video } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import HeaderDynamic from '@/app/components/HeaderDynamic'
 import Sidebar from '@/app/components/Sidebar'
@@ -21,47 +22,32 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { updateVideo } from '@/lib/firestore'
-import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import { useCategories } from '@/lib/hooks/useCategories'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
-  setTitle,
-  setDescription,
   setCategory,
+  setDescription,
   setSelectedFile,
+  setTitle,
   setUploading,
   setUploadProgress,
 } from '@/lib/store/slices/uploadSlice'
 import {
-  uploadVideo,
-  validateVideoFile,
   generateThumbnail,
   uploadThumbnail,
+  uploadVideo,
+  validateVideoFile,
   UploadProgress as VideoUploadProgress,
 } from '@/lib/videoService'
 
-const VIDEO_CATEGORIES = [
-  { value: 'entertainment', label: 'Entretenimiento' },
-  { value: 'music', label: 'Música' },
-  { value: 'news', label: 'Noticias' },
-  { value: 'education', label: 'Educación' },
-  { value: 'gaming', label: 'Videojuegos' },
-  { value: 'sports', label: 'Deportes' },
-  { value: 'comedy', label: 'Comedia' },
-  { value: 'technology', label: 'Tecnología' },
-  { value: 'travel', label: 'Viajes' },
-  { value: 'cooking', label: 'Cocina' },
-  { value: 'lifestyle', label: 'Estilo de vida' },
-  { value: 'fitness', label: 'Fitness' },
-  { value: 'art', label: 'Arte' },
-  { value: 'science', label: 'Ciencia' },
-  { value: 'other', label: 'Otros' },
-]
-
 export default function UploadPage() {
+  const { t } = useTranslation()
   const { user, userProfile } = useAppSelector(state => state.auth)
   const { title, description, category, selectedFile, uploading, uploadProgress } = useAppSelector(
     state => state.upload
   )
+  const { categories: categoriesData, loading: categoriesLoading } = useCategories()
   const dispatch = useAppDispatch()
   const router = useRouter()
   const { toast } = useToast()
@@ -73,7 +59,7 @@ export default function UploadPage() {
       if (!validation.isValid) {
         toast({
           variant: 'destructive',
-          title: 'Archivo no válido',
+          title: t('upload.invalidFile'),
           description: validation.error,
         })
         return
@@ -86,9 +72,8 @@ export default function UploadPage() {
     if (!title || !selectedFile || !category) {
       toast({
         variant: 'destructive',
-        title: 'Campos incompletos',
-        description:
-          'Por favor, completa el título, selecciona una categoría y un video antes de continuar.',
+        title: t('upload.incompleteFields'),
+        description: t('upload.incompleteFieldsDescription'),
       })
       return
     }
@@ -224,17 +209,29 @@ export default function UploadPage() {
                     <Select
                       value={category}
                       onValueChange={value => dispatch(setCategory(value))}
-                      disabled={uploading}
+                      disabled={uploading || categoriesLoading}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder='Selecciona una categoría' />
+                        <SelectValue
+                          placeholder={
+                            categoriesLoading
+                              ? t('upload.loadingCategories')
+                              : t('upload.selectCategory')
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {VIDEO_CATEGORIES.map(cat => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
+                        {categoriesLoading ? (
+                          <SelectItem value='loading' disabled>
+                            {t('upload.loadingCategories')}
                           </SelectItem>
-                        ))}
+                        ) : (
+                          categoriesData.map(cat => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.displayName || cat.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

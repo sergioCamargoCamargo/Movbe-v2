@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
 import { ClientLayout } from '@/components/ClientLayout'
+import { I18nProvider } from '@/components/I18nProvider'
 import { StoreProvider } from '@/components/StoreProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -105,12 +106,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang='es'>
       <body className={`${inter.className} antialiased overflow-x-hidden overflow-y-auto`}>
         <StoreProvider>
-          <AuthProvider>
-            <SidebarProvider>
-              <ClientLayout>{children}</ClientLayout>
-              <Toaster />
-            </SidebarProvider>
-          </AuthProvider>
+          <I18nProvider>
+            <AuthProvider>
+              <SidebarProvider>
+                <ClientLayout>{children}</ClientLayout>
+                <Toaster />
+              </SidebarProvider>
+            </AuthProvider>
+          </I18nProvider>
         </StoreProvider>
       </body>
     </html>
