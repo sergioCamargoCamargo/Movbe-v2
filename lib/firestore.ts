@@ -1,22 +1,22 @@
 import { User } from 'firebase/auth'
 import {
-  getFirestore,
+  addDoc,
+  collection,
+  deleteDoc,
   doc,
+  DocumentData,
+  FieldValue,
   getDoc,
+  getDocs,
+  getFirestore,
+  increment,
+  orderBy,
+  query,
+  QueryDocumentSnapshot,
+  serverTimestamp,
   setDoc,
   updateDoc,
-  deleteDoc,
-  collection,
-  addDoc,
-  query,
   where,
-  orderBy,
-  getDocs,
-  serverTimestamp,
-  increment,
-  DocumentData,
-  QueryDocumentSnapshot,
-  FieldValue,
 } from 'firebase/firestore'
 
 import { Category } from '@/types/category'
@@ -183,7 +183,6 @@ export const createVideo = async (videoData: VideoData): Promise<Video> => {
     throw error
   }
 }
-
 
 export const getVideosByUser = async (uploaderId: string, _limit = 20): Promise<Video[]> => {
   try {
