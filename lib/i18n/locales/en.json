@@ -12,7 +12,9 @@
     "previous": "Previous",
     "search": "Search",
     "close": "Close",
-    "all": "All"
+    "all": "All",
+    "viewAllVideos": "View all videos",
+    "noVideosInCategory": "No videos available in category \"{{category}}\""
   },
   "navigation": {
     "home": "Home",

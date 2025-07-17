@@ -1,6 +1,6 @@
 'use client'
 
-import { Upload, Video, CheckCircle, AlertCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle, Upload, Video } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
@@ -23,21 +23,21 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { updateVideo } from '@/lib/firestore'
 import { useCategories } from '@/lib/hooks/useCategories'
-import { useAppSelector, useAppDispatch } from '@/lib/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
-  setTitle,
-  setDescription,
   setCategory,
+  setDescription,
   setSelectedFile,
+  setTitle,
   setUploading,
   setUploadProgress,
 } from '@/lib/store/slices/uploadSlice'
 import {
-  uploadVideo,
-  validateVideoFile,
   generateThumbnail,
   uploadThumbnail,
+  uploadVideo,
+  validateVideoFile,
   UploadProgress as VideoUploadProgress,
 } from '@/lib/videoService'
 
@@ -215,15 +215,15 @@ export default function UploadPage() {
                         <SelectValue
                           placeholder={
                             categoriesLoading
-                              ? 'Cargando categorías...'
-                              : 'Selecciona una categoría'
+                              ? t('upload.loadingCategories')
+                              : t('upload.selectCategory')
                           }
                         />
                       </SelectTrigger>
                       <SelectContent>
                         {categoriesLoading ? (
                           <SelectItem value='loading' disabled>
-                            Cargando categorías...
+                            {t('upload.loadingCategories')}
                           </SelectItem>
                         ) : (
                           categoriesData.map(cat => (

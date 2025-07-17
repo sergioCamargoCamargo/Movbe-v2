@@ -194,9 +194,9 @@ export default function MainContent() {
 
         {!loading && filteredVideos.length === 0 && videos.length > 0 && (
           <div className='text-center py-8 text-muted-foreground'>
-            <p>No hay videos disponibles en la categoría &quot;{selectedCategory}&quot;</p>
+            <p>{t('common.noVideosInCategory', { category: selectedCategory })}</p>
             <Button onClick={() => setSelectedCategory('Todo')} className='mt-4'>
-              Ver todos los videos
+              {t('common.viewAllVideos')}
             </Button>
           </div>
         )}
