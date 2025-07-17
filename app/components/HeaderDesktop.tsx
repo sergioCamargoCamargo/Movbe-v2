@@ -5,6 +5,7 @@ import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings } from 'luci
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
+import { LanguageSelector } from '@/components/LanguageSelector'
 import { NavigationLink } from '@/components/NavigationLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -120,6 +121,7 @@ export default function HeaderDesktop({
 
         {/* Desktop Right Section */}
         <div className='flex items-center space-x-4'>
+          <LanguageSelector />
           {!mounted || loading ? (
             // Loading state
             <div className='flex items-center space-x-4'>
