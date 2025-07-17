@@ -24,11 +24,12 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
+import { Video as FirestoreVideoType, getVideosByUser, getUserById } from '@/lib/firestore'
 import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { FirestoreTimestamp } from '@/types'
+import { UserProfile } from '@/types/user'
 
 // Datos de ejemplo del perfil
 const mockProfile = {
@@ -101,9 +102,39 @@ export default function ProfilePage() {
   // Check if this is the current user's profile
   const isOwnProfile = user?.uid === userId
 
-  // Use real user data if it's own profile, otherwise use mock data for now
-  const profileData =
-    isOwnProfile && userProfile
+  // States need to be declared before they're used
+  const [viewedUserProfile, setViewedUserProfile] = useState<UserProfile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [subscriberCount, setSubscriberCountState] = useState(0)
+
+  // Use real user data - prioritize viewed user profile, then own profile, then mock data
+  const profileData = viewedUserProfile
+    ? {
+        id: viewedUserProfile.uid,
+        name: viewedUserProfile.displayName || 'Usuario',
+        username: `@${viewedUserProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
+        bio: 'Creador de contenido en MOVBE', // TODO: Add bio field to user profile
+        avatar: viewedUserProfile.photoURL || '/placeholder.svg?text=USER',
+        coverImage: '/placeholder.svg?text=Cover', // TODO: Add cover image field
+        subscriberCount: viewedUserProfile.subscriberCount || 0,
+        videoCount: viewedUserProfile.videoCount || 0,
+        totalViews: viewedUserProfile.totalViews || 0,
+        joinDate: viewedUserProfile.createdAt
+          ? new Date(viewedUserProfile.createdAt).toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+            })
+          : 'Recientemente',
+        isSubscribed: false,
+        isOwnProfile: isOwnProfile,
+        socialLinks: {
+          twitter: '',
+          instagram: '',
+          youtube: '',
+        },
+      }
+    : isOwnProfile && userProfile
       ? {
           id: userProfile.uid,
           name: userProfile.displayName || user?.displayName || 'Usuario',
@@ -129,15 +160,31 @@ export default function ProfilePage() {
           },
         }
       : mockProfile
-
-  const [isSubscribed, setIsSubscribed] = useState(profileData.isSubscribed)
-  const [subscriberCount, setSubscriberCountState] = useState(profileData.subscriberCount)
   const [userVideos, setUserVideos] = useState<FirestoreVideoType[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
 
   const subscriptionService = getSubscriptionService()
+
+  // Load viewed user profile when component mounts or userId changes
+  useEffect(() => {
+    const loadViewedUserProfile = async () => {
+      if (!userId) return
+
+      try {
+        setProfileLoading(true)
+        const profile = await getUserById(userId)
+        setViewedUserProfile(profile)
+      } catch {
+        // Error loading user profile
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    loadViewedUserProfile()
+  }, [userId])
 
   // Load user videos when component mounts or userId changes
   useEffect(() => {
@@ -175,15 +222,29 @@ export default function ProfilePage() {
         setIsSubscribed(subscriptionRelation.isSubscribed)
         setSubscriberCountState(subscriberCount)
       } catch {
-        // Error loading subscription state
+        // Error loading subscription state, fallback to get subscriber count
+        try {
+          const subscriberCount = await subscriptionService.getSubscriberCount(userId)
+          setSubscriberCountState(subscriberCount)
+        } catch {
+          // Final fallback
+          setSubscriberCountState(0)
+        }
       }
     }
 
     loadSubscriptionState()
   }, [userId, user, subscriptionService])
 
-  // Show loading state while auth is loading
-  if (loading) {
+  // Separate effect to update subscriber count from viewed profile for own profile
+  useEffect(() => {
+    if (isOwnProfile && viewedUserProfile) {
+      setSubscriberCountState(viewedUserProfile.subscriberCount || 0)
+    }
+  }, [isOwnProfile, viewedUserProfile])
+
+  // Show loading state while auth is loading or profile is loading
+  if (loading || profileLoading) {
     return (
       <PageTransition>
         <div className='flex flex-col h-screen'>
@@ -333,11 +394,14 @@ export default function ProfilePage() {
                       </span>
                       <span className='flex items-center gap-1'>
                         <VideoIcon className='h-4 w-4' />
-                        {profileData.videoCount} videos
+                        {userVideos.length} videos
                       </span>
                       <span className='flex items-center gap-1'>
                         <Eye className='h-4 w-4' />
-                        {formatNumber(profileData.totalViews)} vistas
+                        {formatNumber(
+                          userVideos.reduce((total, video) => total + video.viewCount, 0)
+                        )}{' '}
+                        vistas
                       </span>
                     </div>
                   </div>
@@ -523,13 +587,15 @@ export default function ProfilePage() {
                           </div>
                           <div className='text-center p-3 bg-muted/30 rounded-lg'>
                             <div className='text-2xl font-bold text-primary'>
-                              {profileData.videoCount}
+                              {userVideos.length}
                             </div>
                             <div className='text-sm text-muted-foreground'>Videos</div>
                           </div>
                           <div className='text-center p-3 bg-muted/30 rounded-lg'>
                             <div className='text-2xl font-bold text-primary'>
-                              {formatNumber(profileData.totalViews)}
+                              {formatNumber(
+                                userVideos.reduce((total, video) => total + video.viewCount, 0)
+                              )}
                             </div>
                             <div className='text-sm text-muted-foreground'>Vistas totales</div>
                           </div>

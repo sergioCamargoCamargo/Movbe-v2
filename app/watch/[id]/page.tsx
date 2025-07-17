@@ -12,10 +12,11 @@ import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video, getPublicVideos, getVideoById, recordVideoView } from '@/lib/firestore'
+import { Video, getPublicVideos, getVideoById, recordVideoView, getUserById } from '@/lib/firestore'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
+import { UserProfile } from '@/types/user'
 
 import HeaderDynamic from '../../components/HeaderDynamic'
 import Sidebar from '../../components/Sidebar'
@@ -34,6 +35,7 @@ export default function WatchPage() {
   const [showHeader, setShowHeader] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
+  const [uploaderProfile, setUploaderProfile] = useState<UserProfile | null>(null)
   const lastScrollTop = useRef(0)
   const videoRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
@@ -99,6 +101,20 @@ export default function WatchPage() {
       window.removeEventListener('resize', checkMobile)
     }
   }, [dispatch])
+
+  useEffect(() => {
+    if (video?.uploaderId) {
+      const fetchUploaderProfile = async () => {
+        try {
+          const profile = await getUserById(video.uploaderId)
+          setUploaderProfile(profile)
+        } catch {
+          // Error fetching uploader profile
+        }
+      }
+      fetchUploaderProfile()
+    }
+  }, [video?.uploaderId])
 
   useEffect(() => {
     const carousel = carouselRef.current
@@ -283,25 +299,30 @@ export default function WatchPage() {
             </div>
             <div className='space-y-4'>
               <h1 className='text-lg sm:text-2xl font-bold'>{video.title}</h1>
-              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4'>
-                <div className='flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0'>
-                  <Image
-                    src='/placeholder.svg?text=Avatar'
-                    alt='Avatar del canal'
-                    width={40}
-                    height={40}
-                    className='rounded-full'
-                  />
-                  <div className='flex-1 min-w-0'>
-                    <p className='font-semibold text-sm sm:text-base truncate'>
-                      {video.uploaderName}
-                    </p>
+              <div className='flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4'>
+                <div className='flex items-center space-x-3 sm:space-x-4'>
+                  <NavigationLink href={`/profile/${video.uploaderId}`}>
+                    <Image
+                      src={uploaderProfile?.photoURL || '/placeholder.svg?text=Avatar'}
+                      alt='Avatar del canal'
+                      width={40}
+                      height={40}
+                      className='rounded-full hover:opacity-80 transition-opacity'
+                    />
+                  </NavigationLink>
+                  <div className='flex-1 min-w-0 sm:flex-none'>
+                    <NavigationLink href={`/profile/${video.uploaderId}`}>
+                      <p className='font-semibold text-sm sm:text-base truncate hover:underline cursor-pointer'>
+                        {video.uploaderName}
+                      </p>
+                    </NavigationLink>
                     <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
                   </div>
+                  {/* Desktop: Button immediately after channel info */}
                   {user && video && video.uploaderId !== user.uid && (
                     <Button
                       size='sm'
-                      className='sm:size-default'
+                      className='hidden sm:inline-flex sm:ml-4'
                       onClick={handleSubscribe}
                       disabled={subscriptionLoading}
                       variant={isSubscribed ? 'outline' : 'default'}
@@ -316,7 +337,24 @@ export default function WatchPage() {
                     </Button>
                   )}
                 </div>
-                {/* Video interactions moved to dedicated component below */}
+                {/* Mobile: Full width button below */}
+                {user && video && video.uploaderId !== user.uid && (
+                  <Button
+                    size='sm'
+                    className='w-full sm:hidden'
+                    onClick={handleSubscribe}
+                    disabled={subscriptionLoading}
+                    variant={isSubscribed ? 'outline' : 'default'}
+                  >
+                    {subscriptionLoading
+                      ? isSubscribed
+                        ? 'Cancelando...'
+                        : 'Suscribiendo...'
+                      : isSubscribed
+                        ? 'Suscrito'
+                        : 'Suscribirse'}
+                  </Button>
+                )}
               </div>
 
               <div className='bg-muted p-3 sm:p-4 rounded-lg touch-manipulation'>
