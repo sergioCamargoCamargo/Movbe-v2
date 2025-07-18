@@ -3,9 +3,9 @@
 import { Building, Mail, MapPin, MessageSquare, Phone, Send, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import HeaderDynamic from '@/app/components/HeaderDynamic'
-import Sidebar from '@/app/components/Sidebar'
+import HeaderDynamic from '@/components/HeaderDynamic'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,11 +18,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { ContactFormData } from '@/lib/interfaces'
+import { useToast } from '@/lib/hooks/use-toast'
 import { emailService } from '@/lib/services/EmailService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import { ContactFormData } from '@/lib/types'
 
 export default function ContactPage() {
   const [name, setName] = useState('')

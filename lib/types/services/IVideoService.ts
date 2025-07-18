@@ -1,4 +1,5 @@
-import { Video, VideoCategory, FilterOptions, PaginatedResponse, UploadProgress } from '@/types'
+import { PaginatedResponse } from '../api'
+import { Video, VideoCategory, FilterOptions, UploadProgress } from '../entities'
 
 export interface IVideoService {
   getVideos(options?: FilterOptions): Promise<PaginatedResponse<Video>>

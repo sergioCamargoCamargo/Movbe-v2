@@ -1,4 +1,4 @@
-import { UserProfile, UserSettings } from '@/types'
+import { UserProfile, UserSettings } from '../entities'
 
 export interface IUserService {
   getCurrentUser(): Promise<UserProfile | null>

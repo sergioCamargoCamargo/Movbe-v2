@@ -1,12 +1,14 @@
 'use client'
 
-import { Eye, Users, Clock, TrendingUp, Video, Calendar, DollarSign } from 'lucide-react'
+import { Eye, Users, Clock, Video, Calendar, DollarSign } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 
-import HeaderDynamic from '@/app/components/HeaderDynamic'
-import Sidebar from '@/app/components/Sidebar'
 import AccessDenied from '@/components/AccessDenied'
+import HeaderDynamic from '@/components/HeaderDynamic'
+import { NavigationLink } from '@/components/NavigationLink'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -19,11 +21,20 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
 import { canViewAnalytics } from '@/lib/auth/permissions'
-import { useNavigation } from '@/lib/hooks/useNavigation'
 import { AnalyticsService } from '@/lib/services/AnalyticsService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-import { Analytics, ViewData, TopVideo } from '@/types/analytics'
+import { Analytics, ViewData, TopVideo } from '@/lib/types/entities/analytics'
+
+// Dynamic imports for heavy components
+const AnalyticsCharts = dynamic(() => import('./AnalyticsCharts'), {
+  loading: () => (
+    <div className='h-64 bg-muted rounded-lg animate-pulse flex items-center justify-center'>
+      <p className='text-muted-foreground'>Cargando gráficos...</p>
+    </div>
+  ),
+  ssr: false,
+})
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d')
@@ -34,8 +45,6 @@ export default function AnalyticsPage() {
   const [topVideos, setTopVideos] = useState<TopVideo[]>([])
   const [revenue, setRevenue] = useState<number>(0)
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
-
-  const { navigateTo } = useNavigation()
 
   // Load analytics data
   useEffect(() => {
@@ -103,18 +112,6 @@ export default function AnalyticsPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const getChartData = () => {
-    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-    return viewData.slice(-7).map(data => {
-      const date = new Date(data.date)
-      return {
-        day: dayNames[date.getDay()],
-        views: data.views,
-        users: data.users,
-      }
-    })
   }
 
   const formatNumber = (num: number) => {
@@ -256,56 +253,7 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* Gráfico de tendencias */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className='flex items-center gap-2'>
-                          <TrendingUp className='h-5 w-5' />
-                          Tendencias de la Semana
-                        </CardTitle>
-                        <CardDescription>Vistas diarias y usuarios activos</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className='space-y-4'>
-                          {getChartData().map((data, _index) => (
-                            <div key={data.day} className='flex items-center gap-2 sm:gap-4'>
-                              <div className='w-8 sm:w-12 text-xs sm:text-sm font-medium'>
-                                {data.day}
-                              </div>
-                              <div className='flex-1 space-y-2'>
-                                <div className='flex items-center gap-1 sm:gap-2'>
-                                  <div className='w-12 sm:w-16 text-xs'>Vistas</div>
-                                  <div className='flex-1 bg-muted rounded-full h-2'>
-                                    <div
-                                      className='bg-primary rounded-full h-2 transition-all'
-                                      style={{
-                                        width: `${Math.min((data.views / Math.max(...getChartData().map(d => d.views), 1)) * 100, 100)}%`,
-                                      }}
-                                    />
-                                  </div>
-                                  <div className='w-12 sm:w-16 text-xs text-right'>
-                                    {formatNumber(data.views)}
-                                  </div>
-                                </div>
-                                <div className='flex items-center gap-1 sm:gap-2'>
-                                  <div className='w-12 sm:w-16 text-xs'>Usuarios</div>
-                                  <div className='flex-1 bg-muted rounded-full h-2'>
-                                    <div
-                                      className='bg-blue-500 rounded-full h-2 transition-all'
-                                      style={{
-                                        width: `${Math.min((data.users / Math.max(...getChartData().map(d => d.users), 1)) * 100, 100)}%`,
-                                      }}
-                                    />
-                                  </div>
-                                  <div className='w-12 sm:w-16 text-xs text-right'>
-                                    {formatNumber(data.users)}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <AnalyticsCharts viewData={viewData} />
                   </TabsContent>
 
                   <TabsContent value='content' className='space-y-6'>
@@ -351,7 +299,9 @@ export default function AnalyticsPage() {
                             <p className='text-muted-foreground mb-4'>
                               Sube tu primer video para ver las estadísticas aquí
                             </p>
-                            <Button onClick={() => navigateTo('/upload')}>Subir Video</Button>
+                            <NavigationLink href='/upload'>
+                              <Button>Subir Video</Button>
+                            </NavigationLink>
                           </div>
                         )}
                       </CardContent>

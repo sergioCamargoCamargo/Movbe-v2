@@ -36,15 +36,13 @@ export function useNavigation() {
         dispatch(closeSidebar())
         dispatch(setNavigating(true))
 
-        // Wait less time for a faster transition
+        // Minimal delay for smoother UX
         setTimeout(() => {
           router.push(url)
-        }, 400) // Reduced from 700ms to 400ms
+        }, 100) // Much faster - just enough for sidebar to start closing
       } else {
-        // If the sidebar is closed, add a small transition
-        setTimeout(() => {
-          router.push(url)
-        }, 150) // Small pause to smooth out
+        // If the sidebar is closed, navigate immediately
+        router.push(url)
       }
     },
     [dispatch, isSidebarOpen, pathname, router]

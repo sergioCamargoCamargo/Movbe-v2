@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Category } from '@/types/category'
+import { Category } from '@/lib/types/entities/category'
 
 import { getCategories } from '../firestore'
 

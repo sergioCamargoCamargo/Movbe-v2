@@ -10,12 +10,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
 import { getUserVideoRating, rateVideo } from '@/lib/firestore'
+import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
-import { VideoInteractionsProps } from '@/lib/interfaces/IVideoInteractions'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
+import { VideoInteractionsProps } from '@/lib/types'
 
 export function VideoInteractions({
   videoId,
@@ -477,8 +477,12 @@ export function VideoInteractions({
                         {comment.createdAt &&
                         typeof comment.createdAt === 'object' &&
                         'toDate' in comment.createdAt
-                          ? comment.createdAt.toDate().toLocaleDateString()
-                          : 'Ahora'}
+                          ? (comment.createdAt as any).toDate().toLocaleDateString()
+                          : comment.createdAt && (comment.createdAt as any).seconds
+                            ? new Date(
+                                (comment.createdAt as any).seconds * 1000
+                              ).toLocaleDateString()
+                            : 'Ahora'}
                       </span>
                     </div>
                     <p className='text-sm leading-relaxed break-words'>{comment.text}</p>

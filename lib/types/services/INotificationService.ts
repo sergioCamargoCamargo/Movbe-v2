@@ -1,4 +1,4 @@
-import { Notification, NotificationType } from '@/types'
+import { Notification, NotificationType } from '@/lib/types'
 
 export interface INotificationService {
   getUserNotifications(userId: string): Promise<Notification[]>
