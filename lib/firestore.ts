@@ -19,7 +19,7 @@ import {
   where,
 } from 'firebase/firestore'
 
-import { Comment, VideoLike, VideoRating } from '@/lib/types'
+import { Comment, VideoLike, VideoRating, getFallbackTimestamp } from '@/lib/types'
 import { Category } from '@/lib/types/entities/category'
 import { UserProfile } from '@/lib/types/entities/user'
 
@@ -414,7 +414,7 @@ export const getVideoComments = async (videoId: string): Promise<Comment[]> => {
       const comment = {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt || { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+        createdAt: data.createdAt || getFallbackTimestamp(),
       } as Comment
       comments.push(comment)
     })

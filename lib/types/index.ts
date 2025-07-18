@@ -2,6 +2,9 @@
  * Exportación central de todos los tipos
  */
 
+// Tipos comunes
+export * from './common'
+
 // Entidades de dominio
 export * from './entities'
 

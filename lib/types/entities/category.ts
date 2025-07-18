@@ -1,3 +1,5 @@
+import { FirestoreTimestamp } from '../common/firebase'
+
 export interface Category {
   id: string
   name: string
@@ -23,9 +25,4 @@ export interface FirestoreCategory {
   order: number
   createdAt: FirestoreTimestamp
   updatedAt: FirestoreTimestamp
-}
-
-export interface FirestoreTimestamp {
-  seconds: number
-  nanoseconds: number
 }

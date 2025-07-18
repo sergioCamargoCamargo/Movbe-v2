@@ -1,4 +1,5 @@
-// Comment interface moved to avoid conflicts
+// This VideoComment interface is kept for legacy compatibility
+// New code should use the Comment interface from comment.ts
 export interface VideoComment {
   id: string
   videoId: string
@@ -11,11 +12,6 @@ export interface VideoComment {
   isLiked: boolean
   replies?: VideoComment[]
   parentId?: string
-  // Additional fields for compatibility
-  createdAt?: Date
-  likeCount?: number
-  userName?: string
-  text?: string
 }
 
 export interface Notification {

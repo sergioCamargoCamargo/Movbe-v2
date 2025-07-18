@@ -1,4 +1,4 @@
-import { FirestoreTimestamp } from './category'
+import { FirestoreTimestamp } from '../common/firebase'
 
 // Comment interface matching Firebase structure
 export interface Comment {
