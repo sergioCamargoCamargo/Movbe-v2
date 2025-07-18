@@ -22,12 +22,12 @@ export const getFallbackTimestamp = (): FirestoreTimestamp => ({
  */
 export const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
   return (
-    typeof value === 'object' &&
     value !== null &&
+    typeof value === 'object' &&
     'seconds' in value &&
     'nanoseconds' in value &&
-    typeof (value as Record<string, unknown>).seconds === 'number' &&
-    typeof (value as Record<string, unknown>).nanoseconds === 'number'
+    typeof (value as { seconds: unknown }).seconds === 'number' &&
+    typeof (value as { nanoseconds: unknown }).nanoseconds === 'number'
   )
 }
 

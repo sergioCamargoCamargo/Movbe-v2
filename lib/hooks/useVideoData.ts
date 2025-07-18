@@ -204,7 +204,7 @@ export const useVideoComments = (videoId: string) => {
           userId: user.uid,
           userName: user.displayName || 'Usuario',
           text: text.trim(),
-          createdAt: getFallbackTimestamp(),
+          createdAt: getFallbackTimestamp(), // Placeholder until Firestore syncs the server timestamp
           likeCount: 0,
           replies: [],
         }
