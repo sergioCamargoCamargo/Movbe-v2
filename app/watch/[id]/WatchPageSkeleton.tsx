@@ -5,7 +5,6 @@ import Sidebar from '@/components/Sidebar'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
-
 export default function WatchPageSkeleton() {
   const dispatch = useAppDispatch()
 

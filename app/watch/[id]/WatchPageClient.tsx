@@ -18,7 +18,6 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
 
-
 // Dynamic imports for heavy components
 const VideoCarousel = dynamic(() => import('./VideoCarousel'), {
   loading: () => (

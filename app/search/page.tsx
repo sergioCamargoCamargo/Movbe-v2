@@ -12,7 +12,6 @@ import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
-
 function SearchContent() {
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
