@@ -1,6 +1,6 @@
 import emailjs from '@emailjs/browser'
 
-import { ContactFormData, IEmailService } from '@/lib/interfaces'
+import { ContactFormData, IEmailService } from '@/lib/types'
 
 export class EmailService implements IEmailService {
   private serviceId: string

@@ -3,11 +3,11 @@ import { doc, setDoc } from 'firebase/firestore'
 
 // Importaciones internas del proyecto
 import { db } from '@/lib/firebase'
-import { IUserService } from '@/lib/interfaces/IUserService'
+import { IUserService } from '@/lib/types'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { AuthService } from '@/lib/services/AuthService'
 import { avatarService } from '@/lib/services/AvatarService'
-import { UserProfile, UserSettings } from '@/types'
+import { UserProfile, UserSettings } from '@/lib/types'
 
 export class UserService implements IUserService {
   private repository: FirebaseRepository<UserProfile>

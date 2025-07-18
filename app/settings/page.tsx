@@ -4,8 +4,8 @@ import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
-import HeaderDynamic from '@/app/components/HeaderDynamic'
-import Sidebar from '@/app/components/Sidebar'
+import HeaderDynamic from '@/components/HeaderDynamic'
+import Sidebar from '@/components/Sidebar'
 import { PageTransition } from '@/components/PageTransition'
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/lib/hooks/use-toast'
 import { getUserService } from '@/lib/di/serviceRegistration'
 import { avatarService } from '@/lib/services/AvatarService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'

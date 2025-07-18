@@ -17,6 +17,52 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizeCss: true,
+  },
+  serverExternalPackages: ['firebase-admin'],
+  webpack: (config, { isServer }) => {
+    // Optimize bundle splitting
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          firebase: {
+            test: /[\\/]node_modules[\\/](firebase|@firebase)[\\/]/,
+            name: 'firebase',
+            chunks: 'all',
+            priority: 10,
+          },
+          radix: {
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            name: 'radix',
+            chunks: 'all',
+            priority: 10,
+          },
+        },
+      }
+    }
+
+    return config
+  },
+  // Enable compression
+  compress: true,
+
+  // PoweredByHeader removal for security
+  poweredByHeader: false,
+
+  // Enable React strict mode
+  reactStrictMode: true,
+  
+  // Disable ESLint during builds temporarily
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default nextConfig

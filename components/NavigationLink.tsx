@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { ReactNode } from 'react'
 
-import { useNavigation } from '@/lib/hooks/useNavigation'
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
+import { closeSidebar } from '@/lib/store/slices/sidebarSlice'
 
 interface NavigationLinkProps {
   href: string
@@ -13,12 +14,18 @@ interface NavigationLinkProps {
 }
 
 export function NavigationLink({ href, children, className, onClick }: NavigationLinkProps) {
-  const { navigateTo } = useNavigation()
+  const dispatch = useAppDispatch()
+  const { isOpen: isSidebarOpen } = useAppSelector(state => state.sidebar)
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (onClick) onClick()
-    navigateTo(href)
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    }
+
+    // Simply close sidebar if it's open, let Next.js handle the rest
+    if (isSidebarOpen) {
+      dispatch(closeSidebar())
+    }
   }
 
   return (

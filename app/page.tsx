@@ -1,27 +1,29 @@
-'use client'
+import { getPublicVideos, getCategories, initializeCategories } from '@/lib/firestore'
 
-import { PageTransition } from '@/components/PageTransition'
-import { useAppDispatch } from '@/lib/store/hooks'
-import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import HomePageClient from './HomePageClient'
 
-import HeaderDynamic from './components/HeaderDynamic'
-import MainContent from './components/MainContent'
-import Sidebar from './components/Sidebar'
+// Enable ISR - revalidate every 5 minutes
+export const revalidate = 300
 
-export default function Home() {
-  const dispatch = useAppDispatch()
+export default async function HomePage() {
+  try {
+    // Initialize categories if they don't exist
+    await initializeCategories()
+    
+    const [videos, categories] = await Promise.all([getPublicVideos(24), getCategories()])
 
-  return (
-    <PageTransition>
-      <div className='flex flex-col min-h-screen'>
-        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 pt-20 overflow-hidden'>
-          <Sidebar />
-          <div className='flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-full md:h-auto mobile-scroll-container ios-scroll-fix'>
-            <MainContent />
-          </div>
-        </div>
-      </div>
-    </PageTransition>
-  )
+    return <HomePageClient initialVideos={videos} categories={categories} />
+  } catch (error) {
+    console.error('Error fetching home page data:', error)
+    
+    // If categories fail, try to get videos only
+    try {
+      const videos = await getPublicVideos(24)
+      return <HomePageClient initialVideos={videos} categories={[]} />
+    } catch (videoError) {
+      console.error('Error fetching videos:', videoError)
+      // Return with empty data in case of complete failure
+      return <HomePageClient initialVideos={[]} categories={[]} />
+    }
+  }
 }

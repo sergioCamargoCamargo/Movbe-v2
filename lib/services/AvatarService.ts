@@ -3,10 +3,10 @@ import { updateProfile, getAuth } from 'firebase/auth'
 import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 
 import app from '@/lib/firebase'
-import { IAvatarService, AvatarUploadResult } from '@/lib/interfaces'
+import { IAvatarService, AvatarUploadResult } from '@/lib/types'
 import { FirebaseRepository } from '@/lib/repositories/FirebaseRepository'
 import { setUserProfile } from '@/lib/store/slices/authSlice'
-import { UserProfile } from '@/types/user'
+import { UserProfile } from '@/lib/types/entities/user'
 
 export class AvatarService implements IAvatarService {
   private storage

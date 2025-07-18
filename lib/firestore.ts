@@ -19,14 +19,14 @@ import {
   where,
 } from 'firebase/firestore'
 
-import { Category } from '@/types/category'
-import { UserProfile } from '@/types/user'
+import { Category } from '@/lib/types/entities/category'
+import { UserProfile } from '@/lib/types/entities/user'
 
 import app from './firebase'
-import { Comment, VideoLike, VideoRating } from './interfaces'
+import { Comment, VideoLike, VideoRating } from '@/lib/types'
 
 // Re-export interfaces for external use
-export type { Comment, VideoLike, VideoRating } from './interfaces'
+export type { Comment, VideoLike, VideoRating } from '@/lib/types'
 
 const db = getFirestore(app)
 

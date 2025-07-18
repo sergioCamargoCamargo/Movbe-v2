@@ -1,12 +1,12 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AgeVerificationAlert } from '@/components/AgeVerificationAlert'
-import { useAuth } from '@/contexts/AuthContext'
-import { useGuestAgeVerification } from '@/hooks/useGuestAgeVerification'
+import { useGuestAgeVerification } from '@/lib/hooks/useGuestAgeVerification'
 import { useAgeVerification } from '@/lib/hooks/useAgeVerification'
+import { useAppSelector } from '@/lib/store/hooks'
 
 // Routes that don't require age verification
 const PUBLIC_ROUTES = [
@@ -20,19 +20,28 @@ const PUBLIC_ROUTES = [
   '/',
   '/watch',
   '/search',
+  '/profile',
 ]
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   // ALL HOOKS MUST BE CALLED AT THE TOP LEVEL, UNCONDITIONALLY
-  const { user, userProfile, loading } = useAuth()
+  const { user, userProfile, loading } = useAppSelector(state => state.auth)
   const { needsAgeVerification } = useAgeVerification()
   const { showAlert, confirmAge, isLoading: isGuestLoading } = useGuestAgeVerification()
   const pathname = usePathname()
   const router = useRouter()
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Handle hydration
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   // Check if current path is public (including dynamic routes)
   const isPublicRoute = (path: string) => {
-    return PUBLIC_ROUTES.includes(path) || path.startsWith('/watch/')
+    return (
+      PUBLIC_ROUTES.includes(path) || path.startsWith('/watch/') || path.startsWith('/profile/')
+    )
   }
 
   // Handle guest age verification for non-authenticated users
@@ -43,7 +52,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
   // ALL useEffect HOOKS MUST BE CALLED UNCONDITIONALLY
   // Immediately redirect if needed (before any render)
   useEffect(() => {
-    if (!loading && pathname && !isPublicRoute(pathname)) {
+    if (!loading && pathname && !isPublicRoute(pathname) && isHydrated) {
       if (!user) {
         router.replace('/auth/login')
         return
@@ -59,12 +68,12 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
         return
       }
     }
-  }, [loading, pathname, user, userProfile, router])
+  }, [loading, pathname, user, userProfile, router, isHydrated])
 
   // No need for redirection effect since we only have confirm button
 
-  // Show loading while auth is loading
-  if (loading) {
+  // Show loading while auth is loading or hydrating
+  if (!isHydrated || loading) {
     return (
       <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30'>
         <div className='text-center'>
@@ -75,7 +84,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Allow public routes
+  // Allow public routes (only after hydration)
   if (!pathname || isPublicRoute(pathname)) {
     // For guest users (not logged in), show age verification alert
     if (!user && !isGuestLoading) {

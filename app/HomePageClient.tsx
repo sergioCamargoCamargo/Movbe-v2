@@ -1,0 +1,33 @@
+'use client'
+
+import { PageTransition } from '@/components/PageTransition'
+import { Video, Category } from '@/lib/firestore'
+import { useAppDispatch } from '@/lib/store/hooks'
+import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+
+import HeaderDynamic from '@/components/HeaderDynamic'
+import MainContentClient from '@/components/MainContentClient'
+import Sidebar from '@/components/Sidebar'
+
+interface HomePageClientProps {
+  initialVideos: Video[]
+  categories: Category[]
+}
+
+export default function HomePageClient({ initialVideos, categories }: HomePageClientProps) {
+  const dispatch = useAppDispatch()
+
+  return (
+    <PageTransition>
+      <div className='flex flex-col min-h-screen'>
+        <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
+        <div className='flex flex-1 pt-20 overflow-hidden'>
+          <Sidebar />
+          <div className='flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-full md:h-auto mobile-scroll-container ios-scroll-fix'>
+            <MainContentClient initialVideos={initialVideos} categories={categories} />
+          </div>
+        </div>
+      </div>
+    </PageTransition>
+  )
+}
