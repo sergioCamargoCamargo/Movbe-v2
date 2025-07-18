@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
-import Sidebar from '@/components/Sidebar'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,8 +27,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { useToast } from '@/lib/hooks/use-toast'
 import { getUserService } from '@/lib/di/serviceRegistration'
+import { useToast } from '@/lib/hooks/use-toast'
 import { avatarService } from '@/lib/services/AvatarService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'

@@ -1,5 +1,10 @@
-import { Subscription, SubscriptionRelation, SubscriptionStats } from '../../types'
-import { ISubscriptionService } from '@/lib/types'
+import {
+  ISubscriptionService,
+  Subscription,
+  SubscriptionRelation,
+  SubscriptionStats,
+} from '@/lib/types'
+
 import { FirebaseRepository } from '../repositories/FirebaseRepository'
 
 export class SubscriptionService implements ISubscriptionService {

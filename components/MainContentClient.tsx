@@ -139,19 +139,19 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
   // Get video count per category for display (use Firebase counts + local video counts)
   const categoryVideoCounts = useMemo(() => {
     const counts: { [key: string]: number } = {}
-    
+
     // Start with Firebase counts
     categories.forEach(category => {
-      counts[category.name] = category.count
+      counts[category.name] = category.count || 0
     })
-    
+
     // Add local video counts (for real-time updates)
     videos.forEach(video => {
       if (video.category) {
         counts[video.category] = (counts[video.category] || 0) + 1
       }
     })
-    
+
     return counts
   }, [videos, categories])
 

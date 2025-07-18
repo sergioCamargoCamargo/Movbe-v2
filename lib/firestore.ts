@@ -19,14 +19,15 @@ import {
   where,
 } from 'firebase/firestore'
 
+import { Comment, VideoLike, VideoRating } from '@/lib/types'
 import { Category } from '@/lib/types/entities/category'
 import { UserProfile } from '@/lib/types/entities/user'
 
 import app from './firebase'
-import { Comment, VideoLike, VideoRating } from '@/lib/types'
 
 // Re-export interfaces for external use
 export type { Comment, VideoLike, VideoRating } from '@/lib/types'
+export type { Category } from '@/lib/types/entities/category'
 
 const db = getFirestore(app)
 
@@ -413,7 +414,7 @@ export const getVideoComments = async (videoId: string): Promise<Comment[]> => {
       const comment = {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt?.toDate() || new Date(),
+        createdAt: data.createdAt || { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
       } as Comment
       comments.push(comment)
     })
@@ -736,7 +737,12 @@ export const createCategory = async (
   try {
     const categoriesRef = collection(db, 'categories')
     const docRef = await addDoc(categoriesRef, {
-      ...categoryData,
+      name: categoryData.name,
+      description: categoryData.description,
+      icon: categoryData.icon,
+      color: categoryData.color,
+      isActive: categoryData.isActive,
+      order: categoryData.order,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
@@ -769,5 +775,14 @@ export const deleteCategory = async (categoryId: string): Promise<boolean> => {
     return true
   } catch (error) {
     throw error
+  }
+}
+
+export const initializeCategories = async (): Promise<void> => {
+  try {
+    // Simply load categories from Firebase - no defaults created
+    await getCategories()
+  } catch (error) {
+    console.error('Error loading categories:', error)
   }
 }

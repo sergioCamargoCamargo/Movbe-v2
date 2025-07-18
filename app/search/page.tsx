@@ -4,14 +4,14 @@ import { Clock, Search, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect } from 'react'
 
+import HeaderDynamic from '@/components/HeaderDynamic'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import VideoCard from '@/components/VideoCard'
 import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
-import HeaderDynamic from '@/components/HeaderDynamic'
-import Sidebar from '@/components/Sidebar'
 
 function SearchContent() {
   const searchParams = useSearchParams()

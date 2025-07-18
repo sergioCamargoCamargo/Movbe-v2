@@ -12,40 +12,45 @@ Las categorías se almacenan en la colección `categories` con la siguiente estr
 
 ```typescript
 interface CategoryDocument {
-  id: string              // ID único generado automáticamente
-  name: VideoCategory     // Nombre de la categoría
-  description: string     // Descripción de la categoría
-  order: number          // Orden de visualización
-  isActive: boolean      // Si la categoría está activa
-  createdAt: Timestamp   // Fecha de creación
-  updatedAt?: Timestamp  // Fecha de última actualización
-  deletedAt?: Timestamp  // Fecha de soft delete
+  id: string // ID único generado automáticamente
+  name: VideoCategory // Nombre de la categoría
+  description: string // Descripción de la categoría
+  order: number // Orden de visualización
+  isActive: boolean // Si la categoría está activa
+  createdAt: Timestamp // Fecha de creación
+  updatedAt?: Timestamp // Fecha de última actualización
+  deletedAt?: Timestamp // Fecha de soft delete
 }
 ```
 
 ### 2. Funciones Principales
 
 #### `getCategories()`
+
 - Obtiene categorías activas **únicamente** desde Firebase
 - Cuenta automáticamente videos por categoría
 - Retorna array vacío si no hay categorías en Firebase
 - Lanza error si hay problemas de conexión
 
 #### `initializeCategories()`
+
 - Inicializa la colección con categorías predeterminadas
 - Se ejecuta automáticamente en la página principal
 - Solo crea categorías si la colección está vacía
 
 #### `addCategory(category)`
+
 - Agrega una nueva categoría a Firebase
 - Valida que no exista duplicado
 - Asigna orden automáticamente
 
 #### `updateCategory(id, updates)`
+
 - Actualiza una categoría existente
 - Permite cambiar nombre, descripción, orden y estado
 
 #### `deleteCategory(id)`
+
 - Soft delete de una categoría
 - Marca como inactiva en lugar de eliminar
 
@@ -83,6 +88,7 @@ const filteredVideos = useMemo(() => {
 ### 6. Configuración Inicial
 
 Para usar el sistema de categorías:
+
 1. **Inicialización**: La primera carga crea automáticamente la colección
 2. **Gestión**: Todas las categorías se manejan desde Firebase
 3. **Requisito**: Debe existir la colección `categories` en Firebase

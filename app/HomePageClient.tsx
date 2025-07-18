@@ -1,13 +1,12 @@
 'use client'
 
+import HeaderDynamic from '@/components/HeaderDynamic'
+import MainContentClient from '@/components/MainContentClient'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Video, Category } from '@/lib/firestore'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-
-import HeaderDynamic from '@/components/HeaderDynamic'
-import MainContentClient from '@/components/MainContentClient'
-import Sidebar from '@/components/Sidebar'
 
 interface HomePageClientProps {
   initialVideos: Video[]

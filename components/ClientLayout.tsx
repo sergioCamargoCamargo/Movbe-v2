@@ -4,8 +4,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { AgeVerificationAlert } from '@/components/AgeVerificationAlert'
-import { useGuestAgeVerification } from '@/lib/hooks/useGuestAgeVerification'
 import { useAgeVerification } from '@/lib/hooks/useAgeVerification'
+import { useGuestAgeVerification } from '@/lib/hooks/useGuestAgeVerification'
 import { useAppSelector } from '@/lib/store/hooks'
 
 // Routes that don't require age verification

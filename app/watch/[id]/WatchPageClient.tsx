@@ -5,19 +5,19 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
+import HeaderDynamic from '@/components/HeaderDynamic'
 import { NavigationLink } from '@/components/NavigationLink'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/lib/hooks/use-toast'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
 import { Video, recordVideoView } from '@/lib/firestore'
+import { useToast } from '@/lib/hooks/use-toast'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
 
-import HeaderDynamic from '@/components/HeaderDynamic'
-import Sidebar from '@/components/Sidebar'
 
 // Dynamic imports for heavy components
 const VideoCarousel = dynamic(() => import('./VideoCarousel'), {

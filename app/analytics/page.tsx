@@ -4,11 +4,11 @@ import { Eye, Users, Clock, Video, Calendar, DollarSign } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useState, useEffect } from 'react'
 
-import HeaderDynamic from '@/components/HeaderDynamic'
-import Sidebar from '@/components/Sidebar'
 import AccessDenied from '@/components/AccessDenied'
+import HeaderDynamic from '@/components/HeaderDynamic'
 import { NavigationLink } from '@/components/NavigationLink'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {

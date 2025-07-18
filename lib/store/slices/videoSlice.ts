@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction, createSelector } from '@reduxjs/toolkit'
 
-import { Video } from '../../firestore'
 import { Comment, VideoLike, UserLikeStatus } from '@/lib/types'
+
+import { Video } from '../../firestore'
 
 interface VideoUpload {
   id: string

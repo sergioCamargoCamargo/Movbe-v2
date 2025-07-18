@@ -6,6 +6,7 @@
 import { useCallback, useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { Comment } from '@/lib/types'
 
 import {
   getPublicVideos,
@@ -17,7 +18,6 @@ import {
   toggleVideoLike as toggleVideoLikeInDB,
   recordVideoView,
 } from '../firestore'
-import { Comment } from '../interfaces/IVideoInteractions'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
   setHomeVideos,
@@ -204,7 +204,7 @@ export const useVideoComments = (videoId: string) => {
           userId: user.uid,
           userName: user.displayName || 'Usuario',
           text: text.trim(),
-          createdAt: new Date(),
+          createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
           likeCount: 0,
           replies: [],
         }
