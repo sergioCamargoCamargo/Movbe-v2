@@ -6,7 +6,7 @@
 import { useCallback, useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { Comment } from '@/lib/types'
+import { Comment, getFallbackTimestamp } from '@/lib/types'
 
 import {
   getPublicVideos,
@@ -204,7 +204,7 @@ export const useVideoComments = (videoId: string) => {
           userId: user.uid,
           userName: user.displayName || 'Usuario',
           text: text.trim(),
-          createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+          createdAt: getFallbackTimestamp(), // Placeholder until Firestore syncs the server timestamp
           likeCount: 0,
           replies: [],
         }

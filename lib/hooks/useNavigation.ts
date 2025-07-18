@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 
+import { SIDEBAR_CLOSE_DELAY_MS } from '@/lib/constants/timing'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import {
   closeSidebar,
@@ -39,7 +40,7 @@ export function useNavigation() {
         // Minimal delay for smoother UX
         setTimeout(() => {
           router.push(url)
-        }, 100) // Much faster - just enough for sidebar to start closing
+        }, SIDEBAR_CLOSE_DELAY_MS) // Much faster - just enough for sidebar to start closing
       } else {
         // If the sidebar is closed, navigate immediately
         router.push(url)

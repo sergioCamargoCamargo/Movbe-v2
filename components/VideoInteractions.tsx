@@ -15,7 +15,7 @@ import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
-import { VideoInteractionsProps } from '@/lib/types'
+import { VideoInteractionsProps, toSafeDate } from '@/lib/types'
 
 export function VideoInteractions({
   videoId,
@@ -474,15 +474,9 @@ export function VideoInteractions({
                     <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
                       <span className='font-semibold text-sm truncate'>{comment.userName}</span>
                       <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        {comment.createdAt &&
-                        typeof comment.createdAt === 'object' &&
-                        'toDate' in comment.createdAt
-                          ? (comment.createdAt as any).toDate().toLocaleDateString()
-                          : comment.createdAt && (comment.createdAt as any).seconds
-                            ? new Date(
-                                (comment.createdAt as any).seconds * 1000
-                              ).toLocaleDateString()
-                            : 'Ahora'}
+                        {comment.createdAt
+                          ? toSafeDate(comment.createdAt).toLocaleDateString()
+                          : 'Ahora'}
                       </span>
                     </div>
                     <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
