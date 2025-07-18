@@ -339,48 +339,98 @@ export default function ProfilePage() {
 
               {/* Profile Info Overlay */}
               <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 touch-manipulation'>
-                <div className='flex flex-col sm:flex-row items-start sm:items-end gap-3 sm:gap-4'>
-                  <Avatar className='h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20'>
-                    <AvatarImage src={profileData.avatar} alt={profileData.name} />
-                    <AvatarFallback className='text-xl font-bold'>
-                      {profileData.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className='space-y-3 sm:space-y-0'>
+                  <div className='flex flex-row items-start sm:items-end gap-3 sm:gap-4'>
+                    <Avatar className='h-16 w-16 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20 flex-shrink-0'>
+                      <AvatarImage src={profileData.avatar} alt={profileData.name} />
+                      <AvatarFallback className='text-lg sm:text-xl font-bold'>
+                        {profileData.name
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className='flex-1 text-white'>
-                    <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold mb-1'>
-                      {profileData.name}
-                    </h1>
-                    <p className='text-lg sm:text-xl text-white/80 mb-2'>{profileData.username}</p>
-                    <div className='flex flex-wrap items-center gap-4 text-sm text-white/70'>
-                      <span className='flex items-center gap-1'>
-                        <Users className='h-4 w-4' />
-                        {formatNumber(subscriberCount)} suscriptores
-                      </span>
-                      <span className='flex items-center gap-1'>
-                        <VideoIcon className='h-4 w-4' />
-                        {userVideos.length} videos
-                      </span>
-                      <span className='flex items-center gap-1'>
-                        <Eye className='h-4 w-4' />
-                        {formatNumber(
-                          userVideos.reduce((total, video) => total + video.viewCount, 0)
-                        )}{' '}
-                        vistas
-                      </span>
+                    <div className='flex-1 text-white min-w-0'>
+                      <h1 className='text-lg sm:text-3xl md:text-4xl font-bold mb-1 truncate'>
+                        {profileData.name}
+                      </h1>
+                      <p className='text-sm sm:text-xl text-white/80 mb-2 truncate'>
+                        {profileData.username}
+                      </p>
+                      <div className='flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-white/70'>
+                        <span className='flex items-center gap-1'>
+                          <Users className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {formatNumber(subscriberCount)} suscriptores
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <VideoIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {userVideos.length} videos
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <Eye className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {formatNumber(
+                            userVideos.reduce((total, video) => total + video.viewCount, 0)
+                          )}{' '}
+                          vistas
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className='hidden sm:flex gap-2 flex-wrap'>
+                      {!isOwnProfile && (
+                        <Button
+                          onClick={handleSubscribe}
+                          disabled={subscriptionLoading}
+                          variant={isSubscribed ? 'outline' : 'default'}
+                          className={`touch-manipulation min-w-[100px] ${
+                            isSubscribed
+                              ? 'bg-white/20 hover:bg-white/30 text-white border-white/30'
+                              : 'bg-primary hover:bg-primary/90'
+                          }`}
+                        >
+                          {subscriptionLoading
+                            ? isSubscribed
+                              ? 'Cancelando...'
+                              : 'Suscribiendo...'
+                            : isSubscribed
+                              ? 'Suscrito'
+                              : 'Suscribirse'}
+                        </Button>
+                      )}
+
+                      <Button
+                        variant='outline'
+                        size='icon'
+                        onClick={handleShare}
+                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                        aria-label='Compartir perfil'
+                      >
+                        <Share2 className='h-4 w-4' />
+                      </Button>
+
+                      {isOwnProfile && (
+                        <Button
+                          variant='outline'
+                          size='icon'
+                          className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                          aria-label='Configurar perfil'
+                        >
+                          <Settings className='h-4 w-4' />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
-                  <div className='flex gap-2 flex-wrap'>
+                  {/* Mobile buttons row */}
+                  <div className='flex sm:hidden gap-2 flex-wrap'>
                     {!isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
                         disabled={subscriptionLoading}
                         variant={isSubscribed ? 'outline' : 'default'}
-                        className={`touch-manipulation min-w-[100px] ${
+                        size='sm'
+                        className={`touch-manipulation flex-1 min-w-[100px] ${
                           isSubscribed
                             ? 'bg-white/20 hover:bg-white/30 text-white border-white/30'
                             : 'bg-primary hover:bg-primary/90'
@@ -398,9 +448,9 @@ export default function ProfilePage() {
 
                     <Button
                       variant='outline'
-                      size='icon'
+                      size='sm'
                       onClick={handleShare}
-                      className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                      className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
                       aria-label='Compartir perfil'
                     >
                       <Share2 className='h-4 w-4' />
@@ -409,8 +459,8 @@ export default function ProfilePage() {
                     {isOwnProfile && (
                       <Button
                         variant='outline'
-                        size='icon'
-                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                        size='sm'
+                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
                         aria-label='Configurar perfil'
                       >
                         <Settings className='h-4 w-4' />

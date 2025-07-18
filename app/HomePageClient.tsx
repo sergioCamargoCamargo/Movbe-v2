@@ -20,9 +20,9 @@ export default function HomePageClient({ initialVideos, categories }: HomePageCl
     <PageTransition>
       <div className='flex flex-col min-h-screen'>
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
-        <div className='flex flex-1 pt-20 overflow-hidden'>
+        <div className='flex flex-1 pt-20'>
           <Sidebar />
-          <div className='flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-full md:h-auto mobile-scroll-container ios-scroll-fix'>
+          <div className='flex-1 min-w-0'>
             <MainContentClient initialVideos={initialVideos} categories={categories} />
           </div>
         </div>
