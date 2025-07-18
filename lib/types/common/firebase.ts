@@ -18,16 +18,18 @@ export const getFallbackTimestamp = (): FirestoreTimestamp => ({
 })
 
 /**
- * Type guard to check if a value is a FirestoreTimestamp
+ * Type guard to check if a value is a FirestoreTimestamp.
+ * A FirestoreTimestamp is an object with `seconds` and `nanoseconds` properties of type `number`.
+ *
+ * @param value - The value to check.
+ * @returns True if the value is a FirestoreTimestamp, false otherwise.
  */
 export const isFirestoreTimestamp = (value: unknown): value is FirestoreTimestamp => {
   return (
-    value !== null &&
     typeof value === 'object' &&
-    'seconds' in value &&
-    'nanoseconds' in value &&
-    typeof (value as { seconds: unknown }).seconds === 'number' &&
-    typeof (value as { nanoseconds: unknown }).nanoseconds === 'number'
+    value !== null &&
+    typeof (value as Record<string, unknown>).seconds === 'number' &&
+    typeof (value as Record<string, unknown>).nanoseconds === 'number'
   )
 }
 

@@ -414,7 +414,10 @@ export const getVideoComments = async (videoId: string): Promise<Comment[]> => {
       const comment = {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt || getFallbackTimestamp(),
+        createdAt:
+          data.createdAt && typeof data.createdAt.toDate === 'function'
+            ? data.createdAt
+            : getFallbackTimestamp(),
       } as Comment
       comments.push(comment)
     })

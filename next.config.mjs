@@ -58,11 +58,6 @@ const nextConfig = {
 
   // Enable React strict mode
   reactStrictMode: true,
-
-  // Disable ESLint during builds temporarily
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 }
 
 export default nextConfig
