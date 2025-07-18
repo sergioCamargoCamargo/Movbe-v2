@@ -5,20 +5,11 @@
 
 import { Timestamp } from 'firebase/firestore'
 
+import { Comment } from '../entities/comment'
+
 /**
- * Interfaz para comentarios de video
- * Corresponde a la colección 'comments' en Firebase
+ * Interfaz para comentarios de video se movió a entities/comment.ts
  */
-export interface Comment {
-  id: string
-  videoId: string
-  userId: string
-  userName: string
-  text: string
-  createdAt: Timestamp | Date
-  likeCount: number
-  replies: Comment[]
-}
 
 /**
  * Interfaz para likes/dislikes de video

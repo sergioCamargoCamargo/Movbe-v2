@@ -21,7 +21,11 @@
       "Bash(rg:*)",
       "Bash(find:*)",
       "Bash(node:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { User } from 'firebase/auth'
 
 import { createOrUpdateUser } from '@/lib/firestore'
-import { UserProfile } from '@/types/user'
+import { UserProfile } from '@/lib/types/entities/user'
 
 interface AuthState {
   user: User | null

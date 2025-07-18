@@ -1,16 +1,5 @@
-export interface Comment {
-  id: string
-  videoId: string
-  authorId: string
-  author: string
-  authorAvatar?: string
-  content: string
-  timestamp: string
-  likes: number
-  isLiked: boolean
-  replies?: Comment[]
-  parentId?: string
-}
+// VideoComment interface removed - only Comment interface is used
+// The comments collection structure matches the Comment interface in comment.ts
 
 export interface Notification {
   id: string

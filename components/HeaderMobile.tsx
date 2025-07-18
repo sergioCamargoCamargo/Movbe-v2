@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { auth } from '@/lib/firebase'
-import { useNavigation } from '@/lib/hooks/useNavigation'
 import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppSelector } from '@/lib/store/hooks'
 
@@ -30,7 +29,6 @@ export default function HeaderMobile({
   onMenuClick?: () => void
 }) {
   const { user, loading } = useAppSelector(state => state.auth)
-  const { navigateTo } = useNavigation()
   const { query, updateQuery, searchAndNavigate } = useSearch()
   const [mounted, setMounted] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
@@ -157,14 +155,11 @@ export default function HeaderMobile({
           ) : user ? (
             // User is logged in
             <>
-              <Button
-                variant='ghost'
-                size='icon'
-                onClick={() => navigateTo('/upload')}
-                className='touch-manipulation'
-              >
-                <Upload className='h-6 w-6' />
-              </Button>
+              <NavigationLink href='/upload'>
+                <Button variant='ghost' size='icon' className='touch-manipulation'>
+                  <Upload className='h-6 w-6' />
+                </Button>
+              </NavigationLink>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant='ghost' className='h-10 w-10 rounded-full p-0 touch-manipulation'>
@@ -188,18 +183,24 @@ export default function HeaderMobile({
                     <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigateTo(`/profile/${user.uid}`)}>
-                    <User className='mr-2 h-4 w-4' />
-                    Mi Perfil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigateTo('/analytics')}>
-                    <BarChart3 className='mr-2 h-4 w-4' />
-                    Analytics
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigateTo('/settings')}>
-                    <Settings className='mr-2 h-4 w-4' />
-                    Configuración
-                  </DropdownMenuItem>
+                  <NavigationLink href={`/profile/${user.uid}`}>
+                    <DropdownMenuItem>
+                      <User className='mr-2 h-4 w-4' />
+                      Mi Perfil
+                    </DropdownMenuItem>
+                  </NavigationLink>
+                  <NavigationLink href='/analytics'>
+                    <DropdownMenuItem>
+                      <BarChart3 className='mr-2 h-4 w-4' />
+                      Analytics
+                    </DropdownMenuItem>
+                  </NavigationLink>
+                  <NavigationLink href='/settings'>
+                    <DropdownMenuItem>
+                      <Settings className='mr-2 h-4 w-4' />
+                      Configuración
+                    </DropdownMenuItem>
+                  </NavigationLink>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -207,14 +208,15 @@ export default function HeaderMobile({
             </>
           ) : (
             // User is not logged in
-            <Button
-              variant='outline'
-              onClick={() => navigateTo('/auth/login')}
-              className='touch-manipulation text-sm flex items-center gap-2 rounded-full border-2'
-            >
-              <User className='h-4 w-4' />
-              Iniciar sesión
-            </Button>
+            <NavigationLink href='/auth/login'>
+              <Button
+                variant='outline'
+                className='touch-manipulation text-sm flex items-center gap-2 rounded-full border-2'
+              >
+                <User className='h-4 w-4' />
+                Iniciar sesión
+              </Button>
+            </NavigationLink>
           )}
         </div>
       </div>

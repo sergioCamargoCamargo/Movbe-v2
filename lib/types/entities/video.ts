@@ -44,10 +44,7 @@ export interface FirestoreVideo {
   ratingCount?: number
 }
 
-export interface FirestoreTimestamp {
-  seconds: number
-  nanoseconds: number
-}
+import { FirestoreTimestamp } from '../common/firebase'
 
 export interface VideoCreator {
   id: string

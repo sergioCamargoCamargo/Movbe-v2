@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   '/',
   '/watch',
   '/search',
+  '/profile',
 ]
 
 // Routes that are allowed for non-verified users
@@ -42,7 +43,12 @@ export function useAgeVerification() {
     if (loading || !pathname) return
 
     // Allow access to public routes (including dynamic routes)
-    if (PUBLIC_ROUTES.includes(pathname) || pathname.startsWith('/watch/')) return
+    if (
+      PUBLIC_ROUTES.includes(pathname) ||
+      pathname.startsWith('/watch/') ||
+      pathname.startsWith('/profile/')
+    )
+      return
 
     // Must have user to proceed
     if (!user) {
@@ -55,7 +61,12 @@ export function useAgeVerification() {
 
     // Check age verification
     if (!userProfile.ageVerified) {
-      if (ALLOWED_UNVERIFIED_ROUTES.includes(pathname) || pathname.startsWith('/watch/')) return
+      if (
+        ALLOWED_UNVERIFIED_ROUTES.includes(pathname) ||
+        pathname.startsWith('/watch/') ||
+        pathname.startsWith('/profile/')
+      )
+        return
 
       navigateTo('/auth/verify-age')
       return

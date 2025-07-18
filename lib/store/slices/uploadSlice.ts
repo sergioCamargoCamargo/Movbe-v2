@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { UploadProgress } from '@/types'
+import { UploadProgress } from '@/lib/types'
 
 interface UploadFormState {
   title: string

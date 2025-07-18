@@ -1,4 +1,4 @@
-import { Analytics, ViewData, Demographics } from '@/types/analytics'
+import { Analytics, ViewData, Demographics } from '@/lib/types/entities/analytics'
 
 export interface IAnalyticsService {
   getUserAnalytics(userId: string): Promise<Analytics | null>
