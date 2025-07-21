@@ -60,6 +60,8 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null)
+  const [subscriberCount, setSubscriberCount] = useState<number>(0)
+  const [subscriberCountLoading, setSubscriberCountLoading] = useState(true)
   const lastScrollTop = useRef(0)
   const videoRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
@@ -85,6 +87,22 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
     }
 
     loadCreatorProfile()
+
+    // Load subscriber count
+    const loadSubscriberCount = async () => {
+      try {
+        setSubscriberCountLoading(true)
+        const count = await subscriptionService.getSubscriberCount(video.uploaderId)
+        setSubscriberCount(count)
+      } catch {
+        // Error loading subscriber count, keep default value
+        setSubscriberCount(0)
+      } finally {
+        setSubscriberCountLoading(false)
+      }
+    }
+
+    loadSubscriberCount()
 
     // Record view count if user is logged in
     if (user?.uid) {
@@ -179,6 +197,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       if (isSubscribed) {
         await subscriptionService.unsubscribe(video.uploaderId, user.uid)
         setIsSubscribed(false)
+        setSubscriberCount(prev => Math.max(0, prev - 1)) // Update subscriber count
         toast({
           title: 'Te has desuscrito',
           description: `Ya no seguirás a ${video.uploaderName}`,
@@ -186,6 +205,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       } else {
         await subscriptionService.subscribe(video.uploaderId, user.uid)
         setIsSubscribed(true)
+        setSubscriberCount(prev => prev + 1) // Update subscriber count
         toast({
           title: '¡Suscrito!',
           description: `Ahora sigues a ${video.uploaderName}`,
@@ -291,7 +311,11 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                       </Button>
                     )}
                   </div>
-                  <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
+                  <p className='text-xs sm:text-sm text-muted-foreground'>
+                    {subscriberCountLoading
+                      ? 'Cargando...'
+                      : `${subscriberCount.toLocaleString()} suscriptor${subscriberCount !== 1 ? 'es' : ''}`}
+                  </p>
                 </div>
               </div>
 

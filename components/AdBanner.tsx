@@ -3,6 +3,7 @@
 import { X, ExternalLink, Play } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -28,13 +29,13 @@ export function AdBanner({
   type = 'banner',
   size = 'medium',
   position = 'inline',
-  title = 'Publicidad Patrocinada',
-  description = 'Descubre productos y servicios increíbles',
+  title,
+  description,
   imageUrl = '/placeholder.svg?text=Ad',
   videoUrl,
-  ctaText = 'Más información',
+  ctaText,
   ctaUrl = '#',
-  sponsor = 'Patrocinado',
+  sponsor,
   className = '',
   closeable = true,
   onClose,
@@ -42,6 +43,13 @@ export function AdBanner({
 }: AdBannerProps) {
   const [isVisible, setIsVisible] = useState(true)
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  const { t } = useTranslation()
+
+  // Use translations with fallback to props or default values
+  const adTitle = title || t('ads.defaultTitle', 'Publicidad Patrocinada')
+  const adDescription = description || t('ads.defaultDescription')
+  const adCtaText = ctaText || t('ads.defaultCta')
+  const adSponsor = sponsor || t('ads.sponsor', 'Patrocinado')
 
   const handleClose = () => {
     setIsVisible(false)
@@ -83,7 +91,7 @@ export function AdBanner({
     >
       {/* Sponsor Badge */}
       <div className='absolute top-2 left-2 px-2 py-1 bg-black/70 text-white text-xs rounded backdrop-blur-sm z-10'>
-        {sponsor}
+        {adSponsor}
       </div>
 
       {/* Close Button */}
@@ -96,7 +104,7 @@ export function AdBanner({
             handleClose()
           }}
           className='absolute top-2 right-2 z-10 h-7 w-7 p-0 bg-black/60 hover:bg-red-500/80 text-white rounded-full transition-all duration-200 opacity-70 hover:opacity-100 hover:scale-110 active:scale-95 backdrop-blur-sm'
-          aria-label='Cerrar publicidad'
+          aria-label={t('ads.closeAd')}
         >
           <X className='h-3.5 w-3.5 transition-transform duration-200' />
         </Button>
@@ -108,7 +116,7 @@ export function AdBanner({
           <div className='relative w-full h-full'>
             {!isVideoPlaying ? (
               <div className='relative w-full h-full bg-black flex items-center justify-center'>
-                <Image src={imageUrl} alt={title} fill className='object-cover opacity-70' />
+                <Image src={imageUrl} alt={adTitle} fill className='object-cover opacity-70' />
                 <Button
                   variant='ghost'
                   size='lg'
@@ -136,7 +144,7 @@ export function AdBanner({
           <div className='flex items-center w-full h-full p-3 sm:p-4'>
             {/* Image */}
             <div className='flex-shrink-0 relative w-16 h-16 sm:w-20 sm:h-20 mr-3 sm:mr-4'>
-              <Image src={imageUrl} alt={title} fill className='object-cover rounded-lg' />
+              <Image src={imageUrl} alt={adTitle} fill className='object-cover rounded-lg' />
               {type === 'interactive' && (
                 <div className='absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
                   <ExternalLink className='h-4 w-4 text-primary' />
@@ -146,9 +154,9 @@ export function AdBanner({
 
             {/* Text Content */}
             <div className='flex-1 min-w-0'>
-              <h3 className='font-semibold text-sm sm:text-base line-clamp-1 mb-1'>{title}</h3>
+              <h3 className='font-semibold text-sm sm:text-base line-clamp-1 mb-1'>{adTitle}</h3>
               <p className='text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2'>
-                {description}
+                {adDescription}
               </p>
 
               {/* CTA Button */}
@@ -161,7 +169,7 @@ export function AdBanner({
                   handleClick()
                 }}
               >
-                {ctaText}
+                {adCtaText}
                 <ExternalLink className='h-3 w-3 ml-1' />
               </Button>
             </div>
@@ -218,9 +226,9 @@ export function WatermarkAd({
 // Componente para banner de página completa
 export function FullPageAd({
   imageUrl = '/placeholder.svg?text=Full+Page+Ad',
-  title = 'Publicidad Especial',
-  description = 'Oferta limitada por tiempo limitado',
-  ctaText = 'Aprovechar Oferta',
+  title,
+  description,
+  ctaText,
   ctaUrl = '#',
   onClose,
   duration = 5000,
@@ -235,6 +243,13 @@ export function FullPageAd({
 }) {
   const [isVisible, setIsVisible] = useState(true)
   const [countdown, setCountdown] = useState(duration / 1000)
+  const { t } = useTranslation()
+
+  // Use translations with fallback to props or default values
+  const adTitle = title || t('ads.defaultTitle', 'Publicidad Especial')
+  const adDescription =
+    description || t('ads.defaultDescription', 'Oferta limitada por tiempo limitado')
+  const adCtaText = ctaText || t('ads.defaultCta', 'Aprovechar Oferta')
 
   // Auto-close después del tiempo especificado
   useState(() => {
@@ -273,21 +288,21 @@ export function FullPageAd({
             onClose?.()
           }}
           className='absolute top-4 right-4 z-10 h-8 w-8 p-0 bg-black/70 hover:bg-black/90 text-white rounded-full'
-          aria-label='Cerrar publicidad'
+          aria-label={t('ads.closeAd')}
         >
           <X className='h-4 w-4' />
         </Button>
 
         {/* Countdown */}
         <div className='absolute top-4 left-4 z-10 px-3 py-1 bg-black/70 text-white text-sm rounded backdrop-blur-sm'>
-          Se cierra en {countdown}s
+          {t('ads.closesIn', { seconds: countdown })}
         </div>
 
         {/* Content */}
         <div className='relative'>
           <Image
             src={imageUrl}
-            alt={title}
+            alt={adTitle}
             width={800}
             height={600}
             className='w-full object-cover'
@@ -295,8 +310,8 @@ export function FullPageAd({
           <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent' />
 
           <div className='absolute bottom-0 left-0 right-0 p-6 text-white'>
-            <h2 className='text-2xl sm:text-3xl font-bold mb-2'>{title}</h2>
-            <p className='text-lg mb-4 text-white/90'>{description}</p>
+            <h2 className='text-2xl sm:text-3xl font-bold mb-2'>{adTitle}</h2>
+            <p className='text-lg mb-4 text-white/90'>{adDescription}</p>
             <Button
               size='lg'
               className='bg-primary hover:bg-primary/90'
@@ -306,7 +321,7 @@ export function FullPageAd({
                 }
               }}
             >
-              {ctaText}
+              {adCtaText}
               <ExternalLink className='h-4 w-4 ml-2' />
             </Button>
           </div>
