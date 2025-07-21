@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 
-import { searchVideos } from '@/lib/firestore'
-import { Video } from '@/lib/firestore'
+import { VideoService, Video } from '@/lib/services/VideoService'
 
 export interface SearchState {
   query: string
@@ -30,7 +29,8 @@ export const performSearch = createAsyncThunk(
     if (!query.trim()) {
       return { results: [], query: query.trim() }
     }
-    const results = await searchVideos(query.trim(), limit)
+    const videoService = new VideoService()
+    const results = await videoService.searchVideos(query.trim(), limit)
     return { results, query: query.trim() }
   }
 )

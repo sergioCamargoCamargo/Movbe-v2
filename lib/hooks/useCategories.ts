@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Category } from '@/lib/types/entities/category'
 
-import { getCategories } from '../firestore'
+import { CategoryService } from '../services/CategoryService'
 
 export const useCategories = () => {
   const { t } = useTranslation()
@@ -15,10 +15,11 @@ export const useCategories = () => {
     try {
       setLoading(true)
       setError(null)
-      const categoriesData = await getCategories()
+      const categoryService = new CategoryService()
+      const categoriesData = await categoryService.getCategories()
 
       // Agregar traducción a cada categoría usando i18n
-      const translatedCategories = categoriesData.map(category => ({
+      const translatedCategories = categoriesData.map((category: Category) => ({
         ...category,
         displayName: t(`categories.${category.name}`, { defaultValue: category.name }),
       }))

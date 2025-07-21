@@ -7,7 +7,8 @@ import Image from 'next/image'
 
 import { NavigationLink } from '@/components/NavigationLink'
 import StarRating from '@/components/StarRating'
-import { Video } from '@/lib/firestore'
+import { Video } from '@/lib/services/VideoService'
+import { toSafeDate } from '@/lib/types/common/firebase'
 
 interface VideoCardProps {
   video: Video
@@ -31,15 +32,7 @@ export default function VideoCard({ video, className = '', priority = false }: V
   const getTimeAgo = (date: unknown) => {
     if (!date) return 'Hace un momento'
 
-    let publishDate: Date
-    if (date && typeof date === 'object' && 'toDate' in date && typeof date.toDate === 'function') {
-      publishDate = date.toDate()
-    } else if (date instanceof Date) {
-      publishDate = date
-    } else {
-      publishDate = new Date(date as string)
-    }
-
+    const publishDate = toSafeDate(date as any)
     return formatDistanceToNow(publishDate, { addSuffix: true, locale: es })
   }
 

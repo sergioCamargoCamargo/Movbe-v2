@@ -20,9 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { updateVideo } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useCategories } from '@/lib/hooks/useCategories'
+import { VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
@@ -120,7 +120,8 @@ export default function UploadPage() {
         const thumbnailURL = await uploadThumbnail(thumbnailDataURL, user.uid, videoId)
 
         // Actualizar video con thumbnail
-        await updateVideo(videoId, { thumbnailURL })
+        const videoService = new VideoService()
+        await videoService.updateVideo(videoId, { thumbnailURL })
       } catch {
         // Thumbnail generation is optional, continue without it
       }

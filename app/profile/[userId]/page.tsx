@@ -24,8 +24,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
+import { Video as FirestoreVideoType, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { FirestoreTimestamp } from '@/lib/types'
@@ -100,8 +101,8 @@ export default function ProfilePage() {
         // Load other user's profile
         try {
           setProfileLoading(true)
-          const { getUserById } = await import('@/lib/firestore')
-          const otherUserProfile = await getUserById(userId)
+          const userService = new EnhancedUserService()
+          const otherUserProfile = await userService.getUserById(userId)
 
           if (otherUserProfile) {
             setProfileData({
@@ -163,7 +164,8 @@ export default function ProfilePage() {
       try {
         setVideosLoading(true)
         setVideosError(null)
-        const videos = await getVideosByUser(userId)
+        const videoService = new VideoService()
+        const videos = await videoService.getVideosByUser(userId)
         setUserVideos(videos)
       } catch {
         setVideosError('Error al cargar los videos')
@@ -552,10 +554,17 @@ export default function ProfilePage() {
                                 <span>•</span>
                                 <span>
                                   {video.uploadDate
-                                    ? formatUploadDate({
-                                        seconds: Math.floor(video.uploadDate.getTime() / 1000),
-                                        nanoseconds: 0,
-                                      })
+                                    ? formatUploadDate(
+                                        typeof video.uploadDate === 'object' &&
+                                          'seconds' in video.uploadDate
+                                          ? video.uploadDate
+                                          : {
+                                              seconds: Math.floor(
+                                                new Date(video.uploadDate).getTime() / 1000
+                                              ),
+                                              nanoseconds: 0,
+                                            }
+                                      )
                                     : 'Fecha desconocida'}
                                 </span>
                               </div>

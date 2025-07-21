@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Slider from 'react-slick'
 
 import { NavigationLink } from '@/components/NavigationLink'
-import { Video } from '@/lib/firestore'
+import { Video } from '@/lib/services/VideoService'
 
 interface VideoCarouselProps {
   videos: Video[]

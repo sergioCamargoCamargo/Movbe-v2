@@ -5,6 +5,7 @@ export class ServiceContainer {
   private services: Map<string, unknown> = new Map()
   private singletons: Map<string, unknown> = new Map()
   private factories: Map<string, ServiceFactory<unknown>> = new Map()
+  private factoryServices: Map<string, ServiceFactory<unknown>> = new Map()
 
   // Register a singleton service
   registerSingleton<T>(key: string, constructor: Constructor<T> | ServiceFactory<T>): void {

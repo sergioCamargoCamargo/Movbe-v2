@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video, recordVideoView } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
+import { Video, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
@@ -74,8 +75,8 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
     // Load creator profile
     const loadCreatorProfile = async () => {
       try {
-        const { getUserById } = await import('@/lib/firestore')
-        const profile = await getUserById(video.uploaderId)
+        const userService = new EnhancedUserService()
+        const profile = await userService.getUserById(video.uploaderId)
         setCreatorProfile(profile)
       } catch {
         // Error loading creator profile, use defaults
@@ -106,7 +107,8 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
 
     // Record view count if user is logged in
     if (user?.uid) {
-      recordVideoView(video.id, user.uid)
+      const videoService = new VideoService()
+      videoService.recordVideoView(video.id, user.uid)
     }
 
     // Check subscription status if user is logged in and not own video

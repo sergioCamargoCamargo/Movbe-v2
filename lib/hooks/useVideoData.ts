@@ -9,15 +9,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Comment, getFallbackTimestamp } from '@/lib/types'
 
 import {
-  getPublicVideos,
-  getVideoById,
-  getVideosByUser,
   getVideoComments,
-  addComment as addCommentToFirestore,
+  addCommentToFirestore,
   checkUserVideoLike,
-  toggleVideoLike as toggleVideoLikeInDB,
-  recordVideoView,
+  toggleVideoLikeInDB,
 } from '../firestore'
+import { VideoService } from '../services/VideoService'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
   setHomeVideos,
@@ -59,7 +56,8 @@ export const useHomeVideos = () => {
 
       try {
         dispatch(setVideosLoading(true))
-        const publicVideos = await getPublicVideos(24)
+        const videoService = new VideoService()
+        const publicVideos = await videoService.getPublicVideos(24)
         dispatch(setHomeVideos(publicVideos))
       } catch {
         // Error handling is managed by the component
@@ -97,7 +95,8 @@ export const useUserVideos = (userId: string) => {
       if (!userId || (!force && !shouldRefresh)) return
 
       try {
-        const userVideos = await getVideosByUser(userId)
+        const videoService = new VideoService()
+        const userVideos = await videoService.getVideosByUser(userId)
         dispatch(setUserVideos({ userId, videos: userVideos }))
       } catch {
         // Error handling is managed by the component
@@ -130,13 +129,14 @@ export const useVideo = (videoId: string) => {
     if (!videoId) return
 
     try {
-      const videoData = await getVideoById(videoId)
+      const videoService = new VideoService()
+      const videoData = await videoService.getVideoById(videoId)
       if (videoData) {
         dispatch(setVideo(videoData))
 
         // Record view if user is logged in
         if (user?.uid) {
-          await recordVideoView(videoId, user.uid)
+          await videoService.recordVideoView(videoId, user.uid)
         }
       }
     } catch {
@@ -274,7 +274,8 @@ export const useVideoLikes = (videoId: string) => {
         dispatch(setUserLike({ videoId, like: newLike, userId: user.uid }))
 
         // Fetch updated video to get new counts
-        const updatedVideo = await getVideoById(videoId)
+        const videoService = new VideoService()
+        const updatedVideo = await videoService.getVideoById(videoId)
         if (updatedVideo) {
           dispatch(setVideo(updatedVideo))
           dispatch(
@@ -301,8 +302,10 @@ export const useVideoLikes = (videoId: string) => {
   useEffect(() => {
     if (videoId && !video) {
       // Load basic video data to get like/dislike counts
-      getVideoById(videoId)
-        .then(videoData => {
+      const videoService = new VideoService()
+      videoService
+        .getVideoById(videoId)
+        .then((videoData: any) => {
           if (videoData) {
             dispatch(setVideo(videoData))
           }

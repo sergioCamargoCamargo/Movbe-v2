@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
-import { getUserVideoRating, rateVideo } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
+import { VideoInteractionService } from '@/lib/services/VideoInteractionService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
 import { VideoInteractionsProps, toSafeDate } from '@/lib/types'
@@ -66,7 +66,8 @@ export function VideoInteractions({
     const loadUserRating = async () => {
       if (user?.uid) {
         try {
-          const userRatingData = await getUserVideoRating(videoId, user.uid)
+          const videoInteractionService = new VideoInteractionService()
+          const userRatingData = await videoInteractionService.getUserVideoRating(user.uid, videoId)
           if (userRatingData) {
             setCurrentUserRating(userRatingData.rating)
           }
@@ -200,7 +201,8 @@ export function VideoInteractions({
 
     setRatingLoading(true)
     try {
-      await rateVideo(videoId, user.uid, newRating)
+      const videoInteractionService = new VideoInteractionService()
+      await videoInteractionService.rateVideo(user.uid, videoId, newRating, newRating > 3)
       setCurrentUserRating(newRating)
 
       toast({

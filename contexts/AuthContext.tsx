@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
-import { createOrUpdateUser } from '@/lib/firestore'
+import { getEnhancedUserService } from '@/lib/di/serviceRegistration'
 import { UserProfile } from '@/lib/types/entities/user'
 
 interface AuthContextType {
@@ -23,8 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUserProfile = async () => {
     if (user) {
       try {
-        const profile = await createOrUpdateUser(user)
-        setUserProfile(profile as UserProfile | null)
+        const userService = getEnhancedUserService()
+        const profile = await userService.createOrUpdateUser(user)
+        setUserProfile(profile)
       } catch (error) {
         console.error('Error refreshing user profile:', error)
       }
@@ -38,8 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authUser) {
         try {
           // Crear o actualizar el perfil del usuario en Firestore automáticamente
-          const profile = await createOrUpdateUser(authUser)
-          setUserProfile(profile as UserProfile | null)
+          const userService = getEnhancedUserService()
+          const profile = await userService.createOrUpdateUser(authUser)
+          setUserProfile(profile)
         } catch (error) {
           console.error('Error creating/updating user profile:', error)
           setUserProfile(null)

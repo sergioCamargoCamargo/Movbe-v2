@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next'
 import { AdBanner } from '@/components/AdBanner'
 import { Button } from '@/components/ui/button'
 import VideoCard from '@/components/VideoCard'
-import { Video, Category } from '@/lib/firestore'
+import { Video } from '@/lib/services/VideoService'
+import { Category } from '@/lib/types/entities/category'
 
 interface MainContentClientProps {
   initialVideos: Video[]
