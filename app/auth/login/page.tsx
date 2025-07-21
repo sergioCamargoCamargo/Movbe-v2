@@ -76,8 +76,9 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider)
 
       // Check if this is a new user or existing user without age verification
-      const { createOrUpdateUser } = await import('@/lib/firestore')
-      const userProfile = await createOrUpdateUser(result.user)
+      const { EnhancedUserService } = await import('@/lib/services/EnhancedUserService')
+      const userService = new EnhancedUserService()
+      const userProfile = await userService.createOrUpdateUser(result.user)
 
       if (!userProfile?.ageVerified) {
         // Redirect directly to age verification

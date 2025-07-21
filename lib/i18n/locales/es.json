@@ -146,7 +146,12 @@
     "mustBe18Plus": "Debes ser mayor de 18 años para usar esta plataforma",
     "verificationComplete": "Verificación completada",
     "ageVerifiedSuccess": "Tu edad ha sido verificada exitosamente",
-    "ageVerificationError": "Hubo un problema al verificar tu edad. Intenta nuevamente."
+    "ageVerificationError": "Hubo un problema al verificar tu edad. Intenta nuevamente.",
+    "passwordMinLength": "La contraseña debe tener al menos 8 caracteres",
+    "passwordLowercase": "La contraseña debe contener al menos una letra minúscula",
+    "passwordUppercase": "La contraseña debe contener al menos una letra mayúscula",
+    "passwordNumber": "La contraseña debe contener al menos un número",
+    "passwordMismatch": "Las contraseñas no coinciden"
   },
   "settings": {
     "title": "Configuración",
@@ -199,7 +204,22 @@
     "saveChangesError": "No se pudieron guardar los cambios",
     "accountDeleted": "Cuenta eliminada",
     "accountDeletedSuccess": "Tu cuenta ha sido eliminada permanentemente",
-    "accountDeleteError": "No se pudo eliminar la cuenta"
+    "accountDeleteError": "No se pudo eliminar la cuenta",
+    "changePasswordModalDescription": "Para cambiar tu contraseña, necesitas confirmar tu contraseña actual",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Ingresa tu contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingresa tu nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "currentPasswordRequired": "La contraseña actual es requerida",
+    "newPasswordRequired": "La nueva contraseña es requerida",
+    "confirmPasswordRequired": "Debes confirmar la nueva contraseña",
+    "newPasswordSameAsCurrent": "La nueva contraseña debe ser diferente a la actual",
+    "passwordStrength": "Fuerza de la contraseña",
+    "passwordStrengthGood": "La contraseña cumple con todos los requisitos",
+    "changingPassword": "Cambiando contraseña...",
+    "passwordChanged": "Contraseña cambiada"
   },
   "search": {
     "placeholder": "Buscar videos..."

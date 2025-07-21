@@ -1,4 +1,5 @@
-import { getPublicVideos, getCategories, initializeCategories } from '@/lib/firestore'
+import { CategoryService } from '@/lib/services/CategoryService'
+import { VideoService } from '@/lib/services/VideoService'
 
 import HomePageClient from './HomePageClient'
 
@@ -6,11 +7,17 @@ import HomePageClient from './HomePageClient'
 export const revalidate = 300
 
 export default async function HomePage() {
+  const videoService = new VideoService()
+  const categoryService = new CategoryService()
+
   try {
     // Initialize categories if they don't exist
-    await initializeCategories()
+    await categoryService.initializeCategories()
 
-    const [videos, categories] = await Promise.all([getPublicVideos(24), getCategories()])
+    const [videos, categories] = await Promise.all([
+      videoService.getPublicVideos(24),
+      categoryService.getCategories(),
+    ])
 
     return <HomePageClient initialVideos={videos} categories={categories} />
   } catch (error) {
@@ -18,7 +25,7 @@ export default async function HomePage() {
 
     // If categories fail, try to get videos only
     try {
-      const videos = await getPublicVideos(24)
+      const videos = await videoService.getPublicVideos(24)
       return <HomePageClient initialVideos={videos} categories={[]} />
     } catch (videoError) {
       console.error('Error fetching videos:', videoError)

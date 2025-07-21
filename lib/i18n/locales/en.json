@@ -146,7 +146,12 @@
     "mustBe18Plus": "You must be over 18 years old to use this platform",
     "verificationComplete": "Verification Complete",
     "ageVerifiedSuccess": "Your age has been verified successfully",
-    "ageVerificationError": "There was a problem verifying your age. Please try again."
+    "ageVerificationError": "There was a problem verifying your age. Please try again.",
+    "passwordMinLength": "Password must be at least 8 characters long",
+    "passwordLowercase": "Password must contain at least one lowercase letter",
+    "passwordUppercase": "Password must contain at least one uppercase letter",
+    "passwordNumber": "Password must contain at least one number",
+    "passwordMismatch": "Passwords do not match"
   },
   "settings": {
     "title": "Settings",
@@ -199,7 +204,22 @@
     "saveChangesError": "Could not save changes",
     "accountDeleted": "Account Deleted",
     "accountDeletedSuccess": "Your account has been permanently deleted",
-    "accountDeleteError": "Could not delete account"
+    "accountDeleteError": "Could not delete account",
+    "changePasswordModalDescription": "To change your password, you need to confirm your current password",
+    "currentPassword": "Current password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmNewPassword": "Confirm new password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "currentPasswordRequired": "Current password is required",
+    "newPasswordRequired": "New password is required",
+    "confirmPasswordRequired": "You must confirm the new password",
+    "newPasswordSameAsCurrent": "New password must be different from current password",
+    "passwordStrength": "Password strength",
+    "passwordStrengthGood": "Password meets all requirements",
+    "changingPassword": "Changing password...",
+    "passwordChanged": "Password changed"
   },
   "search": {
     "placeholder": "Search videos..."

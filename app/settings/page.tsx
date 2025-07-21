@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
 import { PageTransition } from '@/components/PageTransition'
+import PasswordChangeModal from '@/components/PasswordChangeModal'
 import Sidebar from '@/components/Sidebar'
 import {
   AlertDialog,
@@ -28,7 +29,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { getUserService } from '@/lib/di/serviceRegistration'
+import { getEnhancedUserService } from '@/lib/di/serviceRegistration'
 import { useToast } from '@/lib/hooks/use-toast'
 import { avatarService } from '@/lib/services/AvatarService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
@@ -40,7 +41,7 @@ export default function SettingsPage() {
   const dispatch = useAppDispatch()
   const router = useRouter()
   const { toast } = useToast()
-  const userService = getUserService()
+  const userService = getEnhancedUserService()
 
   // Estados locales
   const [loading, setLoading] = useState(true)
@@ -68,6 +69,8 @@ export default function SettingsPage() {
     followers: true,
   })
   const [originalDisplayName, setOriginalDisplayName] = useState('')
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false)
 
   const loadUserData = useCallback(async () => {
     try {
@@ -77,11 +80,8 @@ export default function SettingsPage() {
       setDisplayName(currentDisplayName)
       setOriginalDisplayName(currentDisplayName)
 
-      // Verificar si es usuario de Google
-      const isGoogle =
-        (user as { providerData?: { providerId: string }[] }).providerData?.some(
-          (provider: { providerId: string }) => provider.providerId === 'google.com'
-        ) ?? false
+      // Verificar si es usuario de Google usando el servicio mejorado
+      const isGoogle = !userService.canChangePassword(user)
       setIsGoogleUser(isGoogle)
 
       // Cargar configuraciones del usuario
@@ -248,6 +248,35 @@ export default function SettingsPage() {
 
   const hasAnyChanges = hasUnsavedChanges || hasProfileChanges
 
+  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+    if (!user) return
+
+    setPasswordChangeLoading(true)
+    try {
+      const result = await userService.changePassword(user, currentPassword, newPassword)
+
+      if (result.success) {
+        toast({
+          title: t('settings.passwordChanged'),
+          description: result.message,
+        })
+      } else {
+        toast({
+          title: t('common.error'),
+          description: result.message,
+          variant: 'destructive',
+        })
+        // Re-throw to prevent modal from closing
+        throw new Error(result.message)
+      }
+    } catch (error) {
+      // Error is handled above and in the modal
+      throw error
+    } finally {
+      setPasswordChangeLoading(false)
+    }
+  }
+
   const handleDeleteAccount = async () => {
     if (!user) return
 
@@ -407,7 +436,7 @@ export default function SettingsPage() {
                             {t('settings.changePasswordDescription')}
                           </p>
                         </div>
-                        <Button variant='outline'>
+                        <Button variant='outline' onClick={() => setIsPasswordModalOpen(true)}>
                           <Lock className='h-4 w-4 mr-2' />
                           {t('common.change')}
                         </Button>
@@ -789,6 +818,14 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* Password Change Modal */}
+        <PasswordChangeModal
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
+          onPasswordChange={handlePasswordChange}
+          loading={passwordChangeLoading}
+        />
       </div>
     </PageTransition>
   )
