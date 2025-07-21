@@ -13,8 +13,8 @@ import {
 } from 'firebase/firestore'
 
 import { db } from '@/lib/firebase'
-import { IAnalyticsService } from '@/lib/interfaces/IAnalyticsService'
-import { Analytics, ViewData, Demographics, TopVideo } from '@/types/analytics'
+import { IAnalyticsService } from '@/lib/types'
+import { Analytics, ViewData, Demographics, TopVideo } from '@/lib/types/entities/analytics'
 
 export class AnalyticsService implements IAnalyticsService {
   async getUserAnalytics(userId: string): Promise<Analytics | null> {

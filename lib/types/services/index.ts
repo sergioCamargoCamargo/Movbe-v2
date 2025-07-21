@@ -1,5 +1,5 @@
 /**
- * Exportaciones centralizadas de todas las interfaces
+ * Exportaciones centralizadas de todas las interfaces de servicios
  */
 
 // Servicios existentes

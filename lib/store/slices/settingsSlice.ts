@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-import { UserSettings, NotificationSettings, PrivacySettings, DisplaySettings } from '@/types'
+import { UserSettings, NotificationSettings, PrivacySettings, DisplaySettings } from '@/lib/types'
 
 interface SettingsState {
   userSettings: UserSettings | null

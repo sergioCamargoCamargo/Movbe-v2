@@ -1,4 +1,4 @@
-import { UserType } from '@/types/user'
+import { UserType } from '@/lib/types/entities/user'
 
 export const ROLES = {
   NORMAL: 'normal',

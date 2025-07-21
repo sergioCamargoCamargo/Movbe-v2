@@ -14,10 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useService } from '@/components/ui/hooks/useService'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SERVICE_KEYS } from '@/lib/di/serviceRegistration'
 import { getFirebaseErrorMessage } from '@/lib/firebase'
 import { AuthService } from '@/lib/services/AuthService'
 
@@ -26,7 +24,8 @@ export default function RecoveryPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const authService = useService<AuthService>(SERVICE_KEYS.AUTH_SERVICE)
+  // const authService = useService<AuthService>(SERVICE_KEYS.AUTH_SERVICE)
+  const authService = new AuthService()
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()

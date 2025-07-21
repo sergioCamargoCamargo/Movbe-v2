@@ -11,85 +11,45 @@ import {
   Video as VideoIcon,
 } from 'lucide-react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import HeaderDynamic from '@/app/components/HeaderDynamic'
-import Sidebar from '@/app/components/Sidebar'
+import HeaderDynamic from '@/components/HeaderDynamic'
+import { NavigationLink } from '@/components/NavigationLink'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video as FirestoreVideoType, getVideosByUser, getUserById } from '@/lib/firestore'
-import { useNavigation } from '@/lib/hooks/useNavigation'
+import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
+import { useToast } from '@/lib/hooks/use-toast'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
-import { FirestoreTimestamp } from '@/types'
-import { UserProfile } from '@/types/user'
+import { FirestoreTimestamp } from '@/lib/types'
 
-// Datos de ejemplo del perfil
-const mockProfile = {
-  id: '1',
-  name: 'Juan Pérez',
-  username: '@juanperez',
-  bio: 'Creador de contenido apasionado por la tecnología y los videojuegos. Subiendo videos diarios sobre reviews, tutoriales y gameplays.',
-  avatar: '/placeholder.svg?text=JP',
+// Default profile structure
+const defaultProfile = {
+  id: '',
+  name: 'Usuario',
+  username: '@usuario',
+  bio: 'Creador de contenido en MOVBE',
+  avatar: '/placeholder.svg?text=USER',
   coverImage: '/placeholder.svg?text=Cover',
-  subscriberCount: 15420,
-  videoCount: 89,
-  totalViews: 1250000,
-  joinDate: 'Marzo 2023',
+  subscriberCount: 0,
+  videoCount: 0,
+  totalViews: 0,
+  joinDate: 'Recientemente',
   isSubscribed: false,
-  isOwnProfile: false, // This will be overridden by the real isOwnProfile calculation
+  isOwnProfile: false,
   socialLinks: {
-    twitter: 'https://twitter.com/juanperez',
-    instagram: 'https://instagram.com/juanperez',
-    youtube: 'https://youtube.com/juanperez',
+    twitter: '',
+    instagram: '',
+    youtube: '',
   },
 }
-
-const mockVideos = [
-  {
-    id: '1',
-    title: 'Review del iPhone 15 Pro - ¿Vale la pena?',
-    thumbnail: '/placeholder.svg?text=iPhone+15',
-    duration: '12:34',
-    views: 45000,
-    uploadDate: 'hace 2 días',
-    description: 'Un análisis completo del nuevo iPhone 15 Pro con todas sus características...',
-  },
-  {
-    id: '2',
-    title: 'Tutorial: Configurar tu PC Gaming desde cero',
-    thumbnail: '/placeholder.svg?text=PC+Gaming',
-    duration: '18:45',
-    views: 32000,
-    uploadDate: 'hace 1 semana',
-    description: 'Guía paso a paso para armar tu primera PC gamer...',
-  },
-  {
-    id: '3',
-    title: 'Gameplay: Cyberpunk 2077 con RTX 4090',
-    thumbnail: '/placeholder.svg?text=Cyberpunk',
-    duration: '25:12',
-    views: 78000,
-    uploadDate: 'hace 2 semanas',
-    description: 'Jugando Cyberpunk 2077 en máxima calidad con la RTX 4090...',
-  },
-  {
-    id: '4',
-    title: '10 Apps que DEBES tener en tu móvil en 2024',
-    thumbnail: '/placeholder.svg?text=Apps+2024',
-    duration: '8:22',
-    views: 56000,
-    uploadDate: 'hace 3 semanas',
-    description: 'Las mejores aplicaciones móviles que no pueden faltar...',
-  },
-]
 
 export default function ProfilePage() {
   const params = useParams()
@@ -97,45 +57,21 @@ export default function ProfilePage() {
   const dispatch = useAppDispatch()
   const { user, userProfile, loading } = useAppSelector(state => state.auth)
   const { toast } = useToast()
-  const { navigateTo } = useNavigation()
+  const router = useRouter()
 
   // Check if this is the current user's profile
   const isOwnProfile = user?.uid === userId
 
-  // States need to be declared before they're used
-  const [viewedUserProfile, setViewedUserProfile] = useState<UserProfile | null>(null)
+  // State for profile data
+  const [profileData, setProfileData] = useState(defaultProfile)
   const [profileLoading, setProfileLoading] = useState(true)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [subscriberCount, setSubscriberCountState] = useState(0)
 
-  // Use real user data - prioritize viewed user profile, then own profile, then mock data
-  const profileData = viewedUserProfile
-    ? {
-        id: viewedUserProfile.uid,
-        name: viewedUserProfile.displayName || 'Usuario',
-        username: `@${viewedUserProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
-        bio: 'Creador de contenido en MOVBE', // TODO: Add bio field to user profile
-        avatar: viewedUserProfile.photoURL || '/placeholder.svg?text=USER',
-        coverImage: '/placeholder.svg?text=Cover', // TODO: Add cover image field
-        subscriberCount: viewedUserProfile.subscriberCount || 0,
-        videoCount: viewedUserProfile.videoCount || 0,
-        totalViews: viewedUserProfile.totalViews || 0,
-        joinDate: viewedUserProfile.createdAt
-          ? new Date(viewedUserProfile.createdAt).toLocaleDateString('es-ES', {
-              year: 'numeric',
-              month: 'long',
-            })
-          : 'Recientemente',
-        isSubscribed: false,
-        isOwnProfile: isOwnProfile,
-        socialLinks: {
-          twitter: '',
-          instagram: '',
-          youtube: '',
-        },
-      }
-    : isOwnProfile && userProfile
-      ? {
+  // Load profile data when component mounts
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (isOwnProfile && userProfile) {
+        // Use current user's profile
+        setProfileData({
           id: userProfile.uid,
           name: userProfile.displayName || user?.displayName || 'Usuario',
           username: `@${userProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
@@ -158,33 +94,66 @@ export default function ProfilePage() {
             instagram: '',
             youtube: '',
           },
+        })
+        setProfileLoading(false)
+      } else if (userId) {
+        // Load other user's profile
+        try {
+          setProfileLoading(true)
+          const { getUserById } = await import('@/lib/firestore')
+          const otherUserProfile = await getUserById(userId)
+
+          if (otherUserProfile) {
+            setProfileData({
+              id: otherUserProfile.uid,
+              name: otherUserProfile.displayName || 'Usuario',
+              username: `@${otherUserProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
+              bio: 'Creador de contenido en MOVBE',
+              avatar: otherUserProfile.photoURL || '/placeholder.svg?text=USER',
+              coverImage: '/placeholder.svg?text=Cover',
+              subscriberCount: otherUserProfile.subscriberCount || 0,
+              videoCount: otherUserProfile.videoCount || 0,
+              totalViews: otherUserProfile.totalViews || 0,
+              joinDate: otherUserProfile.createdAt
+                ? new Date(otherUserProfile.createdAt).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                  })
+                : 'Recientemente',
+              isSubscribed: false,
+              isOwnProfile: false,
+              socialLinks: {
+                twitter: '',
+                instagram: '',
+                youtube: '',
+              },
+            })
+          }
+        } catch {
+          // Error loading profile, set default profile with userId
+          setProfileData({
+            ...defaultProfile,
+            id: userId,
+            name: 'Usuario no encontrado',
+            username: '@usuario',
+          })
+        } finally {
+          setProfileLoading(false)
         }
-      : mockProfile
+      }
+    }
+
+    loadProfileData()
+  }, [userId, isOwnProfile, userProfile, user])
+
+  const [isSubscribed, setIsSubscribed] = useState(profileData.isSubscribed)
+  const [subscriberCount, setSubscriberCountState] = useState(profileData.subscriberCount)
   const [userVideos, setUserVideos] = useState<FirestoreVideoType[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
 
   const subscriptionService = getSubscriptionService()
-
-  // Load viewed user profile when component mounts or userId changes
-  useEffect(() => {
-    const loadViewedUserProfile = async () => {
-      if (!userId) return
-
-      try {
-        setProfileLoading(true)
-        const profile = await getUserById(userId)
-        setViewedUserProfile(profile)
-      } catch {
-        // Error loading user profile
-      } finally {
-        setProfileLoading(false)
-      }
-    }
-
-    loadViewedUserProfile()
-  }, [userId])
 
   // Load user videos when component mounts or userId changes
   useEffect(() => {
@@ -236,13 +205,6 @@ export default function ProfilePage() {
     loadSubscriptionState()
   }, [userId, user, subscriptionService])
 
-  // Separate effect to update subscriber count from viewed profile for own profile
-  useEffect(() => {
-    if (isOwnProfile && viewedUserProfile) {
-      setSubscriberCountState(viewedUserProfile.subscriberCount || 0)
-    }
-  }, [isOwnProfile, viewedUserProfile])
-
   // Show loading state while auth is loading or profile is loading
   if (loading || profileLoading) {
     return (
@@ -270,7 +232,13 @@ export default function ProfilePage() {
   }
 
   const handleSubscribe = async () => {
-    if (!user || !userId || userId === user.uid || subscriptionLoading) {
+    // If user is not logged in, redirect to login
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    if (!userId || userId === user.uid || subscriptionLoading) {
       return
     }
 
@@ -371,48 +339,98 @@ export default function ProfilePage() {
 
               {/* Profile Info Overlay */}
               <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 touch-manipulation'>
-                <div className='flex flex-col sm:flex-row items-start sm:items-end gap-3 sm:gap-4'>
-                  <Avatar className='h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20'>
-                    <AvatarImage src={profileData.avatar} alt={profileData.name} />
-                    <AvatarFallback className='text-xl font-bold'>
-                      {profileData.name
-                        .split(' ')
-                        .map(n => n[0])
-                        .join('')}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className='space-y-3 sm:space-y-0'>
+                  <div className='flex flex-row items-start sm:items-end gap-3 sm:gap-4'>
+                    <Avatar className='h-16 w-16 sm:h-24 sm:w-24 md:h-32 md:w-32 ring-4 ring-white/20 flex-shrink-0'>
+                      <AvatarImage src={profileData.avatar} alt={profileData.name} />
+                      <AvatarFallback className='text-lg sm:text-xl font-bold'>
+                        {profileData.name
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className='flex-1 text-white'>
-                    <h1 className='text-2xl sm:text-3xl md:text-4xl font-bold mb-1'>
-                      {profileData.name}
-                    </h1>
-                    <p className='text-lg sm:text-xl text-white/80 mb-2'>{profileData.username}</p>
-                    <div className='flex flex-wrap items-center gap-4 text-sm text-white/70'>
-                      <span className='flex items-center gap-1'>
-                        <Users className='h-4 w-4' />
-                        {formatNumber(subscriberCount)} suscriptores
-                      </span>
-                      <span className='flex items-center gap-1'>
-                        <VideoIcon className='h-4 w-4' />
-                        {userVideos.length} videos
-                      </span>
-                      <span className='flex items-center gap-1'>
-                        <Eye className='h-4 w-4' />
-                        {formatNumber(
-                          userVideos.reduce((total, video) => total + video.viewCount, 0)
-                        )}{' '}
-                        vistas
-                      </span>
+                    <div className='flex-1 text-white min-w-0'>
+                      <h1 className='text-lg sm:text-3xl md:text-4xl font-bold mb-1 truncate'>
+                        {profileData.name}
+                      </h1>
+                      <p className='text-sm sm:text-xl text-white/80 mb-2 truncate'>
+                        {profileData.username}
+                      </p>
+                      <div className='flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-white/70'>
+                        <span className='flex items-center gap-1'>
+                          <Users className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {formatNumber(subscriberCount)} suscriptores
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <VideoIcon className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {userVideos.length} videos
+                        </span>
+                        <span className='flex items-center gap-1'>
+                          <Eye className='h-3 w-3 sm:h-4 sm:w-4' />
+                          {formatNumber(
+                            userVideos.reduce((total, video) => total + video.viewCount, 0)
+                          )}{' '}
+                          vistas
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className='hidden sm:flex gap-2 flex-wrap'>
+                      {!isOwnProfile && (
+                        <Button
+                          onClick={handleSubscribe}
+                          disabled={subscriptionLoading}
+                          variant={isSubscribed ? 'outline' : 'default'}
+                          className={`touch-manipulation min-w-[100px] ${
+                            isSubscribed
+                              ? 'bg-white/20 hover:bg-white/30 text-white border-white/30'
+                              : 'bg-primary hover:bg-primary/90'
+                          }`}
+                        >
+                          {subscriptionLoading
+                            ? isSubscribed
+                              ? 'Cancelando...'
+                              : 'Suscribiendo...'
+                            : isSubscribed
+                              ? 'Suscrito'
+                              : 'Suscribirse'}
+                        </Button>
+                      )}
+
+                      <Button
+                        variant='outline'
+                        size='icon'
+                        onClick={handleShare}
+                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                        aria-label='Compartir perfil'
+                      >
+                        <Share2 className='h-4 w-4' />
+                      </Button>
+
+                      {isOwnProfile && (
+                        <Button
+                          variant='outline'
+                          size='icon'
+                          className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                          aria-label='Configurar perfil'
+                        >
+                          <Settings className='h-4 w-4' />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
-                  <div className='flex gap-2 flex-wrap'>
+                  {/* Mobile buttons row */}
+                  <div className='flex sm:hidden gap-2 flex-wrap'>
                     {!isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
-                        disabled={subscriptionLoading || !user}
+                        disabled={subscriptionLoading}
                         variant={isSubscribed ? 'outline' : 'default'}
-                        className={`touch-manipulation min-w-[100px] ${
+                        size='sm'
+                        className={`touch-manipulation flex-1 min-w-[100px] ${
                           isSubscribed
                             ? 'bg-white/20 hover:bg-white/30 text-white border-white/30'
                             : 'bg-primary hover:bg-primary/90'
@@ -430,9 +448,9 @@ export default function ProfilePage() {
 
                     <Button
                       variant='outline'
-                      size='icon'
+                      size='sm'
                       onClick={handleShare}
-                      className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                      className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
                       aria-label='Compartir perfil'
                     >
                       <Share2 className='h-4 w-4' />
@@ -441,8 +459,8 @@ export default function ProfilePage() {
                     {isOwnProfile && (
                       <Button
                         variant='outline'
-                        size='icon'
-                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                        size='sm'
+                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
                         aria-label='Configurar perfil'
                       >
                         <Settings className='h-4 w-4' />
@@ -499,56 +517,51 @@ export default function ProfilePage() {
                           : 'Este usuario no ha subido videos'}
                       </p>
                       {isOwnProfile && (
-                        <Button
-                          className='mt-4 touch-manipulation'
-                          onClick={() => navigateTo('/upload')}
-                        >
-                          Subir tu primer video
-                        </Button>
+                        <NavigationLink href='/upload'>
+                          <Button className='mt-4 touch-manipulation'>Subir tu primer video</Button>
+                        </NavigationLink>
                       )}
                     </div>
                   ) : (
                     // Videos grid
                     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6'>
                       {userVideos.map(video => (
-                        <Card
-                          key={video.id}
-                          className='overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group touch-manipulation transform hover:scale-105 active:scale-95'
-                          onClick={() => navigateTo(`/watch/${video.id}`)}
-                        >
-                          <div className='relative aspect-video'>
-                            <Image
-                              src={video.thumbnailURL || '/placeholder.svg?text=Video'}
-                              alt={video.title}
-                              fill
-                              className='object-cover group-hover:scale-105 transition-transform duration-300'
-                            />
-                            <div className='absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center'>
-                              <Play className='h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity' />
+                        <NavigationLink key={video.id} href={`/watch/${video.id}`}>
+                          <Card className='overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer group touch-manipulation transform hover:scale-105 active:scale-95'>
+                            <div className='relative aspect-video'>
+                              <Image
+                                src={video.thumbnailURL || '/placeholder.svg?text=Video'}
+                                alt={video.title}
+                                fill
+                                className='object-cover group-hover:scale-105 transition-transform duration-300'
+                              />
+                              <div className='absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center'>
+                                <Play className='h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity' />
+                              </div>
+                              <div className='absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded'>
+                                {formatDuration(video.duration)}
+                              </div>
                             </div>
-                            <div className='absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded'>
-                              {formatDuration(video.duration)}
-                            </div>
-                          </div>
 
-                          <CardContent className='p-3'>
-                            <h3 className='font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors'>
-                              {video.title}
-                            </h3>
-                            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                              <span>{formatNumber(video.viewCount || 0)} vistas</span>
-                              <span>•</span>
-                              <span>
-                                {video.uploadDate
-                                  ? formatUploadDate({
-                                      seconds: Math.floor(video.uploadDate.getTime() / 1000),
-                                      nanoseconds: 0,
-                                    })
-                                  : 'Fecha desconocida'}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            <CardContent className='p-3'>
+                              <h3 className='font-semibold line-clamp-2 mb-2 group-hover:text-primary transition-colors'>
+                                {video.title}
+                              </h3>
+                              <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                                <span>{formatNumber(video.viewCount || 0)} vistas</span>
+                                <span>•</span>
+                                <span>
+                                  {video.uploadDate
+                                    ? formatUploadDate({
+                                        seconds: Math.floor(video.uploadDate.getTime() / 1000),
+                                        nanoseconds: 0,
+                                      })
+                                    : 'Fecha desconocida'}
+                                </span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </NavigationLink>
                       ))}
                     </div>
                   )}
@@ -618,7 +631,7 @@ export default function ProfilePage() {
                       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                         <div className='text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 rounded-lg'>
                           <div className='text-2xl font-bold text-blue-600'>
-                            {formatNumber(mockProfile.totalViews)}
+                            {formatNumber(profileData.totalViews)}
                           </div>
                           <div className='text-sm text-blue-600/70'>Vistas Totales</div>
                         </div>
@@ -632,13 +645,17 @@ export default function ProfilePage() {
 
                         <div className='text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 rounded-lg'>
                           <div className='text-2xl font-bold text-purple-600'>
-                            {mockProfile.videoCount}
+                            {profileData.videoCount}
                           </div>
                           <div className='text-sm text-purple-600/70'>Videos</div>
                         </div>
 
                         <div className='text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30 rounded-lg'>
-                          <div className='text-2xl font-bold text-orange-600'>8.5K</div>
+                          <div className='text-2xl font-bold text-orange-600'>
+                            {formatNumber(
+                              userVideos.reduce((total, video) => total + (video.likeCount || 0), 0)
+                            )}
+                          </div>
                           <div className='text-sm text-orange-600/70'>Likes Totales</div>
                         </div>
                       </div>
@@ -651,23 +668,34 @@ export default function ProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <div className='space-y-3'>
-                        {mockVideos.slice(0, 3).map((video, index) => (
-                          <div
-                            key={video.id}
-                            className='flex items-center gap-3 p-3 bg-muted/30 rounded-lg'
-                          >
-                            <div className='flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center'>
-                              <span className='text-sm font-bold text-primary'>#{index + 1}</span>
-                            </div>
-                            <div className='flex-1'>
-                              <h4 className='font-semibold text-sm'>{video.title}</h4>
-                              <p className='text-xs text-muted-foreground'>
-                                {formatNumber(video.views)} vistas
-                              </p>
-                            </div>
-                            <Heart className='h-4 w-4 text-red-500' />
+                        {userVideos.length > 0 ? (
+                          userVideos
+                            .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+                            .slice(0, 3)
+                            .map((video, index) => (
+                              <NavigationLink key={video.id} href={`/watch/${video.id}`}>
+                                <div className='flex items-center gap-3 p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors'>
+                                  <div className='flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center'>
+                                    <span className='text-sm font-bold text-primary'>
+                                      #{index + 1}
+                                    </span>
+                                  </div>
+                                  <div className='flex-1'>
+                                    <h4 className='font-semibold text-sm'>{video.title}</h4>
+                                    <p className='text-xs text-muted-foreground'>
+                                      {formatNumber(video.viewCount || 0)} vistas
+                                    </p>
+                                  </div>
+                                  <Heart className='h-4 w-4 text-red-500' />
+                                </div>
+                              </NavigationLink>
+                            ))
+                        ) : (
+                          <div className='text-center py-8'>
+                            <VideoIcon className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+                            <p className='text-muted-foreground'>No hay videos para mostrar</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </CardContent>
                   </Card>

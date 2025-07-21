@@ -10,12 +10,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
 import { getUserVideoRating, rateVideo } from '@/lib/firestore'
+import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
-import { VideoInteractionsProps } from '@/lib/interfaces/IVideoInteractions'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
+import { VideoInteractionsProps, toSafeDate } from '@/lib/types'
 
 export function VideoInteractions({
   videoId,
@@ -474,10 +474,8 @@ export function VideoInteractions({
                     <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
                       <span className='font-semibold text-sm truncate'>{comment.userName}</span>
                       <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        {comment.createdAt &&
-                        typeof comment.createdAt === 'object' &&
-                        'toDate' in comment.createdAt
-                          ? comment.createdAt.toDate().toLocaleDateString()
+                        {comment.createdAt
+                          ? toSafeDate(comment.createdAt).toLocaleDateString()
                           : 'Ahora'}
                       </span>
                     </div>

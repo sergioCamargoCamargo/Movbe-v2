@@ -3,9 +3,9 @@
 import { Building, Mail, MapPin, MessageSquare, Phone, Send, Users } from 'lucide-react'
 import { useState } from 'react'
 
-import HeaderDynamic from '@/app/components/HeaderDynamic'
-import Sidebar from '@/app/components/Sidebar'
+import HeaderDynamic from '@/components/HeaderDynamic'
 import { PageTransition } from '@/components/PageTransition'
+import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,11 +18,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { ContactFormData } from '@/lib/interfaces'
+import { useToast } from '@/lib/hooks/use-toast'
 import { emailService } from '@/lib/services/EmailService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import { ContactFormData } from '@/lib/types'
 
 export default function ContactPage() {
   const [name, setName] = useState('')
@@ -86,7 +86,7 @@ export default function ContactPage() {
         <HeaderDynamic onMenuClick={() => dispatch(toggleSidebar())} />
         <div className='flex flex-1 pt-16 sm:pt-20'>
           <Sidebar />
-          <div className='flex-1 bg-gradient-to-br from-background via-background to-muted/30 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
+          <div className='flex-1 bg-gradient-to-br from-background via-background to-muted/30 p-3 sm:p-4 md:p-6 lg:p-8'>
             <div className='w-full max-w-6xl mx-auto px-2 sm:px-0 py-4'>
               <div className='mb-4 sm:mb-8 text-center'>
                 <h1 className='text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-2 sm:mb-4'>
