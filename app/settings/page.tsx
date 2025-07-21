@@ -3,6 +3,7 @@
 import { Bell, Camera, Edit, Lock, Save, Shield, Trash2, User, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
 import { PageTransition } from '@/components/PageTransition'
@@ -34,6 +35,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const { user, loading: authLoading } = useAppSelector(state => state.auth)
   const dispatch = useAppDispatch()
   const router = useRouter()
@@ -109,14 +111,14 @@ export default function SettingsPage() {
       }
     } catch {
       toast({
-        title: 'Error',
-        description: 'No se pudo cargar la información del usuario',
+        title: t('common.error'),
+        description: t('settings.loadUserInfoError'),
         variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }, [user, userService, toast])
+  }, [user, userService, toast, t])
 
   useEffect(() => {
     // Don't redirect if auth is still loading
@@ -140,21 +142,20 @@ export default function SettingsPage() {
 
       if (result.success) {
         toast({
-          title: 'Avatar actualizado',
-          description: result.message || 'Tu foto de perfil ha sido actualizada correctamente',
+          title: t('settings.avatarUpdated'),
+          description: result.message || t('settings.avatarUpdatedSuccess'),
         })
       } else {
         toast({
-          title: 'Error',
-          description: result.message || 'No se pudo actualizar tu foto de perfil',
+          title: t('common.error'),
+          description: result.message || t('settings.avatarUpdateError'),
           variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description:
-          error instanceof Error ? error.message : 'No se pudo actualizar tu foto de perfil',
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('settings.avatarUpdateError'),
         variant: 'destructive',
       })
     } finally {
@@ -197,13 +198,13 @@ export default function SettingsPage() {
       }
 
       toast({
-        title: 'Cambios guardados',
-        description: 'Todos los cambios se han guardado correctamente',
+        title: t('settings.changesSaved'),
+        description: t('settings.changesSavedSuccess'),
       })
     } catch {
       toast({
-        title: 'Error',
-        description: 'No se pudieron guardar los cambios',
+        title: t('common.error'),
+        description: t('settings.saveChangesError'),
         variant: 'destructive',
       })
     } finally {
@@ -253,14 +254,14 @@ export default function SettingsPage() {
     try {
       // Aquí implementarías la lógica de eliminación de cuenta
       toast({
-        title: 'Cuenta eliminada',
-        description: 'Tu cuenta ha sido eliminada permanentemente',
+        title: t('settings.accountDeleted'),
+        description: t('settings.accountDeletedSuccess'),
       })
       router.push('/')
     } catch {
       toast({
-        title: 'Error',
-        description: 'No se pudo eliminar la cuenta',
+        title: t('common.error'),
+        description: t('settings.accountDeleteError'),
         variant: 'destructive',
       })
     }
@@ -300,10 +301,8 @@ export default function SettingsPage() {
             <div className='max-w-4xl mx-auto space-y-8'>
               {/* Header */}
               <div className='space-y-2'>
-                <h1 className='text-3xl font-bold tracking-tight'>Configuración</h1>
-                <p className='text-muted-foreground'>
-                  Administra tu cuenta y preferencias de la aplicación
-                </p>
+                <h1 className='text-3xl font-bold tracking-tight'>{t('settings.title')}</h1>
+                <p className='text-muted-foreground'>{t('settings.description')}</p>
               </div>
 
               {/* Perfil */}
@@ -311,9 +310,9 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <User className='h-5 w-5' />
-                    Perfil
+                    {t('settings.profile')}
                   </CardTitle>
-                  <CardDescription>Información básica de tu cuenta</CardDescription>
+                  <CardDescription>{t('settings.profileDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   {/* Avatar y nombre */}
@@ -340,7 +339,7 @@ export default function SettingsPage() {
                       <label
                         htmlFor='avatar-upload'
                         className='absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0 bg-white shadow cursor-pointer flex items-center justify-center'
-                        aria-label='Cambiar avatar'
+                        aria-label={t('settings.changeAvatar')}
                       >
                         <Camera className='h-4 w-4 text-muted-foreground' />
                       </label>
@@ -348,14 +347,14 @@ export default function SettingsPage() {
 
                     <div className='flex-1 space-y-4'>
                       <div className='space-y-2'>
-                        <Label htmlFor='displayName'>Nombre de usuario</Label>
+                        <Label htmlFor='displayName'>{t('settings.username')}</Label>
                         <div className='flex gap-2'>
                           <Input
                             id='displayName'
                             value={displayName}
                             onChange={e => handleDisplayNameChange(e.target.value)}
                             disabled={!isEditing}
-                            placeholder='Tu nombre de usuario'
+                            placeholder={t('settings.usernamePlaceholder')}
                           />
                           {!isEditing ? (
                             <Button variant='outline' size='sm' onClick={() => setIsEditing(true)}>
@@ -378,7 +377,7 @@ export default function SettingsPage() {
                       </div>
 
                       <div className='space-y-2'>
-                        <Label>Email</Label>
+                        <Label>{t('auth.email')}</Label>
                         <div className='flex items-center gap-2'>
                           <Input value={user.email || ''} disabled className='bg-muted' />
                           {isGoogleUser && <Badge variant='secondary'>Google</Badge>}
@@ -394,23 +393,23 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Shield className='h-5 w-5' />
-                    Seguridad
+                    {t('settings.security')}
                   </CardTitle>
-                  <CardDescription>Configuraciones de seguridad de tu cuenta</CardDescription>
+                  <CardDescription>{t('settings.securityDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   {!isGoogleUser && (
                     <>
                       <div className='flex items-center justify-between'>
                         <div className='space-y-1'>
-                          <Label>Cambiar contraseña</Label>
+                          <Label>{t('settings.changePassword')}</Label>
                           <p className='text-sm text-muted-foreground'>
-                            Actualiza tu contraseña regularmente
+                            {t('settings.changePasswordDescription')}
                           </p>
                         </div>
                         <Button variant='outline'>
                           <Lock className='h-4 w-4 mr-2' />
-                          Cambiar
+                          {t('common.change')}
                         </Button>
                       </div>
                       <Separator />
@@ -423,10 +422,10 @@ export default function SettingsPage() {
                   >
                     <div className='space-y-1 flex-1 mr-4'>
                       <Label className='text-base md:text-sm cursor-pointer'>
-                        Autenticación de dos factores
+                        {t('settings.twoFactor')}
                       </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Añade una capa extra de seguridad
+                        {t('settings.twoFactorDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -451,10 +450,10 @@ export default function SettingsPage() {
                         <Shield className='h-5 w-5 text-blue-600' />
                         <div>
                           <p className='font-medium text-blue-900 dark:text-blue-100'>
-                            Cuenta vinculada con Google
+                            {t('settings.googleLinkedAccount')}
                           </p>
                           <p className='text-sm text-blue-700 dark:text-blue-300'>
-                            Tu contraseña se gestiona desde tu cuenta de Google
+                            {t('settings.googlePasswordManaged')}
                           </p>
                         </div>
                       </div>
@@ -468,9 +467,9 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Bell className='h-5 w-5' />
-                    Notificaciones
+                    {t('settings.notifications')}
                   </CardTitle>
-                  <CardDescription>Personaliza qué notificaciones quieres recibir</CardDescription>
+                  <CardDescription>{t('settings.notificationsDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-4'>
                   {/* Notification Item */}
@@ -480,10 +479,10 @@ export default function SettingsPage() {
                   >
                     <div className='space-y-1 flex-1 mr-4'>
                       <Label className='text-base md:text-sm cursor-pointer'>
-                        Notificaciones por email
+                        {t('settings.emailNotifications')}
                       </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Recibe actualizaciones importantes por correo
+                        {t('settings.emailNotificationsDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -515,10 +514,10 @@ export default function SettingsPage() {
                   >
                     <div className='space-y-1 flex-1 mr-4'>
                       <Label className='text-base md:text-sm cursor-pointer'>
-                        Notificaciones push
+                        {t('settings.pushNotifications')}
                       </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Notificaciones en tiempo real en tu dispositivo
+                        {t('settings.pushNotificationsDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -550,10 +549,10 @@ export default function SettingsPage() {
                   >
                     <div className='space-y-1 flex-1 mr-4'>
                       <Label className='text-base md:text-sm cursor-pointer'>
-                        Emails de marketing
+                        {t('settings.marketingEmails')}
                       </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Ofertas especiales y noticias del producto
+                        {t('settings.marketingEmailsDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -584,9 +583,11 @@ export default function SettingsPage() {
                     onClick={() => handleNotificationChange('newVideos', !newVideosNotifications)}
                   >
                     <div className='space-y-1 flex-1 mr-4'>
-                      <Label className='text-base md:text-sm cursor-pointer'>Nuevos videos</Label>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        {t('settings.newVideos')}
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Notificaciones cuando se suban nuevos videos
+                        {t('settings.newVideosDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -617,9 +618,11 @@ export default function SettingsPage() {
                     onClick={() => handleNotificationChange('comments', !commentsNotifications)}
                   >
                     <div className='space-y-1 flex-1 mr-4'>
-                      <Label className='text-base md:text-sm cursor-pointer'>Comentarios</Label>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        {t('settings.comments')}
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Notificaciones de comentarios en tus videos
+                        {t('settings.commentsDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -650,9 +653,11 @@ export default function SettingsPage() {
                     onClick={() => handleNotificationChange('likes', !likesNotifications)}
                   >
                     <div className='space-y-1 flex-1 mr-4'>
-                      <Label className='text-base md:text-sm cursor-pointer'>Likes</Label>
+                      <Label className='text-base md:text-sm cursor-pointer'>
+                        {t('settings.likes')}
+                      </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Notificaciones cuando recibas likes
+                        {t('settings.likesDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -684,10 +689,10 @@ export default function SettingsPage() {
                   >
                     <div className='space-y-1 flex-1 mr-4'>
                       <Label className='text-base md:text-sm cursor-pointer'>
-                        Nuevos seguidores
+                        {t('settings.newFollowers')}
                       </Label>
                       <p className='text-sm text-muted-foreground'>
-                        Notificaciones cuando tengas nuevos seguidores
+                        {t('settings.newFollowersDescription')}
                       </p>
                     </div>
                     <div className='flex-shrink-0'>
@@ -717,40 +722,39 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2 text-destructive'>
                     <Trash2 className='h-5 w-5' />
-                    Zona de peligro
+                    {t('settings.dangerZone')}
                   </CardTitle>
-                  <CardDescription>Acciones irreversibles en tu cuenta</CardDescription>
+                  <CardDescription>{t('settings.dangerZoneDescription')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className='flex items-center justify-between p-4 border border-destructive/20 rounded-lg'>
                     <div className='space-y-1'>
-                      <Label className='text-destructive'>Eliminar cuenta</Label>
+                      <Label className='text-destructive'>{t('settings.deleteAccount')}</Label>
                       <p className='text-sm text-muted-foreground'>
-                        Elimina permanentemente tu cuenta y todos los datos asociados
+                        {t('settings.deleteAccountDescription')}
                       </p>
                     </div>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant='destructive'>
                           <Trash2 className='h-4 w-4 mr-2' />
-                          Eliminar
+                          {t('common.delete')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('settings.deleteConfirmTitle')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente tu
-                            cuenta y todos los datos asociados de nuestros servidores.
+                            {t('settings.deleteConfirmDescription')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteAccount}
                             className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
                           >
-                            Sí, eliminar cuenta
+                            {t('settings.confirmDeleteAccount')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -769,7 +773,7 @@ export default function SettingsPage() {
                       disabled={saving}
                       className='w-full md:w-auto h-12 md:h-10 text-base md:text-sm'
                     >
-                      Cancelar cambios
+                      {t('settings.cancelChanges')}
                     </Button>
                   )}
                   <Button
@@ -778,7 +782,7 @@ export default function SettingsPage() {
                     className='w-full md:w-auto min-w-[140px] h-12 md:h-10 text-base md:text-sm'
                   >
                     <Save className='h-5 w-5 mr-2 md:h-4 md:w-4' />
-                    {saving ? 'Guardando...' : 'Guardar cambios'}
+                    {saving ? t('settings.saving') : t('settings.saveChanges')}
                   </Button>
                 </div>
               </div>

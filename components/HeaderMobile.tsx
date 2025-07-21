@@ -4,8 +4,11 @@ import { signOut } from 'firebase/auth'
 import { Menu, Search, Upload, User, BarChart3, Settings, X } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
+// import { LanguageMenuItem } from '@/components/LanguageMenuItem'
 import { NavigationLink } from '@/components/NavigationLink'
+import { ThemeMenuItem } from '@/components/ThemeMenuItem'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,6 +36,7 @@ export default function HeaderMobile({
   const [mounted, setMounted] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [localQuery, setLocalQuery] = useState('')
+  const { t } = useTranslation()
 
   useEffect(() => {
     setLocalQuery(query)
@@ -76,7 +80,7 @@ export default function HeaderMobile({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 h-16 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
     >
       {/* Mobile Search Overlay */}
       {showMobileSearch && (
@@ -94,7 +98,7 @@ export default function HeaderMobile({
             <div className='flex-1 relative'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
               <Input
-                placeholder='Buscar videos...'
+                placeholder={t('search.placeholder')}
                 className='pl-10 touch-manipulation'
                 value={localQuery}
                 onChange={handleSearchInputChange}
@@ -107,7 +111,9 @@ export default function HeaderMobile({
       )}
 
       {/* Main Header Content */}
-      <div className={`flex items-center justify-between p-4 ${showMobileSearch ? 'hidden' : ''}`}>
+      <div
+        className={`flex items-center justify-between px-4 h-full ${showMobileSearch ? 'hidden' : ''}`}
+      >
         <div className='flex items-center'>
           <Button variant='ghost' size='icon' onClick={onMenuClick} className='touch-manipulation'>
             <Menu className='h-6 w-6' />
@@ -118,14 +124,14 @@ export default function HeaderMobile({
               alt='Movbe'
               width={100}
               height={32}
-              className='dark:hidden w-16 h-auto'
+              className='dark:hidden w-16 h-8'
             />
             <Image
               src='/logo_white.png'
               alt='Movbe'
               width={100}
               height={32}
-              className='hidden dark:block w-16 h-auto'
+              className='hidden dark:block w-16 h-8'
             />
           </NavigationLink>
         </div>
@@ -179,30 +185,33 @@ export default function HeaderMobile({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end' className='w-56'>
                   <DropdownMenuLabel className='flex flex-col'>
-                    <span>{user.displayName || 'Usuario'}</span>
+                    <span>{user.displayName || t('auth.user')}</span>
                     <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <NavigationLink href={`/profile/${user.uid}`}>
                     <DropdownMenuItem>
                       <User className='mr-2 h-4 w-4' />
-                      Mi Perfil
+                      {t('nav.profile')}
                     </DropdownMenuItem>
                   </NavigationLink>
                   <NavigationLink href='/analytics'>
                     <DropdownMenuItem>
                       <BarChart3 className='mr-2 h-4 w-4' />
-                      Analytics
+                      {t('nav.analytics')}
                     </DropdownMenuItem>
                   </NavigationLink>
                   <NavigationLink href='/settings'>
                     <DropdownMenuItem>
                       <Settings className='mr-2 h-4 w-4' />
-                      Configuración
+                      {t('nav.settings')}
                     </DropdownMenuItem>
                   </NavigationLink>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
+                  <ThemeMenuItem />
+                  {/* <LanguageMenuItem /> */}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>{t('auth.signOut')}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -214,7 +223,7 @@ export default function HeaderMobile({
                 className='touch-manipulation text-sm flex items-center gap-2 rounded-full border-2'
               >
                 <User className='h-4 w-4' />
-                Iniciar sesión
+                {t('auth.login')}
               </Button>
             </NavigationLink>
           )}

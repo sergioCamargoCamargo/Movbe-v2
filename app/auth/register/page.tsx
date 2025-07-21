@@ -12,6 +12,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,7 @@ import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
 import { UserService } from '@/lib/services/UserService'
 
 export default function RegisterPage() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -62,7 +64,7 @@ export default function RegisterPage() {
 
     const age = calculateAge(newBirthDate)
     if (age !== null && age < 18) {
-      setAgeWarning('Debes ser mayor de 18 años para registrarte en esta plataforma')
+      setAgeWarning(t('auth.minimumAgeError'))
     } else {
       setAgeWarning('')
     }
@@ -90,7 +92,7 @@ export default function RegisterPage() {
 
       // Verificar que el usuario sea mayor de edad
       if (!isAdult) {
-        setError('Debes ser mayor de 18 años para registrarte en esta plataforma')
+        setError(t('auth.minimumAgeError'))
         return
       }
 
@@ -115,9 +117,7 @@ export default function RegisterPage() {
 
       // Send email verification
       await sendEmailVerification(user)
-      setSuccess(
-        'Cuenta creada exitosamente. Revisa tu correo para verificar tu cuenta antes de iniciar sesión.'
-      )
+      setSuccess(t('auth.accountCreatedSuccess'))
 
       // Don't redirect immediately, let user see the success message
     } catch (error) {
@@ -191,9 +191,11 @@ export default function RegisterPage() {
           </Button>
 
           <CardHeader className='space-y-1 px-4 sm:px-6'>
-            <CardTitle className='text-xl sm:text-2xl text-center'>Crear cuenta</CardTitle>
+            <CardTitle className='text-xl sm:text-2xl text-center'>
+              {t('auth.createAccount')}
+            </CardTitle>
             <CardDescription className='text-center text-sm sm:text-base'>
-              Ingresa tus datos para registrarte
+              {t('auth.registerDescription')}
             </CardDescription>
           </CardHeader>
           <form onSubmit={onSubmit}>
@@ -210,27 +212,27 @@ export default function RegisterPage() {
               )}
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='firstName'>Nombre</Label>
+                  <Label htmlFor='firstName'>{t('auth.firstName')}</Label>
                   <Input id='firstName' name='firstName' required disabled={isLoading} />
                 </div>
                 <div className='space-y-2'>
-                  <Label htmlFor='lastName'>Apellido</Label>
+                  <Label htmlFor='lastName'>{t('auth.lastName')}</Label>
                   <Input id='lastName' name='lastName' required disabled={isLoading} />
                 </div>
               </div>
               <div className='space-y-2'>
-                <Label htmlFor='email'>Correo electrónico</Label>
+                <Label htmlFor='email'>{t('auth.email')}</Label>
                 <Input
                   id='email'
                   name='email'
                   type='email'
-                  placeholder='ejemplo@correo.com'
+                  placeholder={t('auth.emailPlaceholder')}
                   required
                   disabled={isLoading}
                 />
               </div>
               <div className='space-y-2'>
-                <Label htmlFor='birthDate'>Fecha de nacimiento</Label>
+                <Label htmlFor='birthDate'>{t('auth.birthDate')}</Label>
                 <Input
                   id='birthDate'
                   name='birthDate'
@@ -247,12 +249,10 @@ export default function RegisterPage() {
                     <AlertDescription>{ageWarning}</AlertDescription>
                   </Alert>
                 )}
-                <p className='text-xs text-muted-foreground'>
-                  Esta información nos ayuda a personalizar tu experiencia
-                </p>
+                <p className='text-xs text-muted-foreground'>{t('auth.birthDateHelp')}</p>
               </div>
               <div className='space-y-2'>
-                <Label htmlFor='password'>Contraseña</Label>
+                <Label htmlFor='password'>{t('auth.password')}</Label>
                 <div className='relative'>
                   <Input
                     id='password'
@@ -282,15 +282,15 @@ export default function RegisterPage() {
                   />
                 </div>
                 <Label htmlFor='terms' className='text-xs sm:text-sm leading-tight flex-1 -ml-2'>
-                  Acepto los{' '}
+                  {t('auth.acceptTerms')}{' '}
                   <Link href='/terms' className='text-primary hover:underline'>
-                    términos y condiciones
+                    {t('auth.termsAndConditions')}
                   </Link>
                 </Label>
               </div>
               <div className='space-y-4'>
                 <Button className='w-full' disabled={isLoading || ageWarning !== ''}>
-                  {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                  {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
                 </Button>
                 <div className='relative'>
                   <div className='absolute inset-0 flex items-center'>
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                   </div>
                   <div className='relative flex justify-center text-xs uppercase'>
                     <span className='bg-background px-2 text-muted-foreground'>
-                      O regístrate con
+                      {t('auth.orRegisterWith')}
                     </span>
                   </div>
                 </div>
@@ -326,16 +326,16 @@ export default function RegisterPage() {
                       d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
                     />
                   </svg>
-                  Google
+                  {t('auth.continueWithGoogle')}
                 </Button>
               </div>
             </CardContent>
           </form>
           <CardFooter className='flex flex-col items-center px-4 sm:px-6'>
             <p className='text-xs sm:text-sm text-muted-foreground text-center'>
-              ¿Ya tienes una cuenta?{' '}
+              {t('auth.alreadyHaveAccount')}{' '}
               <Link href='/auth/login' className='text-primary hover:underline'>
-                Inicia sesión
+                {t('auth.signIn')}
               </Link>
             </p>
           </CardFooter>

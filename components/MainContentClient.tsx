@@ -19,7 +19,7 @@ function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   const [isClosing, setIsClosing] = useState(false)
   const [hasEntered, setHasEntered] = useState(false)
 
-  // Animación de entrada
+  // Entry animation
   useEffect(() => {
     const timer = setTimeout(() => setHasEntered(true), 100)
     return () => clearTimeout(timer)
@@ -27,10 +27,10 @@ function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
 
   const handleClose = () => {
     setIsClosing(true)
-    // Esperar a que termine la animación antes de ocultar completamente
+    // Wait for animation to finish before completely hiding
     setTimeout(() => {
       setIsVisible(false)
-    }, 300) // Duración de la animación
+    }, 300) // Animation duration
   }
 
   if (!isVisible) return null
@@ -59,13 +59,13 @@ function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   )
 }
 
-// Wrapper component para el banner principal con animaciones más suaves
+// Wrapper component for main banner with smoother animations
 function MainAdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   const [isVisible, setIsVisible] = useState(true)
   const [isClosing, setIsClosing] = useState(false)
   const [hasEntered, setHasEntered] = useState(false)
 
-  // Animación de entrada más lenta para el banner principal
+  // Slower entry animation for main banner
   useEffect(() => {
     const timer = setTimeout(() => setHasEntered(true), 200)
     return () => clearTimeout(timer)
@@ -73,7 +73,7 @@ function MainAdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
 
   const handleClose = () => {
     setIsClosing(true)
-    // Animación más lenta para el banner principal
+    // Slower animation for main banner
     setTimeout(() => {
       setIsVisible(false)
     }, 400)
@@ -171,10 +171,10 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
         <MainAdBannerWrapper
           type='interactive'
           size='fullwidth'
-          title='¡Promoción Especial en MOVBE!'
-          description='Únete a MOVBE Premium y disfruta de contenido exclusivo sin anuncios'
-          ctaText='Suscríbete Ahora'
-          sponsor='MOVBE Premium'
+          title={t('ads.defaultTitle')}
+          description={t('ads.defaultDescription')}
+          ctaText={t('ads.defaultCta')}
+          sponsor={t('ads.sponsor')}
           imageUrl='/placeholder.svg?text=MOVBE+Premium'
         />
 
@@ -205,26 +205,17 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
           )}
         </div>
 
-        {/* Show message when no categories are available from Firebase */}
-        {categories.length === 0 && displayCategories.length === 1 && (
-          <div className='text-center py-2 mb-4'>
-            <p className='text-sm text-muted-foreground'>
-              No hay categorías configuradas en Firebase. Mostrando todos los videos.
-            </p>
-          </div>
-        )}
-
         {loading && (
           <div className='text-center py-8'>
-            <p>Cargando videos...</p>
+            <p>{t('home.loadingVideos')}</p>
           </div>
         )}
 
         {!loading && videos.length === 0 && (
           <div className='text-center py-8 text-muted-foreground'>
-            <p>No hay videos disponibles</p>
+            <p>{t('home.noVideos')}</p>
             <Button onClick={refetch} className='mt-4'>
-              Reintentar
+              {t('common.goHome')}
             </Button>
           </div>
         )}
@@ -244,23 +235,23 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
               .map((video, i) => {
                 const items = []
 
-                // Insertar banner publicitario cada 4 videos como si fuera un video más
+                // Insert ad banner every 4 videos as if it were another video
                 if (i > 0 && i % 4 === 0) {
                   items.push(
                     <AdBannerWrapper
                       key={`ad-${Math.floor(i / 4)}`}
                       type='banner'
                       size='medium'
-                      title={`Producto Patrocinado ${Math.floor(i / 4)}`}
-                      description='Descubre ofertas increíbles que no puedes perderte'
-                      ctaText='Ver Oferta'
-                      sponsor='Patrocinado'
+                      title={t('ads.defaultTitle')}
+                      description={t('ads.defaultDescription')}
+                      ctaText={t('ads.defaultCta')}
+                      sponsor={t('ads.sponsor')}
                       imageUrl={`/placeholder.svg?text=Ad+${Math.floor(i / 4)}`}
                     />
                   )
                 }
 
-                // Agregar el video
+                // Add the video
                 items.push(
                   <div key={video.id} className='w-full min-w-0'>
                     <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>

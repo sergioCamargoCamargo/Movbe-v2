@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google'
 import { ClientLayout } from '@/components/ClientLayout'
 import { I18nProvider } from '@/components/I18nProvider'
 import { StoreProvider } from '@/components/StoreProvider'
+import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
@@ -103,18 +104,25 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='es'>
+    <html lang='es' suppressHydrationWarning>
       <body className={`${inter.className} antialiased overflow-x-hidden overflow-y-auto`}>
-        <StoreProvider>
-          <I18nProvider>
-            <AuthProvider>
-              <SidebarProvider>
-                <ClientLayout>{children}</ClientLayout>
-                <Toaster />
-              </SidebarProvider>
-            </AuthProvider>
-          </I18nProvider>
-        </StoreProvider>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='light'
+          enableSystem
+          disableTransitionOnChange
+        >
+          <StoreProvider>
+            <I18nProvider>
+              <AuthProvider>
+                <SidebarProvider>
+                  <ClientLayout>{children}</ClientLayout>
+                  <Toaster />
+                </SidebarProvider>
+              </AuthProvider>
+            </I18nProvider>
+          </StoreProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
