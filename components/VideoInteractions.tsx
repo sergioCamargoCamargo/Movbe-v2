@@ -369,7 +369,6 @@ export function VideoInteractions({
           <div className='flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2'>
             <h3 className='text-base sm:text-lg font-semibold'>Calificación</h3>
             <div className='flex flex-col xs:items-end gap-1'>
-              <StarRating rating={rating} readonly size='md' showValue />
               {ratingCount && ratingCount > 0 && (
                 <span className='text-xs text-muted-foreground'>
                   ({ratingCount} calificación{ratingCount !== 1 ? 'es' : ''})
@@ -380,27 +379,31 @@ export function VideoInteractions({
         </CardHeader>
         <CardContent className='pt-0'>
           <div className='space-y-3 sm:space-y-4'>
-            <p className='text-xs sm:text-sm text-muted-foreground'>
-              {user
-                ? 'Califica este video para ayudar a otros usuarios'
-                : 'Inicia sesión para calificar este video'}
-            </p>
-            {user && (
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+              <div className='flex flex-col gap-2'>
+                <p className='text-xs sm:text-sm text-muted-foreground'>
+                  {user
+                    ? 'Califica este video y ve la calificación promedio'
+                    : 'Inicia sesión para calificar este video'}
+                </p>
+                {rating > 0 && (
+                  <div className='text-sm text-muted-foreground'>
+                    Calificación promedio:{' '}
+                    <span className='font-medium'>{rating.toFixed(1)} estrellas</span>
+                  </div>
+                )}
+              </div>
               <div className='flex items-center justify-center sm:justify-start'>
                 <StarRating
-                  rating={currentUserRating}
-                  onRatingChange={handleRating}
-                  readonly={ratingLoading}
+                  rating={user ? currentUserRating : rating}
+                  onRatingChange={user ? handleRating : undefined}
+                  readonly={!user || ratingLoading}
                   size='lg'
+                  showValue={!user && rating > 0}
                   className={ratingLoading ? 'opacity-50' : ''}
                 />
               </div>
-            )}
-            {!user && rating > 0 && (
-              <div className='text-center sm:text-left text-sm text-muted-foreground'>
-                Este video tiene una calificación promedio de {rating.toFixed(1)} estrellas
-              </div>
-            )}
+            </div>
             {currentUserRating > 0 && (
               <p className='text-xs sm:text-sm text-green-600 text-center sm:text-left'>
                 Has calificado este video con {currentUserRating} estrella
