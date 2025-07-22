@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useCategories } from '@/lib/hooks/useCategories'
 import { VideoService } from '@/lib/services/VideoService'
+import { VideoUploadData, VideoUploadProgress } from '@/lib/types/services/IVideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
@@ -33,13 +34,6 @@ import {
   setUploading,
   setUploadProgress,
 } from '@/lib/store/slices/uploadSlice'
-import {
-  generateThumbnail,
-  uploadThumbnail,
-  uploadVideo,
-  validateVideoFile,
-  UploadProgress as VideoUploadProgress,
-} from '@/lib/videoService'
 
 export default function UploadPage() {
   const { t } = useTranslation()
@@ -55,7 +49,8 @@ export default function UploadPage() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const validation = await validateVideoFile(file)
+      const videoService = new VideoService()
+      const validation = await videoService.validateVideoFile(file)
       if (!validation.isValid) {
         toast({
           variant: 'destructive',
@@ -91,36 +86,35 @@ export default function UploadPage() {
     dispatch(setUploadProgress(null))
 
     try {
-      const videoId = await uploadVideo(
-        {
-          title,
-          description,
-          file: selectedFile,
-          userId: user.uid,
-          userName: userProfile.displayName || user.email || 'Usuario',
-          category: category,
-          tags: [],
-          visibility: 'public',
-        },
-        (progress: VideoUploadProgress) => {
-          // Convert VideoUploadProgress to UploadProgress expected by Redux
-          dispatch(
-            setUploadProgress({
-              videoId: '', // Will be available after upload completes
-              progress: progress.progress,
-              status: progress.state === 'running' ? 'uploading' : 'completed',
-            })
-          )
-        }
-      )
+      const videoService = new VideoService()
+      const videoData: VideoUploadData = {
+        title,
+        description,
+        file: selectedFile,
+        userId: user.uid,
+        userName: userProfile.displayName || user.email || 'Usuario',
+        category: category,
+        tags: [],
+        visibility: 'public',
+      }
+
+      const videoId = await videoService.uploadVideo(videoData, (progress: VideoUploadProgress) => {
+        // Convert VideoUploadProgress to UploadProgress expected by Redux
+        dispatch(
+          setUploadProgress({
+            videoId: '', // Will be available after upload completes
+            progress: progress.progress,
+            status: progress.state === 'running' ? 'uploading' : 'completed',
+          })
+        )
+      })
 
       // Generar y subir thumbnail
       try {
-        const thumbnailDataURL = await generateThumbnail(selectedFile)
-        const thumbnailURL = await uploadThumbnail(thumbnailDataURL, user.uid, videoId)
+        const thumbnailDataURL = await videoService.generateThumbnail(selectedFile)
+        const thumbnailURL = await videoService.uploadThumbnail(thumbnailDataURL, user.uid, videoId)
 
         // Actualizar video con thumbnail
-        const videoService = new VideoService()
         await videoService.updateVideo(videoId, { thumbnailURL })
       } catch {
         // Thumbnail generation is optional, continue without it

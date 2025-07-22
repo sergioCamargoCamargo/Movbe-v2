@@ -1,4 +1,4 @@
-# Ejemplos de uso de Firestore
+# Ejemplos de uso de los nuevos servicios de Firebase
 
 ## 1. Usar el hook useAuth en componentes
 
@@ -32,37 +32,49 @@ export default function ProfileComponent() {
 'use client'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { createVideo } from '@/lib/firestore'
+import { VideoService } from '@/lib/services/VideoService'
 
 export default function UploadVideoComponent() {
   const { user, userProfile } = useAuth()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const handleUpload = async e => {
     e.preventDefault()
-    if (!user || !userProfile) return
+    if (!user || !userProfile || !file) return
 
     setLoading(true)
     try {
+      const videoService = new VideoService()
+
+      // Validar archivo
+      const validation = await videoService.validateVideoFile(file)
+      if (!validation.isValid) {
+        alert(validation.error)
+        return
+      }
+
       const videoData = {
         title,
         description,
-        uploaderId: user.uid,
-        uploaderName: userProfile.displayName || user.email,
-        category: 'general',
+        file,
+        userId: user.uid,
+        userName: userProfile.displayName || user.email,
+        category: 'Otros',
         tags: [],
-        language: 'es',
-        status: 'processing', // Cambiar a 'published' cuando esté listo
         visibility: 'public',
       }
 
-      const newVideo = await createVideo(videoData)
+      const videoId = await videoService.uploadVideo(videoData, progress => {
+        console.log(`Upload progress: ${progress.progress}%`)
+      })
 
       // Limpiar formulario
       setTitle('')
       setDescription('')
+      setFile(null)
 
       alert('Video subido exitosamente!')
     } catch (error) {
@@ -82,7 +94,11 @@ export default function UploadVideoComponent() {
         <label>Descripción:</label>
         <textarea value={description} onChange={e => setDescription(e.target.value)} />
       </div>
-      <button type='submit' disabled={loading}>
+      <div>
+        <label>Archivo de video:</label>
+        <input type='file' accept='video/*' onChange={e => setFile(e.target.files[0])} required />
+      </div>
+      <button type='submit' disabled={loading || !file}>
         {loading ? 'Subiendo...' : 'Subir Video'}
       </button>
     </form>
@@ -96,7 +112,7 @@ export default function UploadVideoComponent() {
 'use client'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getVideosByUser } from '@/lib/firestore'
+import { VideoService } from '@/lib/services/VideoService'
 
 export default function MyVideosComponent() {
   const { user } = useAuth()
@@ -111,7 +127,8 @@ export default function MyVideosComponent() {
 
   const loadUserVideos = async () => {
     try {
-      const userVideos = await getVideosByUser(user.uid)
+      const videoService = new VideoService()
+      const userVideos = await videoService.getVideosByUser(user.uid)
       setVideos(userVideos)
     } catch (error) {
       console.error('Error loading videos:', error)
@@ -151,7 +168,7 @@ export default function MyVideosComponent() {
 ```jsx
 'use client'
 import { useState, useEffect } from 'react'
-import { getPublicVideos, incrementVideoViews } from '@/lib/firestore'
+import { VideoService } from '@/lib/services/VideoService'
 
 export default function PublicVideosComponent() {
   const [videos, setVideos] = useState([])
@@ -163,7 +180,8 @@ export default function PublicVideosComponent() {
 
   const loadPublicVideos = async () => {
     try {
-      const publicVideos = await getPublicVideos()
+      const videoService = new VideoService()
+      const publicVideos = await videoService.getPublicVideos()
       setVideos(publicVideos)
     } catch (error) {
       console.error('Error loading public videos:', error)
@@ -173,7 +191,8 @@ export default function PublicVideosComponent() {
 
   const handleVideoClick = async video => {
     try {
-      await incrementVideoViews(video.id, video.uploaderId)
+      const videoService = new VideoService()
+      await videoService.recordVideoView(video.id)
       // Actualizar la vista local
       setVideos(prev =>
         prev.map(v => (v.id === video.id ? { ...v, viewCount: v.viewCount + 1 } : v))
@@ -216,7 +235,7 @@ export default function PublicVideosComponent() {
 'use client'
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { updateUserProfile } from '@/lib/firestore'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
 
 export default function EditProfileComponent() {
   const { user, userProfile, refreshUserProfile } = useAuth()
@@ -230,6 +249,7 @@ export default function EditProfileComponent() {
 
     setLoading(true)
     try {
+      const userService = new EnhancedUserService()
       const updates = {
         displayName,
         ...(dateOfBirth && {
@@ -238,7 +258,7 @@ export default function EditProfileComponent() {
         }),
       }
 
-      await updateUserProfile(user.uid, updates)
+      await userService.updateUserProfile(user.uid, updates)
       await refreshUserProfile() // Refrescar el perfil en el contexto
 
       alert('Perfil actualizado!')
@@ -272,7 +292,7 @@ export default function EditProfileComponent() {
 ```jsx
 'use client'
 import { useState } from 'react'
-import { searchVideos } from '@/lib/firestore'
+import { VideoService } from '@/lib/services/VideoService'
 
 export default function SearchComponent() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -285,7 +305,8 @@ export default function SearchComponent() {
 
     setLoading(true)
     try {
-      const videos = await searchVideos(searchTerm)
+      const videoService = new VideoService()
+      const videos = await videoService.searchVideos(searchTerm)
       setResults(videos)
     } catch (error) {
       console.error('Error searching:', error)
@@ -319,6 +340,91 @@ export default function SearchComponent() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+```
+
+## 7. Gestionar comentarios
+
+```jsx
+'use client'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { CommentService } from '@/lib/services/CommentService'
+
+export default function CommentsComponent({ videoId }) {
+  const { user } = useAuth()
+  const [comments, setComments] = useState([])
+  const [newComment, setNewComment] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadComments()
+  }, [videoId])
+
+  const loadComments = async () => {
+    try {
+      const commentService = new CommentService()
+      const videoComments = await commentService.getVideoComments(videoId)
+      setComments(videoComments)
+    } catch (error) {
+      console.error('Error loading comments:', error)
+    }
+    setLoading(false)
+  }
+
+  const handleAddComment = async e => {
+    e.preventDefault()
+    if (!user || !newComment.trim()) return
+
+    try {
+      const commentService = new CommentService()
+      await commentService.addComment({
+        videoId,
+        userId: user.uid,
+        userName: user.displayName || 'Usuario',
+        text: newComment.trim(),
+      })
+
+      setNewComment('')
+      await loadComments() // Recargar comentarios
+    } catch (error) {
+      console.error('Error adding comment:', error)
+    }
+  }
+
+  if (loading) return <div>Cargando comentarios...</div>
+
+  return (
+    <div>
+      <h3>Comentarios ({comments.length})</h3>
+
+      {user && (
+        <form onSubmit={handleAddComment} className='mb-4'>
+          <textarea
+            value={newComment}
+            onChange={e => setNewComment(e.target.value)}
+            placeholder='Escribe un comentario...'
+            className='w-full p-2 border rounded'
+          />
+          <button type='submit' className='mt-2 px-4 py-2 bg-blue-500 text-white rounded'>
+            Comentar
+          </button>
+        </form>
+      )}
+
+      <div className='space-y-2'>
+        {comments.map(comment => (
+          <div key={comment.id} className='border p-3 rounded'>
+            <div className='font-bold'>{comment.userName}</div>
+            <div>{comment.text}</div>
+            <div className='text-sm text-gray-500'>
+              {comment.createdAt?.toDate?.()?.toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

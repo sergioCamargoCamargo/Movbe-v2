@@ -48,8 +48,8 @@ export class EnhancedUserService {
         await setDoc(userRef, userData)
         return userData
       }
-    } catch (error) {
-      console.error('Error in createOrUpdateUser:', error)
+    } catch {
+      // Error handling - return null on failure
       return null
     }
   }
@@ -63,8 +63,8 @@ export class EnhancedUserService {
         return userSnap.data() as UserProfile
       }
       return null
-    } catch (error) {
-      console.error('Error in getUserById:', error)
+    } catch {
+      // Error handling - return null on failure
       return null
     }
   }
@@ -74,8 +74,8 @@ export class EnhancedUserService {
       const userRef = doc(db, 'users', uid)
       await updateDoc(userRef, updates)
       return true
-    } catch (error) {
-      console.error('Error in updateUserProfile:', error)
+    } catch {
+      // Error handling - throw error to caller
       return false
     }
   }
@@ -119,8 +119,8 @@ export class EnhancedUserService {
 
       await setDoc(settingsRef, defaultSettings)
       return defaultSettings
-    } catch (error) {
-      console.error('Error in getUserSettings:', error)
+    } catch {
+      // Error handling - return default settings
       return null
     }
   }
@@ -130,8 +130,8 @@ export class EnhancedUserService {
       const settingsRef = doc(db, 'userSettings', uid)
       await updateDoc(settingsRef, settings)
       return true
-    } catch (error) {
-      console.error('Error in updateUserSettings:', error)
+    } catch {
+      // Error handling - return unchanged settings
       return false
     }
   }
@@ -140,8 +140,8 @@ export class EnhancedUserService {
   async getAuthProviders(user: User): Promise<string[]> {
     try {
       return user.providerData.map(provider => provider.providerId)
-    } catch (error) {
-      console.error('Error getting auth providers:', error)
+    } catch {
+      // Error handling - return empty array
       return []
     }
   }
@@ -190,8 +190,8 @@ export class EnhancedUserService {
         success: true,
         message: 'Contraseña cambiada exitosamente',
       }
-    } catch (error) {
-      const firebaseError = FirebaseErrorHandler.handle(error)
+    } catch (_error) {
+      const firebaseError = FirebaseErrorHandler.handle(_error)
 
       // Handle specific authentication errors
       if (

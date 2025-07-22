@@ -20,7 +20,6 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
-  serverExternalPackages: ['firebase-admin'],
   webpack: (config, { isServer }) => {
     // Optimize bundle splitting
     if (!isServer) {

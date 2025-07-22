@@ -8,12 +8,8 @@ import { useCallback, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Comment, getFallbackTimestamp } from '@/lib/types'
 
-import {
-  getVideoComments,
-  addCommentToFirestore,
-  checkUserVideoLike,
-  toggleVideoLikeInDB,
-} from '../firestore'
+import { CommentService } from '../services/CommentService'
+import { VideoInteractionService } from '../services/VideoInteractionService'
 import { VideoService } from '../services/VideoService'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import {
@@ -175,10 +171,12 @@ export const useVideoComments = (videoId: string) => {
 
       try {
         dispatch(setCommentsLoading({ videoId, loading: true }))
-        const videoComments = await getVideoComments(videoId)
+        const commentService = new CommentService()
+        const videoComments = await commentService.getVideoComments(videoId)
         dispatch(setVideoComments({ videoId, comments: videoComments }))
       } catch {
-        // Error handling is managed by the component
+        // Error handling - return empty array
+        dispatch(setVideoComments({ videoId, comments: [] }))
       } finally {
         dispatch(setCommentsLoading({ videoId, loading: false }))
       }
@@ -191,7 +189,8 @@ export const useVideoComments = (videoId: string) => {
       if (!user?.uid || !videoId || !text.trim()) return
 
       try {
-        const commentId = await addCommentToFirestore({
+        const commentService = new CommentService()
+        const commentId = await commentService.addComment({
           videoId,
           userId: user.uid,
           userName: user.displayName || 'Usuario',
@@ -253,7 +252,8 @@ export const useVideoLikes = (videoId: string) => {
     if (!user?.uid || !videoId) return
 
     try {
-      const like = await checkUserVideoLike(videoId, user.uid)
+      const videoInteractionService = new VideoInteractionService()
+      const like = await videoInteractionService.getUserVideoLike(user.uid, videoId)
       dispatch(setUserLike({ videoId, like, userId: user.uid }))
     } catch {
       // Error handling is managed by the component
@@ -261,16 +261,17 @@ export const useVideoLikes = (videoId: string) => {
   }, [dispatch, videoId, user?.uid])
 
   const toggleLike = useCallback(
-    async (isLike: boolean) => {
+    async (_isLike: boolean) => {
       if (!user?.uid || !videoId) return false
 
       try {
         dispatch(setInteractionLoading({ videoId, loading: true }))
 
-        await toggleVideoLikeInDB(videoId, user.uid, isLike)
+        const videoInteractionService = new VideoInteractionService()
+        await videoInteractionService.toggleVideoLike(user.uid, videoId, _isLike)
 
         // Update user like status
-        const newLike = await checkUserVideoLike(videoId, user.uid)
+        const newLike = await videoInteractionService.getUserVideoLike(user.uid, videoId)
         dispatch(setUserLike({ videoId, like: newLike, userId: user.uid }))
 
         // Fetch updated video to get new counts
@@ -305,7 +306,7 @@ export const useVideoLikes = (videoId: string) => {
       const videoService = new VideoService()
       videoService
         .getVideoById(videoId)
-        .then((videoData: any) => {
+        .then(videoData => {
           if (videoData) {
             dispatch(setVideo(videoData))
           }

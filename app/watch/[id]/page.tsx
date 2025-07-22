@@ -1,14 +1,13 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 
-import { REVALIDATION_TIME_SECONDS } from '@/lib/constants/timing'
 import { VideoService } from '@/lib/services/VideoService'
 
 import WatchPageClient from './WatchPageClient'
 import WatchPageSkeleton from './WatchPageSkeleton'
 
-// Add ISR revalidation for video data
-export const revalidate = REVALIDATION_TIME_SECONDS
+// Add ISR revalidation for video data (5 minutes)
+export const revalidate = 300
 
 export async function generateMetadata({
   params,

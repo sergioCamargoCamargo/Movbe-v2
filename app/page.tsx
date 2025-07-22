@@ -20,15 +20,15 @@ export default async function HomePage() {
     ])
 
     return <HomePageClient initialVideos={videos} categories={categories} />
-  } catch (error) {
-    console.error('Error fetching home page data:', error)
+  } catch {
+    // Error handled by returning fallback data
 
     // If categories fail, try to get videos only
     try {
       const videos = await videoService.getPublicVideos(24)
       return <HomePageClient initialVideos={videos} categories={[]} />
-    } catch (videoError) {
-      console.error('Error fetching videos:', videoError)
+    } catch {
+      // Error handled by returning empty state
       // Return with empty data in case of complete failure
       return <HomePageClient initialVideos={[]} categories={[]} />
     }
