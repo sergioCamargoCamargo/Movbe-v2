@@ -61,6 +61,7 @@ export interface VideoInteractionsProps {
   userRating: number
   comments: Comment[]
   className?: string
+  showComments?: boolean
 }
 
 /**
