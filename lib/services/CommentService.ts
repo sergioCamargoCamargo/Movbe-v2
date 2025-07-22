@@ -10,6 +10,7 @@ import {
 
 import { db } from '../firebase/config'
 import { Comment } from '../types'
+import { serializeTimestamps } from '../utils'
 
 export class CommentService {
   async getVideoComments(videoId: string): Promise<Comment[]> {
@@ -21,13 +22,17 @@ export class CommentService {
       )
 
       const snapshot = await getDocs(q)
-      return snapshot.docs.map(doc => ({
+
+      const comments = snapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data(),
+        ...serializeTimestamps(doc.data()),
+        likeCount: doc.data().likeCount || 0,
+        replies: doc.data().replies || [],
       })) as Comment[]
-    } catch {
-      // Error handling - service will return empty array
-      return []
+
+      return comments
+    } catch (error) {
+      throw error
     }
   }
 
@@ -42,6 +47,8 @@ export class CommentService {
         ...commentData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        likeCount: 0,
+        replies: [],
       })
 
       return docRef.id

@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/lib/hooks/use-toast'
-import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
+import { useVideoComments, useVideoLikes, useVideo } from '@/lib/hooks/useVideoData'
 import { VideoInteractionService } from '@/lib/services/VideoInteractionService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
@@ -33,6 +33,9 @@ export function VideoInteractions({
   const dispatch = useAppDispatch()
   const { user } = useAuth()
   const videoInteraction = useAppSelector(state => state.video.interactions[videoId])
+
+  // Use video hook to get updated video data
+  const { video, refetch: refetchVideo } = useVideo(videoId)
 
   // Use optimized hooks for data management
   const {
@@ -56,6 +59,10 @@ export function VideoInteractions({
 
   // Use Redux state if available, otherwise use props
   const saved = videoInteraction?.saved ?? isSaved
+
+  // Use updated video data for rating display
+  const currentVideoRating = video?.rating ?? rating
+  const currentRatingCount = video?.ratingCount ?? ratingCount
 
   const [currentUserRating, setCurrentUserRating] = useState(userRating)
   const [newComment, setNewComment] = useState('')
@@ -204,6 +211,9 @@ export function VideoInteractions({
       const videoInteractionService = new VideoInteractionService()
       await videoInteractionService.rateVideo(user.uid, videoId, newRating)
       setCurrentUserRating(newRating)
+
+      // Refetch video data to get updated rating average
+      await refetchVideo()
 
       toast({
         title: 'Calificación enviada',
@@ -371,9 +381,9 @@ export function VideoInteractions({
           <div className='flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2'>
             <h3 className='text-base sm:text-lg font-semibold'>Calificación</h3>
             <div className='flex flex-col xs:items-end gap-1'>
-              {ratingCount && ratingCount > 0 && (
+              {currentRatingCount && currentRatingCount > 0 && (
                 <span className='text-xs text-muted-foreground'>
-                  ({ratingCount} calificación{ratingCount !== 1 ? 'es' : ''})
+                  ({currentRatingCount} calificación{currentRatingCount !== 1 ? 'es' : ''})
                 </span>
               )}
             </div>
@@ -388,20 +398,20 @@ export function VideoInteractions({
                     ? 'Califica este video y ve la calificación promedio'
                     : 'Inicia sesión para calificar este video'}
                 </p>
-                {rating > 0 && (
+                {currentVideoRating > 0 && (
                   <div className='text-sm text-muted-foreground'>
                     Calificación promedio:{' '}
-                    <span className='font-medium'>{rating.toFixed(1)} estrellas</span>
+                    <span className='font-medium'>{currentVideoRating.toFixed(1)} estrellas</span>
                   </div>
                 )}
               </div>
               <div className='flex items-center justify-center sm:justify-start'>
                 <StarRating
-                  rating={user ? currentUserRating : rating}
+                  rating={user ? currentUserRating : currentVideoRating}
                   onRatingChange={user ? handleRating : undefined}
                   readonly={!user || ratingLoading}
                   size='lg'
-                  showValue={!user && rating > 0}
+                  showValue={!user && currentVideoRating > 0}
                   className={ratingLoading ? 'opacity-50' : ''}
                 />
               </div>
