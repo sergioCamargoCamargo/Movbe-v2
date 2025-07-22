@@ -60,6 +60,7 @@
     "videoTitlePlaceholder": "Ingresa el título de tu video",
     "videoDescription": "Descripción (opcional)",
     "videoDescriptionPlaceholder": "Describe tu video...",
+    "descriptionPlaceholder": "Describe tu video...",
     "category": "Categoría",
     "categoryRequired": "Categoría *",
     "selectCategory": "Selecciona una categoría",

@@ -146,7 +146,10 @@ export class CoverImageService implements ICoverImageService {
   private async validateImageDimensions(file: File): Promise<{ valid: boolean; warning?: string }> {
     return new Promise(resolve => {
       const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+
       img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
         const aspectRatio = img.width / img.height
         const recommendedAspectRatio = 16 / 9 // Aspect ratio recomendado para cover images
 
@@ -172,10 +175,11 @@ export class CoverImageService implements ICoverImageService {
       }
 
       img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
         resolve({ valid: false, warning: 'Error al validar las dimensiones de la imagen' })
       }
 
-      img.src = URL.createObjectURL(file)
+      img.src = objectUrl
     })
   }
 }
