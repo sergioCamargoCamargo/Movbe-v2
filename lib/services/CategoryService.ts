@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 
 import { db } from '../firebase/config'
 import { Category } from '../types/entities/category'
@@ -29,45 +29,6 @@ export class CategoryService {
     } catch {
       // Error handling - service will return empty array
       return []
-    }
-  }
-
-  async initializeCategories(): Promise<void> {
-    try {
-      const categoriesRef = collection(db, 'categories')
-      const snapshot = await getDocs(categoriesRef)
-
-      if (snapshot.empty) {
-        const defaultCategories = [
-          'Música',
-          'Videojuegos',
-          'Noticias',
-          'Educación',
-          'Entretenimiento',
-          'Deportes',
-          'Tecnología',
-          'Cocina',
-          'Viajes',
-          'Moda',
-          'Ciencia',
-          'Arte',
-          'Comedia',
-          'Documentales',
-          'Otros',
-        ]
-
-        for (const category of defaultCategories) {
-          await addDoc(categoriesRef, {
-            name: category,
-            slug: category.toLowerCase().replace(/\s+/g, '-'),
-            description: `Videos de ${category}`,
-            isActive: true,
-            createdAt: serverTimestamp(),
-          })
-        }
-      }
-    } catch {
-      // Error handling - initialization will be skipped
     }
   }
 }

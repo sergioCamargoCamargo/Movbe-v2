@@ -18,7 +18,7 @@ export default function TermsPage() {
         <Image
           src='/logo_black.png'
           alt='Movbe'
-          width={100}
+          width={96}
           height={32}
           className='dark:hidden w-24 h-auto'
         />

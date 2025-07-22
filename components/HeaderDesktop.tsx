@@ -85,9 +85,9 @@ export default function HeaderDesktop({
             <Image
               src='/logo_black.png'
               alt='Movbe'
-              width={100}
+              width={112}
               height={32}
-              className='dark:hidden w-28 h-8'
+              className='dark:hidden w-28 h-auto'
             />
             <Image
               src='/logo_white.png'

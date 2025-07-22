@@ -11,9 +11,6 @@ export default async function HomePage() {
   const categoryService = new CategoryService()
 
   try {
-    // Initialize categories if they don't exist
-    await categoryService.initializeCategories()
-
     const [videos, categories] = await Promise.all([
       videoService.getPublicVideos(24),
       categoryService.getCategories(),
