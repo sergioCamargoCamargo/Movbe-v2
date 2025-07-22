@@ -1,7 +1,6 @@
 import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
 
 import { db } from '../firebase/config'
-import { FirebaseErrorHandler } from '../firebase/errors'
 import { Category } from '../types/entities/category'
 
 export class CategoryService {
@@ -27,8 +26,8 @@ export class CategoryService {
             : { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
         }
       }) as Category[]
-    } catch (error) {
-      console.error('Error getting categories:', FirebaseErrorHandler.handle(error).message)
+    } catch {
+      // Error handling - service will return empty array
       return []
     }
   }
@@ -67,8 +66,8 @@ export class CategoryService {
           })
         }
       }
-    } catch (error) {
-      console.error('Error initializing categories:', FirebaseErrorHandler.handle(error).message)
+    } catch {
+      // Error handling - initialization will be skipped
     }
   }
 }

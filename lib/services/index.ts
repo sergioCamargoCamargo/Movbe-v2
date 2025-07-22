@@ -3,6 +3,7 @@ export { EnhancedUserService } from './EnhancedUserService'
 export { VideoService } from './VideoService'
 export { CategoryService } from './CategoryService'
 export { VideoInteractionService } from './VideoInteractionService'
+export { CommentService } from './CommentService'
 
 // Legacy services (keep existing ones)
 export { AuthService } from './AuthService'

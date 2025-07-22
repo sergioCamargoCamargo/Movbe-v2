@@ -24,3 +24,21 @@ export interface VideoUploadMetadata {
   isPublic: boolean
   thumbnailFile?: File
 }
+
+export interface VideoUploadData {
+  title: string
+  description?: string
+  file: File
+  userId: string
+  userName: string
+  category?: string
+  tags?: string[]
+  visibility?: 'public' | 'private'
+}
+
+export interface VideoUploadProgress {
+  progress: number
+  state: 'running' | 'paused' | 'success' | 'error'
+  bytesTransferred: number
+  totalBytes: number
+}

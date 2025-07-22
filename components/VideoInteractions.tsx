@@ -202,7 +202,7 @@ export function VideoInteractions({
     setRatingLoading(true)
     try {
       const videoInteractionService = new VideoInteractionService()
-      await videoInteractionService.rateVideo(user.uid, videoId, newRating, newRating > 3)
+      await videoInteractionService.rateVideo(user.uid, videoId, newRating)
       setCurrentUserRating(newRating)
 
       toast({
