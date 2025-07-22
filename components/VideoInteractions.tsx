@@ -29,6 +29,7 @@ export function VideoInteractions({
   userRating = 0,
   comments: _comments = [],
   className = '',
+  showComments = true,
 }: VideoInteractionsProps) {
   const dispatch = useAppDispatch()
   const { user } = useAuth()
@@ -427,105 +428,140 @@ export function VideoInteractions({
       </Card>
 
       {/* Sección de comentarios */}
-      <Card>
-        <CardHeader className='pb-3'>
-          <h3 className='text-base sm:text-lg font-semibold flex items-center gap-2'>
-            <MessageCircle className='h-4 w-4 sm:h-5 sm:w-5' />
-            Comentarios ({localComments.length})
-          </h3>
-        </CardHeader>
-        <CardContent className='space-y-3 sm:space-y-4'>
-          {/* Formulario para nuevo comentario */}
-          {user ? (
-            <form onSubmit={handleCommentSubmit} className='space-y-3'>
-              <Textarea
-                placeholder='Escribe un comentario...'
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                rows={3}
-                aria-label='Escribir comentario'
-                className='resize-none touch-manipulation'
-              />
-              <div className='flex justify-end'>
-                <Button
-                  type='submit'
-                  size='sm'
-                  disabled={!newComment.trim()}
-                  className='flex items-center gap-2 touch-manipulation h-9'
-                >
-                  <MessageCircle className='h-4 w-4' />
-                  <span className='text-sm'>Comentar</span>
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className='p-3 sm:p-4 bg-muted/30 rounded-lg text-center'>
-              <p className='text-sm text-muted-foreground'>
-                <Button variant='link' className='p-0 h-auto font-normal text-sm'>
-                  Inicia sesión
-                </Button>{' '}
-                para comentar en este video
-              </p>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Lista de comentarios */}
-          <div className='space-y-3 sm:space-y-4'>
-            {commentsLoading ? (
-              <div className='text-center py-6 sm:py-8'>
-                <p className='text-sm sm:text-base'>Cargando comentarios...</p>
-              </div>
-            ) : localComments.length > 0 ? (
-              localComments.map(comment => (
-                <div key={comment.id} className='flex gap-2 sm:gap-3 p-3 bg-muted/30 rounded-lg'>
-                  <Avatar className='h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0'>
-                    <AvatarFallback className='text-xs sm:text-sm'>
-                      {comment.userName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='flex-1 space-y-2 min-w-0'>
-                    <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
-                      <span className='font-semibold text-sm truncate'>{comment.userName}</span>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        {comment.createdAt
-                          ? toSafeDate(comment.createdAt).toLocaleDateString()
-                          : 'Ahora'}
-                      </span>
-                    </div>
-                    <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
-                    <div className='flex items-center gap-2'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => handleCommentLike(comment.id)}
-                        disabled={!user}
-                        className={`flex items-center gap-1 h-7 px-2 text-muted-foreground touch-manipulation ${
-                          !user ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                        aria-label='Dar like al comentario'
-                        title={!user ? 'Inicia sesión para dar like' : ''}
-                      >
-                        <Heart className='h-3 w-3' />
-                        {comment.likeCount > 0 && (
-                          <span className='text-xs'>{formatNumber(comment.likeCount)}</span>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
+      {showComments && (
+        <Card>
+          <CardHeader className='pb-3'>
+            <h3 className='text-base sm:text-lg font-semibold flex items-center gap-2'>
+              <MessageCircle className='h-4 w-4 sm:h-5 sm:w-5' />
+              Comentarios ({localComments.length})
+            </h3>
+          </CardHeader>
+          <CardContent className='space-y-3 sm:space-y-4'>
+            {/* Formulario para nuevo comentario */}
+            {user ? (
+              <form onSubmit={handleCommentSubmit} className='space-y-3'>
+                <Textarea
+                  placeholder='Escribe un comentario...'
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  rows={3}
+                  aria-label='Escribir comentario'
+                  className='resize-none touch-manipulation'
+                />
+                <div className='flex justify-end'>
+                  <Button
+                    type='submit'
+                    size='sm'
+                    disabled={!newComment.trim()}
+                    className='flex items-center gap-2 touch-manipulation h-9'
+                  >
+                    <MessageCircle className='h-4 w-4' />
+                    <span className='text-sm'>Comentar</span>
+                  </Button>
                 </div>
-              ))
+              </form>
             ) : (
-              <div className='text-center py-6 sm:py-8 text-muted-foreground'>
-                <MessageCircle className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
-                <p className='text-sm sm:text-base'>No hay comentarios aún</p>
-                <p className='text-xs sm:text-sm'>¡Sé el primero en comentar!</p>
+              <div className='p-3 sm:p-4 bg-muted/30 rounded-lg text-center'>
+                <p className='text-sm text-muted-foreground'>
+                  <Button variant='link' className='p-0 h-auto font-normal text-sm'>
+                    Inicia sesión
+                  </Button>{' '}
+                  para comentar en este video
+                </p>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+
+            <Separator />
+
+            {/* Lista de comentarios */}
+            <div className='space-y-3 sm:space-y-4'>
+              {commentsLoading ? (
+                <div className='text-center py-6 sm:py-8'>
+                  <p className='text-sm sm:text-base'>Cargando comentarios...</p>
+                </div>
+              ) : localComments.length > 0 ? (
+                localComments.map(comment => (
+                  <div key={comment.id} className='flex gap-2 sm:gap-3 p-3 bg-muted/30 rounded-lg'>
+                    <Avatar className='h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0'>
+                      <AvatarFallback className='text-xs sm:text-sm'>
+                        {comment.userName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className='flex-1 space-y-2 min-w-0'>
+                      <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
+                        <span className='font-semibold text-sm truncate'>{comment.userName}</span>
+                        <span className='text-xs text-muted-foreground flex-shrink-0'>
+                          {comment.createdAt
+                            ? (() => {
+                                const date = toSafeDate(comment.createdAt)
+                                const now = new Date()
+                                const today = new Date(
+                                  now.getFullYear(),
+                                  now.getMonth(),
+                                  now.getDate()
+                                )
+                                const commentDate = new Date(
+                                  date.getFullYear(),
+                                  date.getMonth(),
+                                  date.getDate()
+                                )
+
+                                const time = date.toLocaleTimeString('es-ES', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false,
+                                })
+
+                                // Today
+                                if (commentDate.getTime() === today.getTime()) {
+                                  return `Hoy ${time}`
+                                }
+
+                                // Yesterday
+                                const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+                                if (commentDate.getTime() === yesterday.getTime()) {
+                                  return `Ayer ${time}`
+                                }
+
+                                // Always show year for dates that are not today or yesterday
+                                return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${time}`
+                              })()
+                            : 'Ahora'}
+                        </span>
+                      </div>
+                      <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
+                      <div className='flex items-center gap-2'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => handleCommentLike(comment.id)}
+                          disabled={!user}
+                          className={`flex items-center gap-1 h-7 px-2 text-muted-foreground touch-manipulation ${
+                            !user ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          aria-label='Dar like al comentario'
+                          title={!user ? 'Inicia sesión para dar like' : ''}
+                        >
+                          <Heart className='h-3 w-3' />
+                          {comment.likeCount > 0 && (
+                            <span className='text-xs'>{formatNumber(comment.likeCount)}</span>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className='text-center py-6 sm:py-8 text-muted-foreground'>
+                  <MessageCircle className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
+                  <p className='text-sm sm:text-base'>No hay comentarios aún</p>
+                  <p className='text-xs sm:text-sm'>¡Sé el primero en comentar!</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

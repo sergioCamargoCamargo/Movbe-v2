@@ -124,14 +124,14 @@ export default function HeaderMobile({
               alt='Movbe'
               width={100}
               height={32}
-              className='dark:hidden w-16 h-8'
+              className='dark:hidden w-28 h-8'
             />
             <Image
               src='/logo_white.png'
               alt='Movbe'
               width={100}
               height={32}
-              className='hidden dark:block w-16 h-8'
+              className='hidden dark:block w-28 h-8'
             />
           </NavigationLink>
         </div>
