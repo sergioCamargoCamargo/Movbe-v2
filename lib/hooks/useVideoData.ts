@@ -3,7 +3,7 @@
  * Estos hooks encapsulan la lógica de cache, loading states y actualizaciones
  */
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { Comment, getFallbackTimestamp } from '@/lib/types'
@@ -161,27 +161,32 @@ export const useVideoComments = (videoId: string) => {
   const comments = useAppSelector(state => selectVideoComments(state, videoId))
   const loading = useAppSelector(state => selectIsCommentsLoading(state, videoId))
   const shouldRefresh = useAppSelector(state => selectShouldRefreshComments(state, videoId))
+  const initialLoadDoneRef = useRef(new Set<string>())
 
   const fetchComments = useCallback(
     async (force = false) => {
       if (!videoId) return
 
-      // Only check shouldRefresh if not forced and comments already exist
-      if (!force && comments.length > 0 && !shouldRefresh) return
+      // Skip if already loaded and not forced
+      if (!force && initialLoadDoneRef.current.has(videoId) && !shouldRefresh) return
+
+      // Skip if currently loading for this video
+      if (loading && !force) return
 
       try {
         dispatch(setCommentsLoading({ videoId, loading: true }))
         const commentService = new CommentService()
         const videoComments = await commentService.getVideoComments(videoId)
         dispatch(setVideoComments({ videoId, comments: videoComments }))
+        initialLoadDoneRef.current.add(videoId)
       } catch {
-        // Error handling - return empty array
         dispatch(setVideoComments({ videoId, comments: [] }))
+        initialLoadDoneRef.current.add(videoId)
       } finally {
         dispatch(setCommentsLoading({ videoId, loading: false }))
       }
     },
-    [dispatch, videoId, shouldRefresh, comments.length]
+    [dispatch, videoId, shouldRefresh, loading]
   )
 
   const addNewComment = useCallback(
@@ -211,7 +216,6 @@ export const useVideoComments = (videoId: string) => {
         dispatch(addComment({ videoId, comment: newComment }))
         return true
       } catch {
-        // Error handling is managed by the component
         return false
       }
     },
@@ -219,11 +223,11 @@ export const useVideoComments = (videoId: string) => {
   )
 
   useEffect(() => {
-    // Fetch comments on mount or when video changes
-    if (videoId && !loading) {
-      fetchComments()
+    // Always try to fetch comments if we don't have any or should refresh
+    if (videoId && (comments.length === 0 || shouldRefresh)) {
+      fetchComments(true) // Force load
     }
-  }, [videoId, fetchComments, loading])
+  }, [videoId, comments.length, shouldRefresh, fetchComments])
 
   return {
     comments,
