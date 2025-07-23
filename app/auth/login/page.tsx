@@ -76,8 +76,9 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider)
 
       // Check if this is a new user or existing user without age verification
-      const { createOrUpdateUser } = await import('@/lib/firestore')
-      const userProfile = await createOrUpdateUser(result.user)
+      const { EnhancedUserService } = await import('@/lib/services/EnhancedUserService')
+      const userService = new EnhancedUserService()
+      const userProfile = await userService.createOrUpdateUser(result.user)
 
       if (!userProfile?.ageVerified) {
         // Redirect directly to age verification
@@ -103,7 +104,7 @@ export default function LoginPage() {
         <Image
           src='/logo_black.png'
           alt='Movbe'
-          width={100}
+          width={96}
           height={32}
           className='dark:hidden w-24 h-auto'
         />

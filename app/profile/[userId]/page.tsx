@@ -2,6 +2,7 @@
 
 import {
   Calendar,
+  Camera,
   Eye,
   Heart,
   Play,
@@ -24,8 +25,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video as FirestoreVideoType, getVideosByUser } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
+import { coverImageService } from '@/lib/services/CoverImageService'
+import { Video as FirestoreVideoType, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { FirestoreTimestamp } from '@/lib/types'
@@ -77,7 +80,7 @@ export default function ProfilePage() {
           username: `@${userProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
           bio: 'Creador de contenido en MOVBE', // TODO: Add bio field to user profile
           avatar: userProfile.photoURL || user?.photoURL || '/placeholder.svg?text=USER',
-          coverImage: '/placeholder.svg?text=Cover', // TODO: Add cover image field
+          coverImage: userProfile.coverImageURL || '/placeholder.svg?text=Cover',
           subscriberCount: userProfile.subscriberCount || 0,
           videoCount: userProfile.videoCount || 0,
           totalViews: userProfile.totalViews || 0,
@@ -100,8 +103,8 @@ export default function ProfilePage() {
         // Load other user's profile
         try {
           setProfileLoading(true)
-          const { getUserById } = await import('@/lib/firestore')
-          const otherUserProfile = await getUserById(userId)
+          const userService = new EnhancedUserService()
+          const otherUserProfile = await userService.getUserById(userId)
 
           if (otherUserProfile) {
             setProfileData({
@@ -110,7 +113,7 @@ export default function ProfilePage() {
               username: `@${otherUserProfile.displayName?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`,
               bio: 'Creador de contenido en MOVBE',
               avatar: otherUserProfile.photoURL || '/placeholder.svg?text=USER',
-              coverImage: '/placeholder.svg?text=Cover',
+              coverImage: otherUserProfile.coverImageURL || '/placeholder.svg?text=Cover',
               subscriberCount: otherUserProfile.subscriberCount || 0,
               videoCount: otherUserProfile.videoCount || 0,
               totalViews: otherUserProfile.totalViews || 0,
@@ -152,6 +155,7 @@ export default function ProfilePage() {
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
+  const [coverImageUploading, setCoverImageUploading] = useState(false)
 
   const subscriptionService = getSubscriptionService()
 
@@ -163,7 +167,8 @@ export default function ProfilePage() {
       try {
         setVideosLoading(true)
         setVideosError(null)
-        const videos = await getVideosByUser(userId)
+        const videoService = new VideoService()
+        const videos = await videoService.getVideosByUser(userId)
         setUserVideos(videos)
       } catch {
         setVideosError('Error al cargar los videos')
@@ -289,6 +294,44 @@ export default function ProfilePage() {
     }
   }
 
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user) return
+
+    setCoverImageUploading(true)
+
+    try {
+      const result = await coverImageService.uploadCoverImage(user.uid, file, dispatch)
+
+      if (result.success) {
+        // Update local profile data
+        setProfileData(prev => ({
+          ...prev,
+          coverImage: result.coverImageURL,
+        }))
+
+        toast({
+          title: 'Portada actualizada',
+          description: result.message,
+        })
+      } else {
+        toast({
+          title: 'Error al subir la portada',
+          description: result.message,
+          variant: 'destructive',
+        })
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Ocurrió un error inesperado al subir la imagen',
+        variant: 'destructive',
+      })
+    } finally {
+      setCoverImageUploading(false)
+    }
+  }
+
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
@@ -336,6 +379,33 @@ export default function ProfilePage() {
                 className='object-cover'
               />
               <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent' />
+
+              {/* Cover Image Upload Button - Only show for own profile */}
+              {isOwnProfile && (
+                <div className='absolute top-4 right-4'>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    onChange={handleCoverImageUpload}
+                    disabled={coverImageUploading}
+                    className='hidden'
+                    id='cover-upload'
+                  />
+                  <label
+                    htmlFor='cover-upload'
+                    className={`cursor-pointer inline-flex items-center justify-center rounded-lg bg-black/50 hover:bg-black/70 text-white p-3 transition-all duration-200 ${
+                      coverImageUploading ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    aria-label='Cambiar imagen de portada'
+                  >
+                    {coverImageUploading ? (
+                      <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white' />
+                    ) : (
+                      <Camera className='h-5 w-5' />
+                    )}
+                  </label>
+                </div>
+              )}
 
               {/* Profile Info Overlay */}
               <div className='absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 touch-manipulation'>
@@ -410,14 +480,16 @@ export default function ProfilePage() {
                       </Button>
 
                       {isOwnProfile && (
-                        <Button
-                          variant='outline'
-                          size='icon'
-                          className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
-                          aria-label='Configurar perfil'
-                        >
-                          <Settings className='h-4 w-4' />
-                        </Button>
+                        <NavigationLink href='/settings'>
+                          <Button
+                            variant='outline'
+                            size='icon'
+                            className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation min-w-[44px] min-h-[44px]'
+                            aria-label='Configurar perfil'
+                          >
+                            <Settings className='h-4 w-4' />
+                          </Button>
+                        </NavigationLink>
                       )}
                     </div>
                   </div>
@@ -457,14 +529,16 @@ export default function ProfilePage() {
                     </Button>
 
                     {isOwnProfile && (
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
-                        aria-label='Configurar perfil'
-                      >
-                        <Settings className='h-4 w-4' />
-                      </Button>
+                      <NavigationLink href='/settings'>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='bg-white/20 hover:bg-white/30 text-white border-white/30 touch-manipulation'
+                          aria-label='Configurar perfil'
+                        >
+                          <Settings className='h-4 w-4' />
+                        </Button>
+                      </NavigationLink>
                     )}
                   </div>
                 </div>
@@ -552,10 +626,17 @@ export default function ProfilePage() {
                                 <span>•</span>
                                 <span>
                                   {video.uploadDate
-                                    ? formatUploadDate({
-                                        seconds: Math.floor(video.uploadDate.getTime() / 1000),
-                                        nanoseconds: 0,
-                                      })
+                                    ? formatUploadDate(
+                                        typeof video.uploadDate === 'object' &&
+                                          'seconds' in video.uploadDate
+                                          ? video.uploadDate
+                                          : {
+                                              seconds: Math.floor(
+                                                new Date(video.uploadDate).getTime() / 1000
+                                              ),
+                                              nanoseconds: 0,
+                                            }
+                                      )
                                     : 'Fecha desconocida'}
                                 </span>
                               </div>

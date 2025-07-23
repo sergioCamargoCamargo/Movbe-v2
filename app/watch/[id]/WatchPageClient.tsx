@@ -4,16 +4,20 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { Play, MessageCircle, ChevronDown, Send } from 'lucide-react'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
 import { NavigationLink } from '@/components/NavigationLink'
 import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSubscriptionService } from '@/lib/di/serviceRegistration'
-import { Video, recordVideoView } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
+import { useVideoComments } from '@/lib/hooks/useVideoData'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
+import { Video, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
@@ -55,16 +59,70 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const { toast } = useToast()
   const router = useRouter()
   const isMobile = useAppSelector(state => state.ui.isMobile)
-  const [showRecommendations, setShowRecommendations] = useState(false)
   const [showHeader, setShowHeader] = useState(true)
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null)
+  const [subscriberCount, setSubscriberCount] = useState<number>(0)
+  const [subscriberCountLoading, setSubscriberCountLoading] = useState(true)
+  const [showAllComments, setShowAllComments] = useState(false)
+  const [newComment, setNewComment] = useState('')
+  const [isAddingComment, setIsAddingComment] = useState(false)
+  const [, setShowRecommendations] = useState(false)
   const lastScrollTop = useRef(0)
   const videoRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
+  // Load comments for mobile section
+  const {
+    comments: videoComments,
+    loading: commentsLoading,
+    addComment,
+  } = useVideoComments(video?.id || '')
+
   const subscriptionService = getSubscriptionService()
+
+  // Format timestamp for comments
+  const formatCommentDate = (
+    timestamp: { seconds: number; nanoseconds: number } | string | Date
+  ) => {
+    if (!timestamp) return 'Fecha desconocida'
+
+    let date: Date
+    if (typeof timestamp === 'object' && 'seconds' in timestamp) {
+      // Firestore timestamp
+      date = new Date(timestamp.seconds * 1000)
+    } else {
+      // Regular date
+      date = new Date(timestamp)
+    }
+
+    if (isNaN(date.getTime())) return 'Fecha desconocida'
+
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const commentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
+    const time = date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+
+    // Today
+    if (commentDate.getTime() === today.getTime()) {
+      return `Hoy ${time}`
+    }
+
+    // Yesterday
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+    if (commentDate.getTime() === yesterday.getTime()) {
+      return `Ayer ${time}`
+    }
+
+    // Always show year for dates that are not today or yesterday
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${time}`
+  }
 
   useEffect(() => {
     if (!video) return
@@ -72,8 +130,8 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
     // Load creator profile
     const loadCreatorProfile = async () => {
       try {
-        const { getUserById } = await import('@/lib/firestore')
-        const profile = await getUserById(video.uploaderId)
+        const userService = new EnhancedUserService()
+        const profile = await userService.getUserById(video.uploaderId)
         setCreatorProfile(profile)
       } catch {
         // Error loading creator profile, use defaults
@@ -86,9 +144,26 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
 
     loadCreatorProfile()
 
+    // Load subscriber count
+    const loadSubscriberCount = async () => {
+      try {
+        setSubscriberCountLoading(true)
+        const count = await subscriptionService.getSubscriberCount(video.uploaderId)
+        setSubscriberCount(count)
+      } catch {
+        // Error loading subscriber count, keep default value
+        setSubscriberCount(0)
+      } finally {
+        setSubscriberCountLoading(false)
+      }
+    }
+
+    loadSubscriberCount()
+
     // Record view count if user is logged in
     if (user?.uid) {
-      recordVideoView(video.id, user.uid)
+      const videoService = new VideoService()
+      videoService.recordVideoView(video.id, user.uid)
     }
 
     // Check subscription status if user is logged in and not own video
@@ -179,6 +254,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       if (isSubscribed) {
         await subscriptionService.unsubscribe(video.uploaderId, user.uid)
         setIsSubscribed(false)
+        setSubscriberCount(prev => Math.max(0, prev - 1)) // Update subscriber count
         toast({
           title: 'Te has desuscrito',
           description: `Ya no seguirás a ${video.uploaderName}`,
@@ -186,6 +262,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       } else {
         await subscriptionService.subscribe(video.uploaderId, user.uid)
         setIsSubscribed(true)
+        setSubscriberCount(prev => prev + 1) // Update subscriber count
         toast({
           title: '¡Suscrito!',
           description: `Ahora sigues a ${video.uploaderName}`,
@@ -199,6 +276,38 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       })
     } finally {
       setSubscriptionLoading(false)
+    }
+  }
+
+  const handleMobileCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!newComment.trim() || !user || !video) {
+      return
+    }
+
+    setIsAddingComment(true)
+
+    try {
+      const success = await addComment(newComment.trim())
+
+      if (success) {
+        setNewComment('')
+        toast({
+          title: 'Comentario agregado',
+          description: 'Tu comentario se ha publicado correctamente',
+        })
+      } else {
+        throw new Error('Failed to add comment')
+      }
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'No se pudo agregar el comentario. Inténtalo de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsAddingComment(false)
     }
   }
 
@@ -223,6 +332,13 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
         <Sidebar />
         <div className='flex-1 w-full min-w-0 overflow-x-hidden overflow-y-auto md:h-auto mobile-scroll-container ios-scroll-fix'>
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>
+            {/* Video Carousel - Above video (Desktop only) */}
+            {!isMobile && recommendedVideos.length > 0 && (
+              <div ref={carouselRef} className='mb-4'>
+                <VideoCarousel videos={recommendedVideos} onShow={true} />
+              </div>
+            )}
+
             <div className='relative' ref={videoRef}>
               <div className='aspect-video bg-black rounded-lg overflow-hidden'>
                 <video
@@ -237,14 +353,6 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                   Tu navegador no soporta el elemento de video.
                 </video>
               </div>
-              {!isMobile && (
-                <div ref={carouselRef}>
-                  <VideoCarousel
-                    videos={recommendedVideos}
-                    onShow={showRecommendations && recommendedVideos.length > 0}
-                  />
-                </div>
-              )}
             </div>
             <div className='space-y-4'>
               <h1 className='text-lg sm:text-2xl font-bold'>{video.title}</h1>
@@ -252,19 +360,41 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                 <NavigationLink href={`/profile/${video.uploaderId}`}>
                   {creatorProfile === null ? (
                     <div className='w-10 h-10 bg-gray-200 rounded-full animate-pulse' />
-                  ) : (
+                  ) : creatorProfile?.photoURL ? (
                     <Image
-                      src={creatorProfile?.photoURL || '/placeholder.svg?text=Avatar'}
+                      src={creatorProfile.photoURL}
                       alt='Avatar del canal'
                       width={40}
                       height={40}
                       className='rounded-full hover:opacity-80 transition-opacity cursor-pointer'
                       onError={e => {
                         const target = e.target as HTMLImageElement
-                        target.src = '/placeholder.svg?text=Avatar'
+                        // Hide the broken image and show fallback
+                        target.style.display = 'none'
+                        const fallback = target.nextElementSibling as HTMLDivElement
+                        if (fallback) fallback.style.display = 'flex'
                       }}
                     />
+                  ) : null}
+
+                  {/* Fallback avatar when no photoURL */}
+                  {creatorProfile && !creatorProfile.photoURL && (
+                    <div className='w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer'>
+                      <span className='text-sm font-semibold text-primary'>
+                        {(creatorProfile.displayName || video.uploaderName).charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                   )}
+
+                  {/* Hidden fallback for broken images */}
+                  <div
+                    className='w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer'
+                    style={{ display: 'none' }}
+                  >
+                    <span className='text-sm font-semibold text-primary'>
+                      {(creatorProfile?.displayName || video.uploaderName).charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 </NavigationLink>
                 <div className='flex-1 min-w-0'>
                   <div className='flex items-center space-x-2'>
@@ -291,7 +421,11 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                       </Button>
                     )}
                   </div>
-                  <p className='text-xs sm:text-sm text-muted-foreground'>Canal</p>
+                  <p className='text-xs sm:text-sm text-muted-foreground'>
+                    {subscriberCountLoading
+                      ? 'Cargando...'
+                      : `${subscriberCount.toLocaleString()} suscriptor${subscriberCount !== 1 ? 'es' : ''}`}
+                  </p>
                 </div>
               </div>
 
@@ -314,8 +448,186 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                 rating={video.rating || 0}
                 ratingCount={video.ratingCount || 0}
                 userRating={0}
-                comments={[]}
+                comments={videoComments}
+                showComments={!isMobile} // Hide entire comments section on mobile
               />
+
+              {/* Mobile YouTube-Style Sections */}
+              {isMobile && (
+                <div className='mt-6 space-y-4'>
+                  {/* Comments Section */}
+                  <div className='border-t pt-4'>
+                    <div
+                      className='flex items-center gap-3 p-3 bg-muted/30 rounded-lg cursor-pointer active:bg-muted/50 transition-colors touch-manipulation'
+                      onClick={() => setShowAllComments(!showAllComments)}
+                    >
+                      <MessageCircle className='w-5 h-5 text-muted-foreground' />
+                      <div className='flex-1'>
+                        <p className='font-semibold text-sm'>Comentarios</p>
+                        <p className='text-xs text-muted-foreground'>
+                          {commentsLoading ? 'Cargando...' : `${videoComments.length} comentarios`}
+                        </p>
+                      </div>
+                      <ChevronDown
+                        className={`w-4 h-4 text-muted-foreground transition-transform ${
+                          showAllComments ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </div>
+
+                    {/* Single Comment Preview */}
+                    {!showAllComments && videoComments.length > 0 && (
+                      <div className='mt-3 pl-4 border-l-2 border-muted'>
+                        <div className='flex gap-3'>
+                          <div className='w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0'>
+                            <span className='text-xs font-semibold text-primary'>
+                              {videoComments[0].userName.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className='flex-1 min-w-0'>
+                            <p className='text-xs font-medium text-muted-foreground mb-1'>
+                              {videoComments[0].userName}
+                            </p>
+                            <p className='text-sm line-clamp-2'>{videoComments[0].text}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Comment Form - Only when expanded */}
+                    {showAllComments && user && (
+                      <form
+                        onSubmit={handleMobileCommentSubmit}
+                        className='mt-4 space-y-3 pb-4 border-b'
+                      >
+                        <Textarea
+                          placeholder='Escribe un comentario...'
+                          value={newComment}
+                          onChange={e => setNewComment(e.target.value)}
+                          className='min-h-[60px] resize-none'
+                          disabled={isAddingComment}
+                        />
+                        <div className='flex justify-between items-center'>
+                          <span className='text-xs text-muted-foreground'>
+                            {newComment.length}/1000
+                          </span>
+                          <Button
+                            type='submit'
+                            size='sm'
+                            disabled={
+                              !newComment.trim() || isAddingComment || newComment.length > 1000
+                            }
+                            className='flex items-center gap-2'
+                          >
+                            {isAddingComment ? (
+                              <div className='animate-spin rounded-full h-3 w-3 border-b-2 border-white' />
+                            ) : (
+                              <Send className='h-3 w-3' />
+                            )}
+                            {isAddingComment ? 'Enviando...' : 'Comentar'}
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+
+                    {/* Login prompt for non-authenticated users */}
+                    {showAllComments && !user && (
+                      <div className='mt-4 p-4 bg-muted/30 rounded-lg text-center border-b mb-4'>
+                        <p className='text-sm text-muted-foreground'>
+                          <NavigationLink
+                            href='/auth/login'
+                            className='text-primary hover:underline'
+                          >
+                            Inicia sesión
+                          </NavigationLink>{' '}
+                          para comentar en este video
+                        </p>
+                      </div>
+                    )}
+
+                    {/* All Comments Expanded */}
+                    {showAllComments && (
+                      <div className='mt-4 space-y-4 max-h-80 overflow-y-auto'>
+                        {commentsLoading ? (
+                          <div className='flex items-center justify-center py-8'>
+                            <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
+                          </div>
+                        ) : videoComments.length === 0 ? (
+                          <div className='text-center py-8 text-muted-foreground'>
+                            <MessageCircle className='w-12 h-12 mx-auto mb-2 opacity-50' />
+                            <p>No hay comentarios aún</p>
+                          </div>
+                        ) : (
+                          videoComments.map(comment => (
+                            <div key={comment.id} className='flex gap-3 p-2'>
+                              <div className='w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0'>
+                                <span className='text-xs font-semibold text-primary'>
+                                  {comment.userName.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div className='flex-1 min-w-0'>
+                                <div className='flex items-center gap-2 mb-1'>
+                                  <p className='text-xs font-medium text-muted-foreground'>
+                                    {comment.userName}
+                                  </p>
+                                  <p className='text-xs text-muted-foreground'>
+                                    {formatCommentDate(comment.createdAt)}
+                                  </p>
+                                </div>
+                                <p className='text-sm'>{comment.text}</p>
+                                {comment.likeCount > 0 && (
+                                  <p className='text-xs text-muted-foreground mt-1'>
+                                    ♥ {comment.likeCount}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recommended Videos Section */}
+                  {recommendedVideos.length > 0 && (
+                    <div className='border-t pt-4'>
+                      <h3 className='font-bold mb-4 text-base'>Videos recomendados</h3>
+                      <div className='space-y-3'>
+                        {recommendedVideos.slice(0, 4).map(video => (
+                          <NavigationLink key={video.id} href={`/watch/${video.id}`}>
+                            <div className='flex gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors active:bg-muted touch-manipulation'>
+                              <div className='relative flex-shrink-0 w-32 aspect-video bg-black/20 rounded overflow-hidden'>
+                                <Image
+                                  src={video.thumbnailURL || '/placeholder.svg?text=Video'}
+                                  alt={video.title}
+                                  fill
+                                  className='object-cover'
+                                />
+                                <div className='absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/30 transition-opacity'>
+                                  <Play className='text-white w-6 h-6' />
+                                </div>
+                              </div>
+                              <div className='flex-1 min-w-0'>
+                                <h4 className='font-semibold text-sm line-clamp-2 mb-1'>
+                                  {video.title}
+                                </h4>
+                                <p className='text-xs text-muted-foreground mb-1'>
+                                  {video.uploaderName}
+                                </p>
+                                <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                                  <span>{video.viewCount?.toLocaleString() || 0} vistas</span>
+                                  <span>•</span>
+                                  <span>hace 2 días</span>
+                                </div>
+                              </div>
+                            </div>
+                          </NavigationLink>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

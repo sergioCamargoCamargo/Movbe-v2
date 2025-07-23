@@ -1,14 +1,13 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 
-import { REVALIDATION_TIME_SECONDS } from '@/lib/constants/timing'
-import { getVideoById, getPublicVideos } from '@/lib/firestore'
+import { VideoService } from '@/lib/services/VideoService'
 
 import WatchPageClient from './WatchPageClient'
 import WatchPageSkeleton from './WatchPageSkeleton'
 
-// Add ISR revalidation for video data
-export const revalidate = REVALIDATION_TIME_SECONDS
+// Add ISR revalidation for video data (5 minutes)
+export const revalidate = 300
 
 export async function generateMetadata({
   params,
@@ -17,7 +16,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params
   try {
-    const video = await getVideoById(id)
+    const videoService = new VideoService()
+    const video = await videoService.getVideoById(id)
 
     if (!video) {
       return {
@@ -62,7 +62,11 @@ export default async function WatchPage({ params }: { params: Promise<{ id: stri
 
 async function WatchPageContent({ id }: { id: string }) {
   try {
-    const [video, allVideos] = await Promise.all([getVideoById(id), getPublicVideos(10)])
+    const videoService = new VideoService()
+    const [video, allVideos] = await Promise.all([
+      videoService.getVideoById(id),
+      videoService.getPublicVideos(10),
+    ])
 
     const recommendedVideos = allVideos.filter(v => v.id !== id)
 

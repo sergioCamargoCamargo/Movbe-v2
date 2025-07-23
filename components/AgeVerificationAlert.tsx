@@ -2,6 +2,7 @@
 
 import { AlertTriangle, Shield, UserCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
@@ -12,6 +13,7 @@ interface AgeVerificationAlertProps {
 
 export function AgeVerificationAlert({ onConfirm, isOpen }: AgeVerificationAlertProps) {
   const [isVisible, setIsVisible] = useState(isOpen)
+  const { t } = useTranslation()
 
   useEffect(() => {
     setIsVisible(isOpen)
@@ -27,20 +29,17 @@ export function AgeVerificationAlert({ onConfirm, isOpen }: AgeVerificationAlert
             <AlertTriangle className='h-10 w-10 text-red-600 dark:text-red-400' />
           </div>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
-            Verificación de Edad Requerida
+            {t('ageVerification.title')}
           </h1>
-          <p className='text-gray-600 dark:text-gray-300'>
-            Este sitio contiene contenido para una comunidad mayor de 18 años
-          </p>
+          <p className='text-gray-600 dark:text-gray-300'>{t('ageVerification.warning')}</p>
         </div>
 
         <div className='text-center mb-8'>
           <p className='text-xl font-semibold text-gray-900 dark:text-white mb-3'>
-            Para acceder a este sitio
+            {t('ageVerification.subtitle')}
           </p>
           <p className='text-sm text-gray-600 dark:text-gray-400'>
-            Debes ser mayor de edad para acceder a este contenido. Al continuar, confirmas que
-            cumples con los requisitos legales.
+            {t('ageVerification.description')}
           </p>
         </div>
 
@@ -50,7 +49,7 @@ export function AgeVerificationAlert({ onConfirm, isOpen }: AgeVerificationAlert
             className='w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white py-4 text-lg font-semibold'
           >
             <UserCheck className='h-5 w-5' />
-            SOY MAYOR DE EDAD
+            {t('ageVerification.confirm').toUpperCase()}
           </Button>
         </div>
 
@@ -58,10 +57,11 @@ export function AgeVerificationAlert({ onConfirm, isOpen }: AgeVerificationAlert
           <div className='flex items-start gap-3'>
             <Shield className='h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0' />
             <div className='space-y-1'>
-              <p className='text-sm font-medium text-amber-800 dark:text-amber-200'>Aviso Legal</p>
+              <p className='text-sm font-medium text-amber-800 dark:text-amber-200'>
+                {t('ageVerification.legalNotice')}
+              </p>
               <p className='text-xs text-amber-700 dark:text-amber-300'>
-                Este sitio está destinado exclusivamente a adultos mayores de 18 años. Al acceder,
-                aceptas que cumples con los requisitos de edad en tu jurisdicción.
+                {t('ageVerification.legalText')}
               </p>
             </div>
           </div>

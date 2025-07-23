@@ -4,9 +4,10 @@ import { signOut } from 'firebase/auth'
 import { Bell, Menu, Mic, Search, Upload, User, BarChart3, Settings } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { LanguageSelector } from '@/components/LanguageSelector'
 import { NavigationLink } from '@/components/NavigationLink'
+import { ThemeMenuItem } from '@/components/ThemeMenuItem'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +35,7 @@ export default function HeaderDesktop({
   const { query, updateQuery, searchAndNavigate } = useSearch()
   const [mounted, setMounted] = useState(false)
   const [localQuery, setLocalQuery] = useState('')
+  const { t } = useTranslation()
 
   useEffect(() => {
     setLocalQuery(query)
@@ -72,9 +74,9 @@ export default function HeaderDesktop({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-background border-b transition-transform duration-300 h-16 ${visible ? 'translate-y-0' : '-translate-y-full'}`}
     >
-      <div className='flex items-center justify-between p-4'>
+      <div className='flex items-center justify-between px-4 h-full'>
         <div className='flex items-center'>
           <Button variant='ghost' size='icon' onClick={onMenuClick} className='touch-manipulation'>
             <Menu className='h-6 w-6' />
@@ -83,16 +85,16 @@ export default function HeaderDesktop({
             <Image
               src='/logo_black.png'
               alt='Movbe'
-              width={100}
+              width={112}
               height={32}
-              className='dark:hidden w-[120px] h-auto'
+              className='dark:hidden w-28 h-auto'
             />
             <Image
               src='/logo_white.png'
               alt='Movbe'
               width={100}
               height={32}
-              className='hidden dark:block w-[120px] h-auto'
+              className='hidden dark:block w-28 h-8'
             />
           </NavigationLink>
         </div>
@@ -102,7 +104,7 @@ export default function HeaderDesktop({
           <form onSubmit={handleSearch} className='flex'>
             <Input
               type='search'
-              placeholder='Buscar'
+              placeholder={t('common.search')}
               className='rounded-r-none text-base'
               value={localQuery}
               onChange={handleSearchInputChange}
@@ -119,7 +121,6 @@ export default function HeaderDesktop({
 
         {/* Desktop Right Section */}
         <div className='flex items-center space-x-4'>
-          <LanguageSelector />
           {!mounted || loading ? (
             // Loading state
             <div className='flex items-center space-x-4'>
@@ -160,32 +161,35 @@ export default function HeaderDesktop({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align='end' className='w-56'>
                   <DropdownMenuLabel className='flex flex-col'>
-                    <span>{user.displayName || 'Usuario'}</span>
+                    <span>{user.displayName || t('auth.user')}</span>
                     <span className='text-sm text-muted-foreground font-normal'>{user.email}</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <NavigationLink href={`/profile/${user.uid}`}>
                     <DropdownMenuItem>
                       <User className='mr-2 h-4 w-4' />
-                      Mi Perfil
+                      {t('nav.profile')}
                     </DropdownMenuItem>
                   </NavigationLink>
                   {userProfile && canViewAnalytics(userProfile.role) && (
                     <NavigationLink href='/analytics'>
                       <DropdownMenuItem>
                         <BarChart3 className='mr-2 h-4 w-4' />
-                        Analytics
+                        {t('nav.analytics')}
                       </DropdownMenuItem>
                     </NavigationLink>
                   )}
                   <NavigationLink href='/settings'>
                     <DropdownMenuItem>
                       <Settings className='mr-2 h-4 w-4' />
-                      Configuración
+                      {t('nav.settings')}
                     </DropdownMenuItem>
                   </NavigationLink>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>Cerrar sesión</DropdownMenuItem>
+                  <ThemeMenuItem />
+                  {/* <LanguageMenuItem /> */}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>{t('auth.signOut')}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -197,7 +201,7 @@ export default function HeaderDesktop({
                 className='touch-manipulation text-sm flex items-center gap-2 rounded-full border-2'
               >
                 <User className='h-4 w-4' />
-                Iniciar sesión
+                {t('auth.login')}
               </Button>
             </NavigationLink>
           )}

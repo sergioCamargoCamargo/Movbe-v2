@@ -20,9 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { updateVideo } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useCategories } from '@/lib/hooks/useCategories'
+import { VideoService } from '@/lib/services/VideoService'
+import { VideoUploadData, VideoUploadProgress } from '@/lib/types/services/IVideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 import {
@@ -33,13 +34,6 @@ import {
   setUploading,
   setUploadProgress,
 } from '@/lib/store/slices/uploadSlice'
-import {
-  generateThumbnail,
-  uploadThumbnail,
-  uploadVideo,
-  validateVideoFile,
-  UploadProgress as VideoUploadProgress,
-} from '@/lib/videoService'
 
 export default function UploadPage() {
   const { t } = useTranslation()
@@ -55,7 +49,8 @@ export default function UploadPage() {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      const validation = await validateVideoFile(file)
+      const videoService = new VideoService()
+      const validation = await videoService.validateVideoFile(file)
       if (!validation.isValid) {
         toast({
           variant: 'destructive',
@@ -81,8 +76,8 @@ export default function UploadPage() {
     if (!user || !userProfile) {
       toast({
         variant: 'destructive',
-        title: 'Usuario no autenticado',
-        description: 'Debes iniciar sesión para subir videos.',
+        title: t('upload.userNotAuthenticated'),
+        description: t('upload.userNotAuthenticatedDescription'),
       })
       return
     }
@@ -91,43 +86,43 @@ export default function UploadPage() {
     dispatch(setUploadProgress(null))
 
     try {
-      const videoId = await uploadVideo(
-        {
-          title,
-          description,
-          file: selectedFile,
-          userId: user.uid,
-          userName: userProfile.displayName || user.email || 'Usuario',
-          category: category,
-          tags: [],
-          visibility: 'public',
-        },
-        (progress: VideoUploadProgress) => {
-          // Convert VideoUploadProgress to UploadProgress expected by Redux
-          dispatch(
-            setUploadProgress({
-              videoId: '', // Will be available after upload completes
-              progress: progress.progress,
-              status: progress.state === 'running' ? 'uploading' : 'completed',
-            })
-          )
-        }
-      )
+      const videoService = new VideoService()
+      const videoData: VideoUploadData = {
+        title,
+        description,
+        file: selectedFile,
+        userId: user.uid,
+        userName: userProfile.displayName || user.email || 'Usuario',
+        category: category,
+        tags: [],
+        visibility: 'public',
+      }
+
+      const videoId = await videoService.uploadVideo(videoData, (progress: VideoUploadProgress) => {
+        // Convert VideoUploadProgress to UploadProgress expected by Redux
+        dispatch(
+          setUploadProgress({
+            videoId: '', // Will be available after upload completes
+            progress: progress.progress,
+            status: progress.state === 'running' ? 'uploading' : 'completed',
+          })
+        )
+      })
 
       // Generar y subir thumbnail
       try {
-        const thumbnailDataURL = await generateThumbnail(selectedFile)
-        const thumbnailURL = await uploadThumbnail(thumbnailDataURL, user.uid, videoId)
+        const thumbnailDataURL = await videoService.generateThumbnail(selectedFile)
+        const thumbnailURL = await videoService.uploadThumbnail(thumbnailDataURL, user.uid, videoId)
 
         // Actualizar video con thumbnail
-        await updateVideo(videoId, { thumbnailURL })
+        await videoService.updateVideo(videoId, { thumbnailURL })
       } catch {
         // Thumbnail generation is optional, continue without it
       }
 
       toast({
-        title: '¡Video subido exitosamente!',
-        description: `"${title}" se ha subido correctamente a tu canal.`,
+        title: t('upload.uploadSuccess'),
+        description: t('upload.uploadSuccessDescription', { title }),
         action: (
           <div className='flex items-center text-green-600'>
             <CheckCircle className='h-4 w-4' />
@@ -142,8 +137,8 @@ export default function UploadPage() {
       // Error will be shown in toast
       toast({
         variant: 'destructive',
-        title: 'Error al subir el video',
-        description: 'Hubo un problema al procesar tu archivo. Por favor, inténtalo de nuevo.',
+        title: t('upload.uploadError'),
+        description: t('upload.uploadErrorDescription'),
         action: (
           <div className='flex items-center text-red-600'>
             <AlertCircle className='h-4 w-4' />
@@ -165,9 +160,9 @@ export default function UploadPage() {
           <div className='flex-1 overflow-auto bg-background p-2 sm:p-4 md:h-auto mobile-scroll-container ios-scroll-fix'>
             <div className='max-w-2xl mx-auto px-2 sm:px-0'>
               <div className='mb-4 sm:mb-6'>
-                <h1 className='text-2xl sm:text-3xl font-bold mt-2 sm:mt-4'>Subir Video</h1>
+                <h1 className='text-2xl sm:text-3xl font-bold mt-2 sm:mt-4'>{t('upload.title')}</h1>
                 <p className='text-sm sm:text-base text-muted-foreground'>
-                  Comparte tu contenido con la comunidad
+                  {t('upload.description')}
                 </p>
               </div>
 
@@ -175,17 +170,17 @@ export default function UploadPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Video className='h-5 w-5' />
-                    Detalles del Video
+                    {t('upload.videoDetails')}
                   </CardTitle>
-                  <CardDescription>Completa la información de tu video</CardDescription>
+                  <CardDescription>{t('upload.fillInformation')}</CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-4 sm:space-y-6 p-4 sm:p-6'>
                   <div className='space-y-2'>
-                    <Label htmlFor='title'>Título del video</Label>
+                    <Label htmlFor='title'>{t('upload.videoTitle')}</Label>
                     <Input
                       id='title'
                       type='text'
-                      placeholder='Ingresa el título de tu video'
+                      placeholder={t('upload.videoTitlePlaceholder')}
                       value={title}
                       onChange={e => dispatch(setTitle(e.target.value))}
                       disabled={uploading}
@@ -193,10 +188,10 @@ export default function UploadPage() {
                   </div>
 
                   <div className='space-y-2'>
-                    <Label htmlFor='description'>Descripción (opcional)</Label>
+                    <Label htmlFor='description'>{t('upload.videoDescription')}</Label>
                     <Textarea
                       id='description'
-                      placeholder='Describe tu video...'
+                      placeholder={t('upload.descriptionPlaceholder')}
                       value={description}
                       onChange={e => dispatch(setDescription(e.target.value))}
                       disabled={uploading}
@@ -205,7 +200,7 @@ export default function UploadPage() {
                   </div>
 
                   <div className='space-y-2'>
-                    <Label htmlFor='category'>Categoría *</Label>
+                    <Label htmlFor='category'>{t('upload.categoryRequired')}</Label>
                     <Select
                       value={category}
                       onValueChange={value => dispatch(setCategory(value))}
@@ -237,7 +232,7 @@ export default function UploadPage() {
                   </div>
 
                   <div className='space-y-2'>
-                    <Label htmlFor='video'>Seleccionar video</Label>
+                    <Label htmlFor='video'>{t('upload.selectVideo')}</Label>
                     <div className='border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-6 text-center'>
                       <input
                         id='video'
@@ -253,16 +248,16 @@ export default function UploadPage() {
                       >
                         <Upload className='h-8 w-8 text-muted-foreground' />
                         <span className='text-xs sm:text-sm text-muted-foreground block'>
-                          {selectedFile ? selectedFile.name : 'Haz clic para seleccionar un video'}
+                          {selectedFile ? selectedFile.name : t('upload.selectVideoPrompt')}
                         </span>
                         <span className='text-xs text-muted-foreground block mt-1'>
-                          Formatos soportados: MP4, MOV, AVI, MKV, WebM, HEVC (máx. 500MB, 20 min)
+                          {t('upload.supportedFormats')}
                         </span>
                       </label>
                     </div>
                     {selectedFile && (
                       <div className='text-sm text-muted-foreground'>
-                        Tamaño: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                        {t('upload.fileSize')}: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                       </div>
                     )}
                   </div>
@@ -270,12 +265,12 @@ export default function UploadPage() {
                   {uploadProgress && (
                     <div className='space-y-2'>
                       <div className='flex justify-between text-sm'>
-                        <span>Subiendo video...</span>
+                        <span>{t('upload.uploadingVideo')}</span>
                         <span>{Math.round(uploadProgress.progress)}%</span>
                       </div>
                       <Progress value={uploadProgress.progress} className='w-full' />
                       <div className='text-xs text-muted-foreground'>
-                        Estado: {uploadProgress.status}
+                        {t('upload.status')}: {uploadProgress.status}
                       </div>
                     </div>
                   )}
@@ -290,13 +285,15 @@ export default function UploadPage() {
                       <>
                         <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2' />
                         {uploadProgress
-                          ? `Subiendo ${Math.round(uploadProgress.progress)}%...`
-                          : 'Preparando...'}
+                          ? t('upload.uploadingProgress', {
+                              progress: Math.round(uploadProgress.progress),
+                            })
+                          : t('upload.preparing')}
                       </>
                     ) : (
                       <>
                         <Upload className='h-4 w-4 mr-2' />
-                        Subir Video
+                        {t('upload.uploadButton')}
                       </>
                     )}
                   </Button>

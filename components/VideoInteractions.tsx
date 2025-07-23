@@ -10,9 +10,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
-import { getUserVideoRating, rateVideo } from '@/lib/firestore'
 import { useToast } from '@/lib/hooks/use-toast'
-import { useVideoComments, useVideoLikes } from '@/lib/hooks/useVideoData'
+import { useVideoComments, useVideoLikes, useVideo } from '@/lib/hooks/useVideoData'
+import { VideoInteractionService } from '@/lib/services/VideoInteractionService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { updateVideoInteraction } from '@/lib/store/slices/videoSlice'
 import { VideoInteractionsProps, toSafeDate } from '@/lib/types'
@@ -29,10 +29,14 @@ export function VideoInteractions({
   userRating = 0,
   comments: _comments = [],
   className = '',
+  showComments = true,
 }: VideoInteractionsProps) {
   const dispatch = useAppDispatch()
   const { user } = useAuth()
   const videoInteraction = useAppSelector(state => state.video.interactions[videoId])
+
+  // Use video hook to get updated video data
+  const { video, refetch: refetchVideo } = useVideo(videoId)
 
   // Use optimized hooks for data management
   const {
@@ -57,6 +61,10 @@ export function VideoInteractions({
   // Use Redux state if available, otherwise use props
   const saved = videoInteraction?.saved ?? isSaved
 
+  // Use updated video data for rating display
+  const currentVideoRating = video?.rating ?? rating
+  const currentRatingCount = video?.ratingCount ?? ratingCount
+
   const [currentUserRating, setCurrentUserRating] = useState(userRating)
   const [newComment, setNewComment] = useState('')
   const [ratingLoading, setRatingLoading] = useState(false)
@@ -66,7 +74,8 @@ export function VideoInteractions({
     const loadUserRating = async () => {
       if (user?.uid) {
         try {
-          const userRatingData = await getUserVideoRating(videoId, user.uid)
+          const videoInteractionService = new VideoInteractionService()
+          const userRatingData = await videoInteractionService.getUserVideoRating(user.uid, videoId)
           if (userRatingData) {
             setCurrentUserRating(userRatingData.rating)
           }
@@ -200,8 +209,12 @@ export function VideoInteractions({
 
     setRatingLoading(true)
     try {
-      await rateVideo(videoId, user.uid, newRating)
+      const videoInteractionService = new VideoInteractionService()
+      await videoInteractionService.rateVideo(user.uid, videoId, newRating)
       setCurrentUserRating(newRating)
+
+      // Refetch video data to get updated rating average
+      await refetchVideo()
 
       toast({
         title: 'Calificación enviada',
@@ -369,10 +382,9 @@ export function VideoInteractions({
           <div className='flex flex-col xs:flex-row xs:items-center xs:justify-between gap-2'>
             <h3 className='text-base sm:text-lg font-semibold'>Calificación</h3>
             <div className='flex flex-col xs:items-end gap-1'>
-              <StarRating rating={rating} readonly size='md' showValue />
-              {ratingCount && ratingCount > 0 && (
+              {currentRatingCount && currentRatingCount > 0 && (
                 <span className='text-xs text-muted-foreground'>
-                  ({ratingCount} calificación{ratingCount !== 1 ? 'es' : ''})
+                  ({currentRatingCount} calificación{currentRatingCount !== 1 ? 'es' : ''})
                 </span>
               )}
             </div>
@@ -380,27 +392,31 @@ export function VideoInteractions({
         </CardHeader>
         <CardContent className='pt-0'>
           <div className='space-y-3 sm:space-y-4'>
-            <p className='text-xs sm:text-sm text-muted-foreground'>
-              {user
-                ? 'Califica este video para ayudar a otros usuarios'
-                : 'Inicia sesión para calificar este video'}
-            </p>
-            {user && (
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+              <div className='flex flex-col gap-2'>
+                <p className='text-xs sm:text-sm text-muted-foreground'>
+                  {user
+                    ? 'Califica este video y ve la calificación promedio'
+                    : 'Inicia sesión para calificar este video'}
+                </p>
+                {currentVideoRating > 0 && (
+                  <div className='text-sm text-muted-foreground'>
+                    Calificación promedio:{' '}
+                    <span className='font-medium'>{currentVideoRating.toFixed(1)} estrellas</span>
+                  </div>
+                )}
+              </div>
               <div className='flex items-center justify-center sm:justify-start'>
                 <StarRating
-                  rating={currentUserRating}
-                  onRatingChange={handleRating}
-                  readonly={ratingLoading}
+                  rating={user ? currentUserRating : currentVideoRating}
+                  onRatingChange={user ? handleRating : undefined}
+                  readonly={!user || ratingLoading}
                   size='lg'
+                  showValue={!user && currentVideoRating > 0}
                   className={ratingLoading ? 'opacity-50' : ''}
                 />
               </div>
-            )}
-            {!user && rating > 0 && (
-              <div className='text-center sm:text-left text-sm text-muted-foreground'>
-                Este video tiene una calificación promedio de {rating.toFixed(1)} estrellas
-              </div>
-            )}
+            </div>
             {currentUserRating > 0 && (
               <p className='text-xs sm:text-sm text-green-600 text-center sm:text-left'>
                 Has calificado este video con {currentUserRating} estrella
@@ -412,105 +428,140 @@ export function VideoInteractions({
       </Card>
 
       {/* Sección de comentarios */}
-      <Card>
-        <CardHeader className='pb-3'>
-          <h3 className='text-base sm:text-lg font-semibold flex items-center gap-2'>
-            <MessageCircle className='h-4 w-4 sm:h-5 sm:w-5' />
-            Comentarios ({localComments.length})
-          </h3>
-        </CardHeader>
-        <CardContent className='space-y-3 sm:space-y-4'>
-          {/* Formulario para nuevo comentario */}
-          {user ? (
-            <form onSubmit={handleCommentSubmit} className='space-y-3'>
-              <Textarea
-                placeholder='Escribe un comentario...'
-                value={newComment}
-                onChange={e => setNewComment(e.target.value)}
-                rows={3}
-                aria-label='Escribir comentario'
-                className='resize-none touch-manipulation'
-              />
-              <div className='flex justify-end'>
-                <Button
-                  type='submit'
-                  size='sm'
-                  disabled={!newComment.trim()}
-                  className='flex items-center gap-2 touch-manipulation h-9'
-                >
-                  <MessageCircle className='h-4 w-4' />
-                  <span className='text-sm'>Comentar</span>
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className='p-3 sm:p-4 bg-muted/30 rounded-lg text-center'>
-              <p className='text-sm text-muted-foreground'>
-                <Button variant='link' className='p-0 h-auto font-normal text-sm'>
-                  Inicia sesión
-                </Button>{' '}
-                para comentar en este video
-              </p>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Lista de comentarios */}
-          <div className='space-y-3 sm:space-y-4'>
-            {commentsLoading ? (
-              <div className='text-center py-6 sm:py-8'>
-                <p className='text-sm sm:text-base'>Cargando comentarios...</p>
-              </div>
-            ) : localComments.length > 0 ? (
-              localComments.map(comment => (
-                <div key={comment.id} className='flex gap-2 sm:gap-3 p-3 bg-muted/30 rounded-lg'>
-                  <Avatar className='h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0'>
-                    <AvatarFallback className='text-xs sm:text-sm'>
-                      {comment.userName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='flex-1 space-y-2 min-w-0'>
-                    <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
-                      <span className='font-semibold text-sm truncate'>{comment.userName}</span>
-                      <span className='text-xs text-muted-foreground flex-shrink-0'>
-                        {comment.createdAt
-                          ? toSafeDate(comment.createdAt).toLocaleDateString()
-                          : 'Ahora'}
-                      </span>
-                    </div>
-                    <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
-                    <div className='flex items-center gap-2'>
-                      <Button
-                        variant='ghost'
-                        size='sm'
-                        onClick={() => handleCommentLike(comment.id)}
-                        disabled={!user}
-                        className={`flex items-center gap-1 h-7 px-2 text-muted-foreground touch-manipulation ${
-                          !user ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                        aria-label='Dar like al comentario'
-                        title={!user ? 'Inicia sesión para dar like' : ''}
-                      >
-                        <Heart className='h-3 w-3' />
-                        {comment.likeCount > 0 && (
-                          <span className='text-xs'>{formatNumber(comment.likeCount)}</span>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
+      {showComments && (
+        <Card>
+          <CardHeader className='pb-3'>
+            <h3 className='text-base sm:text-lg font-semibold flex items-center gap-2'>
+              <MessageCircle className='h-4 w-4 sm:h-5 sm:w-5' />
+              Comentarios ({localComments.length})
+            </h3>
+          </CardHeader>
+          <CardContent className='space-y-3 sm:space-y-4'>
+            {/* Formulario para nuevo comentario */}
+            {user ? (
+              <form onSubmit={handleCommentSubmit} className='space-y-3'>
+                <Textarea
+                  placeholder='Escribe un comentario...'
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  rows={3}
+                  aria-label='Escribir comentario'
+                  className='resize-none touch-manipulation'
+                />
+                <div className='flex justify-end'>
+                  <Button
+                    type='submit'
+                    size='sm'
+                    disabled={!newComment.trim()}
+                    className='flex items-center gap-2 touch-manipulation h-9'
+                  >
+                    <MessageCircle className='h-4 w-4' />
+                    <span className='text-sm'>Comentar</span>
+                  </Button>
                 </div>
-              ))
+              </form>
             ) : (
-              <div className='text-center py-6 sm:py-8 text-muted-foreground'>
-                <MessageCircle className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
-                <p className='text-sm sm:text-base'>No hay comentarios aún</p>
-                <p className='text-xs sm:text-sm'>¡Sé el primero en comentar!</p>
+              <div className='p-3 sm:p-4 bg-muted/30 rounded-lg text-center'>
+                <p className='text-sm text-muted-foreground'>
+                  <Button variant='link' className='p-0 h-auto font-normal text-sm'>
+                    Inicia sesión
+                  </Button>{' '}
+                  para comentar en este video
+                </p>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+
+            <Separator />
+
+            {/* Lista de comentarios */}
+            <div className='space-y-3 sm:space-y-4'>
+              {commentsLoading ? (
+                <div className='text-center py-6 sm:py-8'>
+                  <p className='text-sm sm:text-base'>Cargando comentarios...</p>
+                </div>
+              ) : localComments.length > 0 ? (
+                localComments.map(comment => (
+                  <div key={comment.id} className='flex gap-2 sm:gap-3 p-3 bg-muted/30 rounded-lg'>
+                    <Avatar className='h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0'>
+                      <AvatarFallback className='text-xs sm:text-sm'>
+                        {comment.userName.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className='flex-1 space-y-2 min-w-0'>
+                      <div className='flex flex-col xs:flex-row xs:items-center gap-1 xs:gap-2'>
+                        <span className='font-semibold text-sm truncate'>{comment.userName}</span>
+                        <span className='text-xs text-muted-foreground flex-shrink-0'>
+                          {comment.createdAt
+                            ? (() => {
+                                const date = toSafeDate(comment.createdAt)
+                                const now = new Date()
+                                const today = new Date(
+                                  now.getFullYear(),
+                                  now.getMonth(),
+                                  now.getDate()
+                                )
+                                const commentDate = new Date(
+                                  date.getFullYear(),
+                                  date.getMonth(),
+                                  date.getDate()
+                                )
+
+                                const time = date.toLocaleTimeString('es-ES', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false,
+                                })
+
+                                // Today
+                                if (commentDate.getTime() === today.getTime()) {
+                                  return `Hoy ${time}`
+                                }
+
+                                // Yesterday
+                                const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+                                if (commentDate.getTime() === yesterday.getTime()) {
+                                  return `Ayer ${time}`
+                                }
+
+                                // Always show year for dates that are not today or yesterday
+                                return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${time}`
+                              })()
+                            : 'Ahora'}
+                        </span>
+                      </div>
+                      <p className='text-sm leading-relaxed break-words'>{comment.text}</p>
+                      <div className='flex items-center gap-2'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          onClick={() => handleCommentLike(comment.id)}
+                          disabled={!user}
+                          className={`flex items-center gap-1 h-7 px-2 text-muted-foreground touch-manipulation ${
+                            !user ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          aria-label='Dar like al comentario'
+                          title={!user ? 'Inicia sesión para dar like' : ''}
+                        >
+                          <Heart className='h-3 w-3' />
+                          {comment.likeCount > 0 && (
+                            <span className='text-xs'>{formatNumber(comment.likeCount)}</span>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className='text-center py-6 sm:py-8 text-muted-foreground'>
+                  <MessageCircle className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
+                  <p className='text-sm sm:text-base'>No hay comentarios aún</p>
+                  <p className='text-xs sm:text-sm'>¡Sé el primero en comentar!</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

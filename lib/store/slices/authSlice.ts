@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { User } from 'firebase/auth'
 
-import { createOrUpdateUser } from '@/lib/firestore'
+import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
 import { UserProfile } from '@/lib/types/entities/user'
 
 interface AuthState {
@@ -34,6 +34,7 @@ const serializeUserProfile = (profile: UserProfile): UserProfile => {
     email: profile.email,
     displayName: profile.displayName,
     photoURL: profile.photoURL,
+    coverImageURL: profile.coverImageURL,
     role: profile.role,
     ageVerified: profile.ageVerified,
     dateOfBirth: toISOString(profile.dateOfBirth),
@@ -48,7 +49,8 @@ const serializeUserProfile = (profile: UserProfile): UserProfile => {
 export const refreshUserProfile = createAsyncThunk(
   'auth/refreshUserProfile',
   async (user: User) => {
-    const profile = await createOrUpdateUser(user)
+    const userService = new EnhancedUserService()
+    const profile = await userService.createOrUpdateUser(user)
     return profile ? (serializeUserProfile(profile) as UserProfile) : null
   }
 )

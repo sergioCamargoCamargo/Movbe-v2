@@ -4,9 +4,10 @@ import HeaderDynamic from '@/components/HeaderDynamic'
 import MainContentClient from '@/components/MainContentClient'
 import { PageTransition } from '@/components/PageTransition'
 import Sidebar from '@/components/Sidebar'
-import { Video, Category } from '@/lib/firestore'
+import { Video } from '@/lib/services/VideoService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import { Category } from '@/lib/types/entities/category'
 
 interface HomePageClientProps {
   initialVideos: Video[]
