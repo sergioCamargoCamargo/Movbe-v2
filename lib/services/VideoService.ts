@@ -159,7 +159,6 @@ export class VideoService {
     } catch (_error) {
       // Error handling - throw error to caller
       throw _error
-      return false
     }
   }
 
