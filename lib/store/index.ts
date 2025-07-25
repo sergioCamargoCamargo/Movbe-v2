@@ -5,6 +5,7 @@ import authSlice from './slices/authSlice'
 import searchSlice from './slices/searchSlice'
 import settingsSlice from './slices/settingsSlice'
 import sidebarSlice from './slices/sidebarSlice'
+import subscriptionSlice from './slices/subscriptionSlice'
 import uiSlice from './slices/uiSlice'
 import uploadSlice from './slices/uploadSlice'
 import videoSlice from './slices/videoSlice'
@@ -15,6 +16,7 @@ export const store = configureStore({
     search: searchSlice,
     settings: settingsSlice,
     sidebar: sidebarSlice,
+    subscription: subscriptionSlice,
     ui: uiSlice,
     upload: uploadSlice,
     video: videoSlice,
@@ -33,6 +35,9 @@ export const store = configureStore({
           'video/setVideo',
           'video/setVideoComments',
           'video/setUserLike',
+          'subscription/loadSubscriberCount/fulfilled',
+          'subscription/loadSubscriptionState/fulfilled',
+          'subscription/toggleSubscription/fulfilled',
         ],
         ignoredActionsPaths: [
           'payload.user',

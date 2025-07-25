@@ -24,13 +24,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { getSubscriptionService } from '@/lib/di/serviceRegistration'
 import { useToast } from '@/lib/hooks/use-toast'
 import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
 import { coverImageService } from '@/lib/services/CoverImageService'
 import { Video as FirestoreVideoType, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import {
+  loadSubscriberCount,
+  loadSubscriptionState,
+  toggleSubscription,
+} from '@/lib/store/slices/subscriptionSlice'
 import { FirestoreTimestamp } from '@/lib/types'
 
 // Default profile structure
@@ -59,6 +63,11 @@ export default function ProfilePage() {
   const userId = params.userId as string
   const dispatch = useAppDispatch()
   const { user, userProfile, loading } = useAppSelector(state => state.auth)
+  const {
+    subscriberCounts,
+    subscriptionStates,
+    loading: subscriptionLoading,
+  } = useAppSelector(state => state.subscription)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -149,15 +158,16 @@ export default function ProfilePage() {
     loadProfileData()
   }, [userId, isOwnProfile, userProfile, user])
 
-  const [isSubscribed, setIsSubscribed] = useState(profileData.isSubscribed)
-  const [subscriberCount, setSubscriberCountState] = useState(profileData.subscriberCount)
   const [userVideos, setUserVideos] = useState<FirestoreVideoType[]>([])
   const [videosLoading, setVideosLoading] = useState(true)
   const [videosError, setVideosError] = useState<string | null>(null)
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [coverImageUploading, setCoverImageUploading] = useState(false)
 
-  const subscriptionService = getSubscriptionService()
+  // Get values from Redux store
+  const subscriberCount = subscriberCounts[userId] || 0
+  const subscriptionKey = `${userId}_${user?.uid}`
+  const isSubscribed = subscriptionStates[subscriptionKey] || false
+  const isSubscriptionLoading = subscriptionLoading[userId] || false
 
   // Load user videos when component mounts or userId changes
   useEffect(() => {
@@ -180,35 +190,18 @@ export default function ProfilePage() {
     loadUserVideos()
   }, [userId])
 
-  // Load subscription state when component mounts or userId changes
+  // Load subscription data when component mounts or userId changes
   useEffect(() => {
-    const loadSubscriptionState = async () => {
-      if (!userId || !user || userId === user.uid) {
-        return
-      }
+    if (!userId) return
 
-      try {
-        const [subscriptionRelation, subscriberCount] = await Promise.all([
-          subscriptionService.getSubscriptionRelation(userId, user.uid),
-          subscriptionService.getSubscriberCount(userId),
-        ])
+    // Load subscriber count
+    dispatch(loadSubscriberCount(userId))
 
-        setIsSubscribed(subscriptionRelation.isSubscribed)
-        setSubscriberCountState(subscriberCount)
-      } catch {
-        // Error loading subscription state, fallback to get subscriber count
-        try {
-          const subscriberCount = await subscriptionService.getSubscriberCount(userId)
-          setSubscriberCountState(subscriberCount)
-        } catch {
-          // Final fallback
-          setSubscriberCountState(0)
-        }
-      }
+    // Load subscription state if user is logged in and not own profile
+    if (user?.uid && userId !== user.uid) {
+      dispatch(loadSubscriptionState({ channelId: userId, subscriberId: user.uid }))
     }
-
-    loadSubscriptionState()
-  }, [userId, user, subscriptionService])
+  }, [userId, user?.uid, dispatch])
 
   // Show loading state while auth is loading or profile is loading
   if (loading || profileLoading) {
@@ -243,39 +236,31 @@ export default function ProfilePage() {
       return
     }
 
-    if (!userId || userId === user.uid || subscriptionLoading) {
+    if (!userId || userId === user.uid || isSubscriptionLoading) {
       return
     }
 
-    setSubscriptionLoading(true)
-
     try {
-      if (isSubscribed) {
-        await subscriptionService.unsubscribe(userId, user.uid)
-        setIsSubscribed(false)
-        setSubscriberCountState(prev => prev - 1)
-        toast({
-          title: 'Te has desuscrito',
-          description: `Ya no seguirás a ${profileData.name}`,
+      const result = await dispatch(
+        toggleSubscription({
+          channelId: userId,
+          subscriberId: user.uid,
+          isSubscribed,
         })
-      } else {
-        await subscriptionService.subscribe(userId, user.uid)
-        setIsSubscribed(true)
-        setSubscriberCountState(prev => prev + 1)
-        toast({
-          title: '¡Suscrito!',
-          description: `Ahora sigues a ${profileData.name}`,
-        })
-      }
+      ).unwrap()
+
+      toast({
+        title: result.isSubscribed ? '¡Suscrito!' : 'Te has desuscrito',
+        description: result.isSubscribed
+          ? `Ahora sigues a ${profileData.name}`
+          : `Ya no seguirás a ${profileData.name}`,
+      })
     } catch {
-      // Error in subscription process
       toast({
         title: 'Error',
         description: 'Hubo un problema al procesar tu suscripción. Inténtalo de nuevo.',
         variant: 'destructive',
       })
-    } finally {
-      setSubscriptionLoading(false)
     }
   }
 
@@ -451,7 +436,7 @@ export default function ProfilePage() {
                       {!isOwnProfile && (
                         <Button
                           onClick={handleSubscribe}
-                          disabled={subscriptionLoading}
+                          disabled={isSubscriptionLoading}
                           variant={isSubscribed ? 'outline' : 'default'}
                           className={`touch-manipulation min-w-[100px] ${
                             isSubscribed
@@ -459,7 +444,7 @@ export default function ProfilePage() {
                               : 'bg-primary hover:bg-primary/90'
                           }`}
                         >
-                          {subscriptionLoading
+                          {isSubscriptionLoading
                             ? isSubscribed
                               ? 'Cancelando...'
                               : 'Suscribiendo...'
@@ -499,7 +484,7 @@ export default function ProfilePage() {
                     {!isOwnProfile && (
                       <Button
                         onClick={handleSubscribe}
-                        disabled={subscriptionLoading}
+                        disabled={isSubscriptionLoading}
                         variant={isSubscribed ? 'outline' : 'default'}
                         size='sm'
                         className={`touch-manipulation flex-1 min-w-[100px] ${
@@ -508,7 +493,7 @@ export default function ProfilePage() {
                             : 'bg-primary hover:bg-primary/90'
                         }`}
                       >
-                        {subscriptionLoading
+                        {isSubscriptionLoading
                           ? isSubscribed
                             ? 'Cancelando...'
                             : 'Suscribiendo...'
