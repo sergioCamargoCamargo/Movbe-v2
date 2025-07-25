@@ -366,7 +366,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                       alt='Avatar del canal'
                       width={40}
                       height={40}
-                      className='rounded-full hover:opacity-80 transition-opacity cursor-pointer'
+                      className='rounded-full object-cover hover:opacity-80 transition-opacity cursor-pointer'
                       onError={e => {
                         const target = e.target as HTMLImageElement
                         // Hide the broken image and show fallback
