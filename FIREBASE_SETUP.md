@@ -57,6 +57,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
 ### ✅ Basic Authentication
 
 - **Email/Password Authentication**
+
   - User registration with email and password
   - Login with email and password
   - Password reset via email
