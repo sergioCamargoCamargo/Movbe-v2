@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments, useVideoLikes, useVideo } from '@/lib/hooks/useVideoData'
 import { VideoInteractionService } from '@/lib/services/VideoInteractionService'
@@ -33,6 +34,7 @@ export function VideoInteractions({
 }: VideoInteractionsProps) {
   const dispatch = useAppDispatch()
   const { user } = useAuth()
+  const { trackInteraction, trackCustomEvent, trackShare } = useAnalytics()
   const videoInteraction = useAppSelector(state => state.video.interactions[videoId])
 
   // Use video hook to get updated video data
@@ -126,6 +128,7 @@ export function VideoInteractions({
 
   const handleLike = async () => {
     if (!user) {
+      trackInteraction('login_required', 'like_button')
       toast({
         title: 'Inicia sesión requerido',
         description: 'Inicia sesión para dar like a los videos',
@@ -134,8 +137,13 @@ export function VideoInteractions({
       return
     }
 
+    trackInteraction('click', 'like_button', { videoId, isLiked: userLikeStatus_isLiked })
+
     const success = await toggleLike(true)
-    if (!success) {
+    if (success) {
+      trackCustomEvent(userLikeStatus_isLiked ? 'unlike' : 'like', 'Video Engagement', videoId, 1)
+    } else {
+      trackCustomEvent('like_error', 'Error', videoId)
       toast({
         title: 'Error',
         description: 'Error al procesar el like',
@@ -146,6 +154,7 @@ export function VideoInteractions({
 
   const handleDislike = async () => {
     if (!user) {
+      trackInteraction('login_required', 'dislike_button')
       toast({
         title: 'Inicia sesión requerido',
         description: 'Inicia sesión para dar dislike a los videos',
@@ -154,8 +163,18 @@ export function VideoInteractions({
       return
     }
 
+    trackInteraction('click', 'dislike_button', { videoId, isDisliked: userLikeStatus_isDisliked })
+
     const success = await toggleLike(false)
-    if (!success) {
+    if (success) {
+      trackCustomEvent(
+        userLikeStatus_isDisliked ? 'un_dislike' : 'dislike',
+        'Video Engagement',
+        videoId,
+        1
+      )
+    } else {
+      trackCustomEvent('dislike_error', 'Error', videoId)
       toast({
         title: 'Error',
         description: 'Error al procesar el dislike',
@@ -165,6 +184,9 @@ export function VideoInteractions({
   }
 
   const handleSave = () => {
+    trackInteraction('click', 'save_button', { videoId, isSaved: saved })
+    trackCustomEvent(saved ? 'unsave' : 'save', 'Video Engagement', videoId, 1)
+
     dispatch(
       updateVideoInteraction({
         videoId,
@@ -183,6 +205,9 @@ export function VideoInteractions({
   }
 
   const handleShare = () => {
+    trackInteraction('click', 'share_button', { videoId })
+    trackShare('native_share', 'video', videoId)
+
     if (navigator.share) {
       navigator.share({
         title: 'Video en MOVBE',
@@ -199,6 +224,7 @@ export function VideoInteractions({
 
   const handleRating = async (newRating: number) => {
     if (!user) {
+      trackInteraction('login_required', 'rating_stars')
       toast({
         title: 'Inicia sesión requerido',
         description: 'Inicia sesión para calificar este video',
@@ -207,11 +233,19 @@ export function VideoInteractions({
       return
     }
 
+    trackInteraction('rate', 'star_rating', {
+      videoId,
+      rating: newRating,
+      previousRating: currentUserRating,
+    })
+
     setRatingLoading(true)
     try {
       const videoInteractionService = new VideoInteractionService()
       await videoInteractionService.rateVideo(user.uid, videoId, newRating)
       setCurrentUserRating(newRating)
+
+      trackCustomEvent('video_rated', 'Video Engagement', videoId, newRating)
 
       // Refetch video data to get updated rating average
       await refetchVideo()
@@ -221,6 +255,7 @@ export function VideoInteractions({
         description: `Has calificado este video con ${newRating} estrellas`,
       })
     } catch {
+      trackCustomEvent('rating_error', 'Error', videoId)
       toast({
         title: 'Error al calificar',
         description: 'No se pudo enviar tu calificación. Intenta de nuevo.',
@@ -235,6 +270,7 @@ export function VideoInteractions({
     e.preventDefault()
 
     if (!user) {
+      trackInteraction('login_required', 'comment_form')
       toast({
         title: 'Inicia sesión requerido',
         description: 'Inicia sesión para comentar en los videos',
@@ -252,14 +288,18 @@ export function VideoInteractions({
       return
     }
 
+    trackInteraction('submit', 'comment_form', { videoId, commentLength: newComment.length })
+
     const success = await addNewComment(newComment.trim())
     if (success) {
+      trackCustomEvent('comment_added', 'Video Engagement', videoId, 1)
       setNewComment('')
       toast({
         title: 'Comentario publicado',
         description: 'Tu comentario se ha añadido al video',
       })
     } else {
+      trackCustomEvent('comment_error', 'Error', videoId)
       toast({
         title: 'Error',
         description: 'Error al publicar el comentario',

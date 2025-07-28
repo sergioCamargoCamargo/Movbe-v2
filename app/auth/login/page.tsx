@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -27,6 +28,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { trackPage, trackAuth, trackInteraction, trackAppError } = useAnalytics()
+
+  useEffect(() => {
+    trackPage('Login Page')
+  }, [trackPage])
 
   useEffect(() => {
     const errorParam = searchParams?.get('error')
@@ -34,13 +40,16 @@ export default function LoginPage() {
       setError(
         'No puedes acceder a esta plataforma. Debes ser mayor de 18 años para usar nuestros servicios.'
       )
+      trackAppError('underage_access_attempt', 'login_page')
     }
-  }, [searchParams])
+  }, [searchParams, trackAppError])
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
     setError('')
+
+    trackInteraction('submit', 'login_form')
 
     try {
       const formData = new FormData(event.currentTarget)
@@ -53,12 +62,15 @@ export default function LoginPage() {
         setError(
           'Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada.'
         )
+        trackAppError('email_not_verified', 'login_form')
         await auth.signOut() // Sign out the unverified user
         return
       }
 
+      trackAuth('login', 'email')
       router.push('/')
     } catch (error) {
+      trackAppError(`login_error: ${getFirebaseErrorMessage(error)}`, 'login_form')
       setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
@@ -68,6 +80,9 @@ export default function LoginPage() {
   async function handleGoogleLogin() {
     setIsLoading(true)
     setError('')
+
+    trackInteraction('click', 'google_login_button')
+
     try {
       const provider = new GoogleAuthProvider()
       provider.setCustomParameters({
@@ -81,16 +96,20 @@ export default function LoginPage() {
       const userProfile = await userService.createOrUpdateUser(result.user)
 
       if (!userProfile?.ageVerified) {
+        trackAuth('login', 'google_new_user')
         // Redirect directly to age verification
         router.push('/auth/verify-age')
       } else if (userProfile.ageVerified && userProfile.isAdult === false) {
+        trackAppError('underage_google_login', 'google_login')
         // User is underage
         router.push('/auth/login?error=underage')
       } else {
+        trackAuth('login', 'google')
         // User is verified and adult, go to home
         router.push('/')
       }
     } catch (error) {
+      trackAppError(`google_login_error: ${getFirebaseErrorMessage(error)}`, 'google_login')
       setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
