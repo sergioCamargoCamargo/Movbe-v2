@@ -8,6 +8,7 @@ export * from './IAvatarService'
 export * from './IEmailService'
 export * from './INotificationService'
 export * from './ISubscriptionService'
+export * from './ITwoFactorService'
 export * from './IUserService'
 export * from './IVideoService'
 

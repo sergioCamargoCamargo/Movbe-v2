@@ -5,6 +5,9 @@
 // Tipos comunes
 export * from './common'
 
+// Tipos de componentes
+export * from './components'
+
 // Entidades de dominio
 export * from './entities'
 

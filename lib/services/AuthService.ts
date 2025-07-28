@@ -5,9 +5,11 @@ import {
   updatePassword,
   sendPasswordResetEmail,
   User as FirebaseUser,
+  MultiFactorError,
 } from 'firebase/auth'
 
 import { auth } from '@/lib/firebase'
+import { twoFactorService } from './TwoFactorService'
 
 export class AuthService {
   async signIn(email: string, password: string): Promise<FirebaseUser> {
@@ -74,5 +76,66 @@ export class AuthService {
     } catch (error) {
       throw error
     }
+  }
+
+  // 2FA Methods
+  async is2FAEnabled(user: FirebaseUser): Promise<boolean> {
+    return await twoFactorService.is2FAEnabled(user)
+  }
+
+  async getEnrolledFactors(user: FirebaseUser) {
+    return await twoFactorService.getEnrolledFactors(user)
+  }
+
+  async startTwoFactorEnrollment(
+    user: FirebaseUser,
+    phoneNumber: string,
+    recaptchaContainerId: string
+  ) {
+    return await twoFactorService.startEnrollment(user, phoneNumber, recaptchaContainerId)
+  }
+
+  async completeTwoFactorEnrollment(
+    user: FirebaseUser,
+    verificationId: string,
+    verificationCode: string,
+    displayName?: string
+  ) {
+    return await twoFactorService.completeEnrollment(
+      user,
+      verificationId,
+      verificationCode,
+      displayName
+    )
+  }
+
+  async unenrollTwoFactor(user: FirebaseUser, factorUid: string) {
+    return await twoFactorService.unenroll(user, factorUid)
+  }
+
+  async verifyTwoFactor(
+    error: MultiFactorError,
+    verificationId: string,
+    verificationCode: string,
+    selectedFactorIndex?: number
+  ) {
+    return await twoFactorService.verify2FA(
+      error,
+      verificationId,
+      verificationCode,
+      selectedFactorIndex
+    )
+  }
+
+  async sendTwoFactorCode(
+    error: MultiFactorError,
+    recaptchaContainerId: string,
+    selectedFactorIndex?: number
+  ) {
+    return await twoFactorService.send2FACode(error, recaptchaContainerId, selectedFactorIndex)
+  }
+
+  cleanup2FA() {
+    twoFactorService.cleanup()
   }
 }

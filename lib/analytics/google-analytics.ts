@@ -73,7 +73,20 @@ export const trackUserInteraction = (
 }
 
 // Track authentication events
-export const trackAuthEvent = (action: 'login' | 'register' | 'logout', method?: string) => {
+export const trackAuthEvent = (
+  action:
+    | 'login'
+    | 'register'
+    | 'logout'
+    | '2fa_required'
+    | '2fa_setup_start'
+    | '2fa_setup_complete'
+    | '2fa_disabled'
+    | '2fa_verification_success'
+    | '2fa_cancelled'
+    | '2fa_verification_cancelled',
+  method?: string
+) => {
   if (typeof window !== 'undefined' && GA_TRACKING_ID) {
     window.gtag('event', action, {
       event_category: 'Authentication',
