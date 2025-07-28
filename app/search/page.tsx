@@ -8,6 +8,7 @@ import HeaderDynamic from '@/components/HeaderDynamic'
 import Sidebar from '@/components/Sidebar'
 import { Button } from '@/components/ui/button'
 import VideoCard from '@/components/VideoCard'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useSearch } from '@/lib/hooks/useSearch'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
@@ -15,6 +16,7 @@ import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
 function SearchContent() {
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
+  const { trackPage, trackSearch, trackInteraction } = useAnalytics()
   const {
     query,
     results,
@@ -32,12 +34,18 @@ function SearchContent() {
   const urlQuery = searchParams.get('q') || ''
 
   useEffect(() => {
+    trackPage('Search Page')
+  }, [trackPage])
+
+  useEffect(() => {
     if (urlQuery) {
       initializeFromUrl(urlQuery)
+      trackSearch(urlQuery, results.length)
     }
-  }, [urlQuery, initializeFromUrl])
+  }, [urlQuery, initializeFromUrl, trackSearch, results.length])
 
   const handleRecentSearch = (recentQuery: string) => {
+    trackInteraction('click', 'recent_search', { query: recentQuery })
     updateQuery(recentQuery)
     searchAndNavigate(recentQuery)
   }
