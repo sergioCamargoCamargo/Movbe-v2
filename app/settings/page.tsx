@@ -9,6 +9,7 @@ import HeaderDynamic from '@/components/HeaderDynamic'
 import { PageTransition } from '@/components/PageTransition'
 import PasswordChangeModal from '@/components/PasswordChangeModal'
 import Sidebar from '@/components/Sidebar'
+import TwoFactorSetup from '@/components/TwoFactorSetup'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,7 +55,6 @@ export default function SettingsPage() {
   const [commentsNotifications, setCommentsNotifications] = useState(true)
   const [likesNotifications, setLikesNotifications] = useState(true)
   const [followersNotifications, setFollowersNotifications] = useState(true)
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [isGoogleUser, setIsGoogleUser] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -105,7 +105,6 @@ export default function SettingsPage() {
         setLikesNotifications(notifications.likes)
         setFollowersNotifications(notifications.followers)
         setOriginalNotifications(notifications)
-        setTwoFactorEnabled(settings?.security?.twoFactor ?? false)
       } catch {
         // Error loading settings - will use defaults
       }
@@ -445,33 +444,18 @@ export default function SettingsPage() {
                     </>
                   )}
 
-                  <div
-                    className='flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/50 transition-colors cursor-pointer md:p-3 md:border-0 md:rounded-none md:hover:bg-transparent'
-                    onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                  >
-                    <div className='space-y-1 flex-1 mr-4'>
-                      <Label className='text-base md:text-sm cursor-pointer'>
-                        {t('settings.twoFactor')}
-                      </Label>
-                      <p className='text-sm text-muted-foreground'>
-                        {t('settings.twoFactorDescription')}
-                      </p>
-                    </div>
-                    <div className='flex-shrink-0'>
-                      {/* Mobile: Checkbox */}
-                      <Checkbox
-                        checked={twoFactorEnabled}
-                        onCheckedChange={checked => setTwoFactorEnabled(checked === true)}
-                        className='h-4 w-4 rounded-md md:hidden'
-                      />
-                      {/* Desktop: Switch */}
-                      <Switch
-                        checked={twoFactorEnabled}
-                        onCheckedChange={checked => setTwoFactorEnabled(checked === true)}
-                        className='hidden md:flex'
-                      />
-                    </div>
-                  </div>
+                  {/* 2FA Setup Component */}
+                  {user && (
+                    <TwoFactorSetup
+                      user={user}
+                      onComplete={() => {
+                        toast({
+                          title: 'Configuración actualizada',
+                          description: 'La configuración de 2FA se ha actualizado correctamente.',
+                        })
+                      }}
+                    />
+                  )}
 
                   {isGoogleUser && (
                     <div className='p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800'>

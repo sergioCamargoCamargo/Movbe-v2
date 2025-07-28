@@ -45,16 +45,52 @@ export class Validator {
   }
 
   static passwordStrength(value: string): string | null {
-    if (value.length < 6) {
-      return ERROR_MESSAGES.FORMS.PASSWORD_TOO_SHORT
+    if (value.length < 12) {
+      return 'La contraseña debe tener al menos 12 caracteres'
     }
 
     const hasUpperCase = /[A-Z]/.test(value)
     const hasLowerCase = /[a-z]/.test(value)
     const hasNumbers = /\d/.test(value)
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value)
+    const hasRepeatingChars = /(.)\1{2,}/.test(value)
 
-    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      return 'La contraseña debe incluir mayúsculas, minúsculas y números'
+    if (!hasUpperCase) {
+      return 'La contraseña debe incluir al menos una mayúscula'
+    }
+
+    if (!hasLowerCase) {
+      return 'La contraseña debe incluir al menos una minúscula'
+    }
+
+    if (!hasNumbers) {
+      return 'La contraseña debe incluir al menos un número'
+    }
+
+    if (!hasSpecialChar) {
+      return 'La contraseña debe incluir al menos un símbolo (!@#$%^&*(),.?":{}|<>)'
+    }
+
+    if (hasRepeatingChars) {
+      return 'La contraseña no puede tener 3 o más caracteres consecutivos iguales'
+    }
+
+    // Check against common passwords
+    const commonPasswords = [
+      'password123',
+      '123456789',
+      'qwerty123',
+      'admin123',
+      'user1234',
+      'password1',
+      'letmein123',
+      'welcome123',
+      'master123',
+      '123qweasd',
+    ]
+
+    if (commonPasswords.includes(value.toLowerCase())) {
+      return 'Esta contraseña es muy común, por favor elige una diferente'
     }
 
     return null
