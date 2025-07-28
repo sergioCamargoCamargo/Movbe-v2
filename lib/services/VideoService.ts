@@ -1,23 +1,23 @@
 import {
+  addDoc,
   collection,
   doc,
+  DocumentData,
   getDoc,
   getDocs,
-  query,
-  where,
-  orderBy,
-  addDoc,
-  updateDoc,
   increment,
+  orderBy,
+  query,
   serverTimestamp,
-  DocumentData,
+  updateDoc,
+  where,
 } from 'firebase/firestore'
 import {
+  deleteObject,
+  getDownloadURL,
   getStorage,
   ref,
   uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
 } from 'firebase/storage'
 
 import { db } from '../firebase/config'
@@ -28,6 +28,32 @@ import { serializeTimestamps } from '../utils'
 const storage = getStorage()
 
 export class VideoService {
+  private serializeTimestamps(data: DocumentData): DocumentData {
+    const serialized = { ...data }
+
+    if (data.uploadDate && typeof data.uploadDate === 'object' && 'seconds' in data.uploadDate) {
+      serialized.uploadDate = {
+        seconds: data.uploadDate.seconds,
+        nanoseconds: data.uploadDate.nanoseconds,
+      }
+    }
+
+    if (data.publishedAt && typeof data.publishedAt === 'object' && 'seconds' in data.publishedAt) {
+      serialized.publishedAt = {
+        seconds: data.publishedAt.seconds,
+        nanoseconds: data.publishedAt.nanoseconds,
+      }
+    }
+
+    if (data.lastRatedAt && typeof data.lastRatedAt === 'object' && 'seconds' in data.lastRatedAt) {
+      serialized.lastRatedAt = {
+        seconds: data.lastRatedAt.seconds,
+        nanoseconds: data.lastRatedAt.nanoseconds,
+      }
+    }
+
+    return serialized
+  }
   async getPublicVideos(limit?: number): Promise<FirestoreVideo[]> {
     try {
       const q = query(

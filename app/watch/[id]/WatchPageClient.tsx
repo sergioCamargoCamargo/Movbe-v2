@@ -13,13 +13,17 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
-import { getSubscriptionService } from '@/lib/di/serviceRegistration'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments } from '@/lib/hooks/useVideoData'
 import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
 import { Video, VideoService } from '@/lib/services/VideoService'
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
+import {
+  loadSubscriberCount,
+  loadSubscriptionState,
+  toggleSubscription,
+} from '@/lib/store/slices/subscriptionSlice'
 import { setIsMobile } from '@/lib/store/slices/uiSlice'
 
 // Dynamic imports for heavy components
@@ -59,12 +63,13 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const { toast } = useToast()
   const router = useRouter()
   const isMobile = useAppSelector(state => state.ui.isMobile)
+  const {
+    subscriberCounts,
+    subscriptionStates,
+    loading: subscriptionLoading,
+  } = useAppSelector(state => state.subscription)
   const [showHeader, setShowHeader] = useState(true)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [creatorProfile, setCreatorProfile] = useState<CreatorProfile | null>(null)
-  const [subscriberCount, setSubscriberCount] = useState<number>(0)
-  const [subscriberCountLoading, setSubscriberCountLoading] = useState(true)
   const [showAllComments, setShowAllComments] = useState(false)
   const [newComment, setNewComment] = useState('')
   const [isAddingComment, setIsAddingComment] = useState(false)
@@ -73,14 +78,19 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const videoRef = useRef<HTMLDivElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
+  // Get values from Redux store
+  const subscriberCount = video ? subscriberCounts[video.uploaderId] || 0 : 0
+  const subscriptionKey = video && user ? `${video.uploaderId}_${user.uid}` : ''
+  const isSubscribed = subscriptionStates[subscriptionKey] || false
+  const isSubscriptionLoading = video ? subscriptionLoading[video.uploaderId] || false : false
+  const subscriberCountLoading = video ? subscriptionLoading[video.uploaderId] || false : false
+
   // Load comments for mobile section
   const {
     comments: videoComments,
     loading: commentsLoading,
     addComment,
   } = useVideoComments(video?.id || '')
-
-  const subscriptionService = getSubscriptionService()
 
   // Format timestamp for comments
   const formatCommentDate = (
@@ -144,44 +154,20 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
 
     loadCreatorProfile()
 
-    // Load subscriber count
-    const loadSubscriberCount = async () => {
-      try {
-        setSubscriberCountLoading(true)
-        const count = await subscriptionService.getSubscriberCount(video.uploaderId)
-        setSubscriberCount(count)
-      } catch {
-        // Error loading subscriber count, keep default value
-        setSubscriberCount(0)
-      } finally {
-        setSubscriberCountLoading(false)
-      }
-    }
+    // Load subscription data
+    dispatch(loadSubscriberCount(video.uploaderId))
 
-    loadSubscriberCount()
+    // Load subscription state if user is logged in and not own video
+    if (user?.uid && video.uploaderId !== user.uid) {
+      dispatch(loadSubscriptionState({ channelId: video.uploaderId, subscriberId: user.uid }))
+    }
 
     // Record view count if user is logged in
     if (user?.uid) {
       const videoService = new VideoService()
       videoService.recordVideoView(video.id, user.uid)
     }
-
-    // Check subscription status if user is logged in and not own video
-    if (user?.uid && video.uploaderId !== user.uid) {
-      const checkSubscription = async () => {
-        try {
-          const subscriptionRelation = await subscriptionService.getSubscriptionRelation(
-            video.uploaderId,
-            user.uid
-          )
-          setIsSubscribed(subscriptionRelation.isSubscribed)
-        } catch {
-          // Error loading subscription status
-        }
-      }
-      checkSubscription()
-    }
-  }, [video, user?.uid, subscriptionService])
+  }, [video, user?.uid, dispatch])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -244,38 +230,31 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       return
     }
 
-    if (!video || video.uploaderId === user.uid || subscriptionLoading) {
+    if (!video || video.uploaderId === user.uid || isSubscriptionLoading) {
       return
     }
 
-    setSubscriptionLoading(true)
-
     try {
-      if (isSubscribed) {
-        await subscriptionService.unsubscribe(video.uploaderId, user.uid)
-        setIsSubscribed(false)
-        setSubscriberCount(prev => Math.max(0, prev - 1)) // Update subscriber count
-        toast({
-          title: 'Te has desuscrito',
-          description: `Ya no seguirás a ${video.uploaderName}`,
+      const result = await dispatch(
+        toggleSubscription({
+          channelId: video.uploaderId,
+          subscriberId: user.uid,
+          isSubscribed,
         })
-      } else {
-        await subscriptionService.subscribe(video.uploaderId, user.uid)
-        setIsSubscribed(true)
-        setSubscriberCount(prev => prev + 1) // Update subscriber count
-        toast({
-          title: '¡Suscrito!',
-          description: `Ahora sigues a ${video.uploaderName}`,
-        })
-      }
+      ).unwrap()
+
+      toast({
+        title: result.isSubscribed ? '¡Suscrito!' : 'Te has desuscrito',
+        description: result.isSubscribed
+          ? `Ahora sigues a ${video.uploaderName}`
+          : `Ya no seguirás a ${video.uploaderName}`,
+      })
     } catch {
       toast({
         title: 'Error',
         description: 'Hubo un problema al procesar tu suscripción. Inténtalo de nuevo.',
         variant: 'destructive',
       })
-    } finally {
-      setSubscriptionLoading(false)
     }
   }
 
@@ -358,42 +337,40 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
               <h1 className='text-lg sm:text-2xl font-bold'>{video.title}</h1>
               <div className='flex items-center space-x-3 sm:space-x-4'>
                 <NavigationLink href={`/profile/${video.uploaderId}`}>
-                  {creatorProfile === null ? (
-                    <div className='w-10 h-10 bg-gray-200 rounded-full animate-pulse' />
-                  ) : creatorProfile?.photoURL ? (
-                    <Image
-                      src={creatorProfile.photoURL}
-                      alt='Avatar del canal'
-                      width={40}
-                      height={40}
-                      className='rounded-full hover:opacity-80 transition-opacity cursor-pointer'
-                      onError={e => {
-                        const target = e.target as HTMLImageElement
-                        // Hide the broken image and show fallback
-                        target.style.display = 'none'
-                        const fallback = target.nextElementSibling as HTMLDivElement
-                        if (fallback) fallback.style.display = 'flex'
-                      }}
-                    />
-                  ) : null}
-
-                  {/* Fallback avatar when no photoURL */}
-                  {creatorProfile && !creatorProfile.photoURL && (
-                    <div className='w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer'>
-                      <span className='text-sm font-semibold text-primary'>
-                        {(creatorProfile.displayName || video.uploaderName).charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Hidden fallback for broken images */}
-                  <div
-                    className='w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer'
-                    style={{ display: 'none' }}
-                  >
-                    <span className='text-sm font-semibold text-primary'>
-                      {(creatorProfile?.displayName || video.uploaderName).charAt(0).toUpperCase()}
-                    </span>
+                  <div className='w-10 h-10 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer'>
+                    {creatorProfile === null ? (
+                      <div className='w-full h-full bg-gray-200 animate-pulse' />
+                    ) : creatorProfile?.photoURL ? (
+                      <Image
+                        src={creatorProfile.photoURL}
+                        alt='Avatar del canal'
+                        width={40}
+                        height={40}
+                        className='w-full h-full object-cover'
+                        style={{ objectFit: 'cover', objectPosition: 'center' }}
+                        onError={e => {
+                          const target = e.target as HTMLImageElement
+                          const container = target.parentElement
+                          if (container) {
+                            container.innerHTML = `
+                              <div class="w-full h-full bg-primary/20 flex items-center justify-center">
+                                <span class="text-sm font-semibold text-primary">
+                                  ${(creatorProfile?.displayName || video.uploaderName).charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            `
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className='w-full h-full bg-primary/20 flex items-center justify-center'>
+                        <span className='text-sm font-semibold text-primary'>
+                          {(creatorProfile.displayName || video.uploaderName)
+                            .charAt(0)
+                            .toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </NavigationLink>
                 <div className='flex-1 min-w-0'>
@@ -408,10 +385,10 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                         size='sm'
                         className='ml-2 flex-shrink-0'
                         onClick={handleSubscribe}
-                        disabled={subscriptionLoading}
+                        disabled={isSubscriptionLoading}
                         variant={isSubscribed ? 'outline' : 'default'}
                       >
-                        {subscriptionLoading
+                        {isSubscriptionLoading
                           ? isSubscribed
                             ? 'Cancelando...'
                             : 'Suscribiendo...'
