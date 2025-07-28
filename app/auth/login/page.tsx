@@ -1,6 +1,11 @@
 'use client'
 
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  MultiFactorError,
+} from 'firebase/auth'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -21,11 +26,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
 import { useAnalytics } from '@/lib/hooks/useAnalytics'
+import TwoFactorVerification from '@/components/TwoFactorVerification'
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [show2FA, setShow2FA] = useState(false)
+  const [multiFactorError, setMultiFactorError] = useState<MultiFactorError | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { trackPage, trackAuth, trackInteraction, trackAppError } = useAnalytics()
@@ -69,9 +77,17 @@ export default function LoginPage() {
 
       trackAuth('login', 'email')
       router.push('/')
-    } catch (error) {
-      trackAppError(`login_error: ${getFirebaseErrorMessage(error)}`, 'login_form')
-      setError(getFirebaseErrorMessage(error))
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === 'auth/multi-factor-auth-required') {
+        // Track 2FA required event
+        trackAuth('2fa_required', 'email')
+        setMultiFactorError(error as MultiFactorError)
+        setShow2FA(true)
+        setError('')
+      } else {
+        trackAppError(`login_error: ${getFirebaseErrorMessage(error)}`, 'login_form')
+        setError(getFirebaseErrorMessage(error))
+      }
     } finally {
       setIsLoading(false)
     }
@@ -80,7 +96,6 @@ export default function LoginPage() {
   async function handleGoogleLogin() {
     setIsLoading(true)
     setError('')
-
     trackInteraction('click', 'google_login_button')
 
     try {
@@ -108,12 +123,50 @@ export default function LoginPage() {
         // User is verified and adult, go to home
         router.push('/')
       }
-    } catch (error) {
-      trackAppError(`google_login_error: ${getFirebaseErrorMessage(error)}`, 'google_login')
-      setError(getFirebaseErrorMessage(error))
+    } catch (error: unknown) {
+      // Check if it's a multi-factor error for Google login too
+      if ((error as { code?: string }).code === 'auth/multi-factor-auth-required') {
+        // Track 2FA required event for Google login
+        trackAuth('2fa_required', 'google')
+        setMultiFactorError(error as MultiFactorError)
+        setShow2FA(true)
+        setError('')
+      } else {
+        trackAppError(`google_login_error: ${getFirebaseErrorMessage(error)}`, 'google_login')
+        setError(getFirebaseErrorMessage(error))
+      }
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handle2FASuccess = () => {
+    setShow2FA(false)
+    setMultiFactorError(null)
+    // Track successful 2FA verification
+    trackAuth('login', '2fa_verified')
+    router.push('/')
+  }
+
+  const handle2FACancel = () => {
+    setShow2FA(false)
+    setMultiFactorError(null)
+    // Track 2FA cancellation
+    trackAuth('2fa_cancelled', 'user_action')
+    setError('Verificación de 2FA cancelada')
+  }
+
+  // If 2FA verification is needed, show that component
+  if (show2FA && multiFactorError) {
+    return (
+      <div className='min-h-screen bg-muted/50 p-2 sm:p-4 flex items-center justify-center'>
+        <TwoFactorVerification
+          error={multiFactorError}
+          onSuccess={handle2FASuccess}
+          onCancel={handle2FACancel}
+        />
+      </div>
+    )
   }
 
   return (
