@@ -6,7 +6,7 @@ declare global {
   }
 }
 
-export const GA_TRACKING_ID = 'G-B4QXKFRJLZ'
+export const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_TRACKING_ID
 
 // Initialize Google Analytics
 export const initializeGA = () => {
