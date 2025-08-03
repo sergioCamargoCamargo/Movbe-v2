@@ -106,9 +106,6 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='es' suppressHydrationWarning>
-      <head>
-        <GoogleAnalytics />
-      </head>
       <body className={`${inter.className} antialiased overflow-x-hidden overflow-y-auto`}>
         <ThemeProvider
           attribute='class'
