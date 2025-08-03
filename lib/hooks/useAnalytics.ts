@@ -57,9 +57,25 @@ export const useAnalytics = () => {
   )
 
   // Track authentication events
-  const trackAuth = useCallback((action: 'login' | 'register' | 'logout', method?: string) => {
-    trackAuthEvent(action, method)
-  }, [])
+  const trackAuth = useCallback(
+    (
+      action:
+        | 'login'
+        | 'register'
+        | 'logout'
+        | '2fa_required'
+        | '2fa_setup_start'
+        | '2fa_setup_complete'
+        | '2fa_disabled'
+        | '2fa_verification_success'
+        | '2fa_cancelled'
+        | '2fa_verification_cancelled',
+      method?: string
+    ) => {
+      trackAuthEvent(action, method)
+    },
+    []
+  )
 
   // Track search events
   const trackSearch = useCallback((searchTerm: string, resultCount?: number) => {

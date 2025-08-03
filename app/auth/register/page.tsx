@@ -29,6 +29,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { auth, getFirebaseErrorMessage } from '@/lib/firebase'
 import { UserService } from '@/lib/services/UserService'
+import { Validator } from '@/lib/utils/validation'
+import { authRateLimiter, getUserIdentifier, formatTimeRemaining } from '@/lib/utils/rateLimiter'
 
 export default function RegisterPage() {
   const { t } = useTranslation()
@@ -38,6 +40,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [birthDate, setBirthDate] = useState('')
   const [ageWarning, setAgeWarning] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false)
   const router = useRouter()
   const userService = new UserService()
 
@@ -70,11 +74,36 @@ export default function RegisterPage() {
     }
   }
 
+  // Manejar validación de contraseña en tiempo real
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const password = e.target.value
+
+    if (password.length > 0) {
+      const passwordValidation = Validator.passwordStrength(password)
+      setPasswordError(passwordValidation || '')
+      setShowPasswordRequirements(true)
+    } else {
+      setPasswordError('')
+      setShowPasswordRequirements(false)
+    }
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsLoading(true)
     setError('')
     setSuccess('')
+
+    // Check rate limiting
+    const userIdentifier = getUserIdentifier()
+    if (authRateLimiter.isRateLimited(userIdentifier)) {
+      const timeRemaining = authRateLimiter.getTimeUntilReset(userIdentifier)
+      setError(
+        `Demasiados intentos de registro. Intenta de nuevo en ${formatTimeRemaining(timeRemaining)}.`
+      )
+      setIsLoading(false)
+      return
+    }
 
     try {
       const formData = new FormData(event.currentTarget)
@@ -93,6 +122,13 @@ export default function RegisterPage() {
       // Verificar que el usuario sea mayor de edad
       if (!isAdult) {
         setError(t('auth.minimumAgeError'))
+        return
+      }
+
+      // Validar contraseña antes de enviar a Firebase
+      const passwordValidation = Validator.passwordStrength(password)
+      if (passwordValidation) {
+        setError(passwordValidation)
         return
       }
 
@@ -119,8 +155,14 @@ export default function RegisterPage() {
       await sendEmailVerification(user)
       setSuccess(t('auth.accountCreatedSuccess'))
 
+      // Clear rate limit on successful registration
+      authRateLimiter.clearAttempts(userIdentifier)
+
       // Don't redirect immediately, let user see the success message
     } catch (error) {
+      // Record failed attempt for rate limiting
+      authRateLimiter.recordAttempt(userIdentifier)
+
       setError(getFirebaseErrorMessage(error))
     } finally {
       setIsLoading(false)
@@ -261,6 +303,8 @@ export default function RegisterPage() {
                     type={showPassword ? 'text' : 'password'}
                     required
                     disabled={isLoading}
+                    onChange={handlePasswordChange}
+                    className={passwordError ? 'border-red-500' : ''}
                   />
                   <Button
                     type='button'
@@ -272,6 +316,27 @@ export default function RegisterPage() {
                     {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                   </Button>
                 </div>
+
+                {/* Password requirements */}
+                {showPasswordRequirements && (
+                  <div className='text-xs space-y-1'>
+                    <p className='font-medium text-muted-foreground'>Requisitos de contraseña:</p>
+                    <ul className='list-disc list-inside space-y-1 text-muted-foreground pl-2'>
+                      <li>Al menos 12 caracteres</li>
+                      <li>Una letra mayúscula</li>
+                      <li>Una letra minúscula</li>
+                      <li>Un número</li>
+                      <li>Un símbolo (!@#$%^&amp;*(),.?&quot;:{}|&lt;&gt;)</li>
+                      <li>Sin caracteres repetidos consecutivos</li>
+                    </ul>
+                  </div>
+                )}
+
+                {passwordError && (
+                  <Alert variant='destructive'>
+                    <AlertDescription>{passwordError}</AlertDescription>
+                  </Alert>
+                )}
               </div>
               <div className='flex items-center space-x-2'>
                 <div className='relative'>
@@ -290,7 +355,10 @@ export default function RegisterPage() {
                 </Label>
               </div>
               <div className='space-y-4'>
-                <Button className='w-full' disabled={isLoading || ageWarning !== ''}>
+                <Button
+                  className='w-full'
+                  disabled={isLoading || ageWarning !== '' || passwordError !== ''}
+                >
                   {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
                 </Button>
                 <div className='relative'>
