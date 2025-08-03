@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Shield, Phone, Check, X, AlertCircle } from 'lucide-react'
+import { Shield, Phone, Check, X, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
   const [phoneNumber, setPhoneNumber] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [verificationId, setVerificationId] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -25,10 +27,12 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
   const [enrolledFactors, setEnrolledFactors] = useState<{ uid: string; phoneNumber?: string }[]>(
     []
   )
+  const [requiresPassword, setRequiresPassword] = useState(false)
   const { trackAuth, trackInteraction, trackCustomEvent } = useAnalytics()
 
   useEffect(() => {
     checkTwoFactorStatus()
+    checkPasswordRequirement()
 
     // Cleanup on unmount
     return () => {
@@ -52,6 +56,60 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
     }
   }, [user])
 
+  const checkPasswordRequirement = useCallback(() => {
+    // Check if user signed in with email/password (requires password verification)
+    // vs Google/other providers (don't require password)
+    const hasPasswordProvider = user.providerData.some(
+      provider => provider.providerId === 'password'
+    )
+    setRequiresPassword(hasPasswordProvider)
+  }, [user])
+
+  const handlePasswordVerification = async () => {
+    if (!password.trim()) {
+      setError('Ingresa tu contraseña')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const result = await twoFactorService.reauthenticateUser(user, password)
+
+      if (result.success) {
+        setStep('phone')
+        setSuccess('Autenticación verificada')
+      } else {
+        setError(result.error || 'Contraseña incorrecta')
+      }
+    } catch {
+      setError('Error verificando contraseña')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleReauth = async () => {
+    setLoading(true)
+    setError('')
+
+    try {
+      const result = await twoFactorService.reauthenticateUser(user)
+
+      if (result.success) {
+        setStep('phone')
+        setSuccess('Autenticación verificada')
+      } else {
+        setError(result.error || 'Error en la autenticación')
+      }
+    } catch {
+      setError('Error verificando autenticación')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleStartEnrollment = async () => {
     if (!phoneNumber.trim()) {
       setError('Ingresa un número de teléfono válido')
@@ -70,7 +128,8 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
       const result = await twoFactorService.startEnrollment(
         user,
         phoneNumber,
-        'recaptcha-container'
+        'recaptcha-container',
+        requiresPassword ? password : undefined
       )
 
       if (result.success && result.verificationId) {
@@ -231,11 +290,79 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
               </ul>
             </div>
 
-            <Button onClick={() => setStep('phone')} className='w-full'>
+            <Button
+              onClick={() => setStep(requiresPassword ? 'password' : 'phone')}
+              className='w-full'
+            >
               <Shield className='h-4 w-4 mr-2' />
               Configurar 2FA
             </Button>
           </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+
+  const renderPasswordStep = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Verificar tu identidad</CardTitle>
+        <CardDescription>
+          {requiresPassword
+            ? 'Ingresa tu contraseña para continuar'
+            : 'Confirma tu identidad con Google para continuar'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className='space-y-4'>
+        {requiresPassword ? (
+          <>
+            <div className='space-y-2'>
+              <Label htmlFor='password'>Contraseña</Label>
+              <div className='relative'>
+                <Input
+                  id='password'
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  disabled={loading}
+                  placeholder='Ingresa tu contraseña'
+                />
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                </Button>
+              </div>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button variant='outline' onClick={() => setStep('check')}>
+                Cancelar
+              </Button>
+              <Button onClick={handlePasswordVerification} disabled={loading} className='flex-1'>
+                {loading ? 'Verificando...' : 'Continuar'}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className='text-sm text-muted-foreground'>
+              <p>Haz clic en el botón de abajo para confirmar tu identidad con Google.</p>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button variant='outline' onClick={() => setStep('check')}>
+                Cancelar
+              </Button>
+              <Button onClick={handleGoogleReauth} disabled={loading} className='flex-1'>
+                {loading ? 'Autenticando...' : 'Continuar con Google'}
+              </Button>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>
@@ -266,7 +393,10 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
         </div>
 
         <div className='flex gap-2'>
-          <Button variant='outline' onClick={() => setStep('check')}>
+          <Button
+            variant='outline'
+            onClick={() => setStep(requiresPassword ? 'password' : 'check')}
+          >
             Cancelar
           </Button>
           <Button onClick={handleStartEnrollment} disabled={loading} className='flex-1'>
@@ -356,6 +486,7 @@ export default function TwoFactorSetup({ user, onComplete }: TwoFactorSetupProps
       )}
 
       {step === 'check' && renderCheckStep()}
+      {step === 'password' && renderPasswordStep()}
       {step === 'phone' && renderPhoneStep()}
       {step === 'verify' && renderVerifyStep()}
       {step === 'complete' && renderCompleteStep()}

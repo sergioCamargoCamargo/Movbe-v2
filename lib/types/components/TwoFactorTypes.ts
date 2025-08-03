@@ -11,4 +11,4 @@ export interface TwoFactorVerificationProps {
   onCancel: () => void
 }
 
-export type SetupStep = 'check' | 'phone' | 'verify' | 'complete'
+export type SetupStep = 'check' | 'password' | 'phone' | 'verify' | 'complete'

@@ -7,6 +7,10 @@ import {
   PhoneMultiFactorInfo,
   MultiFactorError,
   getMultiFactorResolver,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
 import {
@@ -71,14 +75,60 @@ export class TwoFactorService implements ITwoFactorService {
   }
 
   /**
+   * Reauthenticate user before sensitive operations
+   */
+  async reauthenticateUser(user: User, password?: string): Promise<TwoFactorSetupResult> {
+    try {
+      const providers = user.providerData.map(provider => provider.providerId)
+
+      if (providers.includes('password') && password) {
+        // Email/password authentication
+        const credential = EmailAuthProvider.credential(user.email!, password)
+        await reauthenticateWithCredential(user, credential)
+      } else if (providers.includes('google.com')) {
+        // Google authentication - use popup to reauthenticate
+        const provider = new GoogleAuthProvider()
+        const result = await signInWithPopup(auth, provider)
+
+        // The user is already signed in, this just refreshes the authentication
+        if (result.user.uid !== user.uid) {
+          return {
+            success: false,
+            error: 'Error de autenticación: usuario diferente',
+          }
+        }
+      } else {
+        return {
+          success: false,
+          error: 'Método de autenticación no soportado para reautenticación',
+        }
+      }
+
+      return { success: true }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: this.getErrorMessage(error as { code?: string; message?: string }),
+      }
+    }
+  }
+
+  /**
    * Start 2FA enrollment process
    */
   async startEnrollment(
     user: User,
     phoneNumber: string,
-    recaptchaContainerId: string
+    recaptchaContainerId: string,
+    password?: string
   ): Promise<TwoFactorSetupResult> {
     try {
+      // First, reauthenticate the user if needed
+      const reauthResult = await this.reauthenticateUser(user, password)
+      if (!reauthResult.success) {
+        return reauthResult
+      }
+
       const multiFactorUser = multiFactor(user)
       const session = await multiFactorUser.getSession()
 

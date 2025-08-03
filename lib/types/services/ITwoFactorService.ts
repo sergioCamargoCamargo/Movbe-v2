@@ -14,10 +14,12 @@ export interface TwoFactorVerificationResult {
 export interface ITwoFactorService {
   is2FAEnabled(user: User): Promise<boolean>
   getEnrolledFactors(user: User): Promise<PhoneMultiFactorInfo[]>
+  reauthenticateUser(user: User, password?: string): Promise<TwoFactorSetupResult>
   startEnrollment(
     user: User,
     phoneNumber: string,
-    recaptchaContainerId: string
+    recaptchaContainerId: string,
+    password?: string
   ): Promise<TwoFactorSetupResult>
   completeEnrollment(
     user: User,
