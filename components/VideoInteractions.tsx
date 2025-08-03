@@ -167,12 +167,7 @@ export function VideoInteractions({
 
     const success = await toggleLike(false)
     if (success) {
-      trackCustomEvent(
-        isDisliked ? 'un_dislike' : 'dislike',
-        'Video Engagement',
-        videoId,
-        1
-      )
+      trackCustomEvent(isDisliked ? 'un_dislike' : 'dislike', 'Video Engagement', videoId, 1)
     } else {
       trackCustomEvent('dislike_error', 'Error', videoId)
       toast({
@@ -353,9 +348,7 @@ export function VideoInteractions({
                 }
                 title={!user ? 'Inicia sesión para dar like' : ''}
               >
-                <ThumbsUp
-                  className={`h-4 w-4 ${user && isLiked ? 'fill-current' : ''}`}
-                />
+                <ThumbsUp className={`h-4 w-4 ${user && isLiked ? 'fill-current' : ''}`} />
                 <span className='text-xs sm:text-sm'>{formatNumber(currentLikes)}</span>
               </Button>
 
@@ -370,9 +363,7 @@ export function VideoInteractions({
                 }
                 title={!user ? 'Inicia sesión para dar dislike' : ''}
               >
-                <ThumbsDown
-                  className={`h-4 w-4 ${user && isDisliked ? 'fill-current' : ''}`}
-                />
+                <ThumbsDown className={`h-4 w-4 ${user && isDisliked ? 'fill-current' : ''}`} />
                 <span className='text-xs sm:text-sm'>{formatNumber(currentDislikes)}</span>
               </Button>
             </div>
