@@ -50,8 +50,8 @@ export function VideoInteractions({
   const {
     likeCount: hookLikeCount,
     dislikeCount: hookDislikeCount,
-    isLiked: userLikeStatus_isLiked,
-    isDisliked: userLikeStatus_isDisliked,
+    isLiked,
+    isDisliked,
     loading: likesLoading,
     toggleLike,
   } = useVideoLikes(videoId)
@@ -100,15 +100,15 @@ export function VideoInteractions({
         updateVideoInteraction({
           videoId,
           updates: {
-            liked: userLikeStatus_isLiked,
+            liked: isLiked,
             saved: isSaved,
             commentCount: localComments.length,
             likeCount: currentLikes,
             dislikeCount: currentDislikes,
             viewCount: 0,
             userLikeStatus: {
-              isLiked: userLikeStatus_isLiked,
-              isDisliked: userLikeStatus_isDisliked,
+              isLiked: isLiked,
+              isDisliked: isDisliked,
             },
           },
         })
@@ -118,8 +118,8 @@ export function VideoInteractions({
     videoId,
     videoInteraction,
     dispatch,
-    userLikeStatus_isLiked,
-    userLikeStatus_isDisliked,
+    isLiked,
+    isDisliked,
     isSaved,
     localComments.length,
     currentLikes,
@@ -137,11 +137,11 @@ export function VideoInteractions({
       return
     }
 
-    trackInteraction('click', 'like_button', { videoId, isLiked: userLikeStatus_isLiked })
+    trackInteraction('click', 'like_button', { videoId, isLiked: isLiked })
 
     const success = await toggleLike(true)
     if (success) {
-      trackCustomEvent(userLikeStatus_isLiked ? 'unlike' : 'like', 'Video Engagement', videoId, 1)
+      trackCustomEvent(isLiked ? 'unlike' : 'like', 'Video Engagement', videoId, 1)
     } else {
       trackCustomEvent('like_error', 'Error', videoId)
       toast({
@@ -163,12 +163,12 @@ export function VideoInteractions({
       return
     }
 
-    trackInteraction('click', 'dislike_button', { videoId, isDisliked: userLikeStatus_isDisliked })
+    trackInteraction('click', 'dislike_button', { videoId, isDisliked: isDisliked })
 
     const success = await toggleLike(false)
     if (success) {
       trackCustomEvent(
-        userLikeStatus_isDisliked ? 'un_dislike' : 'dislike',
+        isDisliked ? 'un_dislike' : 'dislike',
         'Video Engagement',
         videoId,
         1
@@ -341,26 +341,26 @@ export function VideoInteractions({
           <div className='flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide'>
             <div className='flex items-center gap-2 flex-shrink-0'>
               <Button
-                variant={user && userLikeStatus_isLiked ? 'default' : 'outline'}
+                variant={user && isLiked ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleLike}
                 disabled={!user || likesLoading}
                 className='flex items-center gap-1 sm:gap-2 touch-manipulation min-w-[60px] sm:min-w-[80px] h-9 sm:h-10'
                 aria-label={
                   user
-                    ? `${userLikeStatus_isLiked ? 'Quitar' : 'Dar'} like al video`
+                    ? `${isLiked ? 'Quitar' : 'Dar'} like al video`
                     : 'Inicia sesión para dar like'
                 }
                 title={!user ? 'Inicia sesión para dar like' : ''}
               >
                 <ThumbsUp
-                  className={`h-4 w-4 ${user && userLikeStatus_isLiked ? 'fill-current' : ''}`}
+                  className={`h-4 w-4 ${user && isLiked ? 'fill-current' : ''}`}
                 />
                 <span className='text-xs sm:text-sm'>{formatNumber(currentLikes)}</span>
               </Button>
 
               <Button
-                variant={user && userLikeStatus_isDisliked ? 'default' : 'outline'}
+                variant={user && isDisliked ? 'default' : 'outline'}
                 size='sm'
                 onClick={handleDislike}
                 disabled={!user || likesLoading}
@@ -371,7 +371,7 @@ export function VideoInteractions({
                 title={!user ? 'Inicia sesión para dar dislike' : ''}
               >
                 <ThumbsDown
-                  className={`h-4 w-4 ${user && userLikeStatus_isDisliked ? 'fill-current' : ''}`}
+                  className={`h-4 w-4 ${user && isDisliked ? 'fill-current' : ''}`}
                 />
                 <span className='text-xs sm:text-sm'>{formatNumber(currentDislikes)}</span>
               </Button>
