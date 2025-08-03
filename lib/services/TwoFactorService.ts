@@ -8,9 +8,9 @@ import {
   MultiFactorError,
   getMultiFactorResolver,
   reauthenticateWithCredential,
+  reauthenticateWithPopup,
   EmailAuthProvider,
   GoogleAuthProvider,
-  signInWithPopup,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase/config'
 import {
@@ -88,15 +88,7 @@ export class TwoFactorService implements ITwoFactorService {
       } else if (providers.includes('google.com')) {
         // Google authentication - use popup to reauthenticate
         const provider = new GoogleAuthProvider()
-        const result = await signInWithPopup(auth, provider)
-
-        // The user is already signed in, this just refreshes the authentication
-        if (result.user.uid !== user.uid) {
-          return {
-            success: false,
-            error: 'Error de autenticación: usuario diferente',
-          }
-        }
+        await reauthenticateWithPopup(user, provider)
       } else {
         return {
           success: false,
