@@ -2,6 +2,7 @@
 
 import { AlertCircle, CheckCircle, Upload, Video } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
@@ -20,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useCategories } from '@/lib/hooks/useCategories'
 import { VideoService } from '@/lib/services/VideoService'
@@ -45,13 +47,26 @@ export default function UploadPage() {
   const dispatch = useAppDispatch()
   const router = useRouter()
   const { toast } = useToast()
+  const { trackPage, trackUpload, trackInteraction, trackCustomEvent } = useAnalytics()
+
+  // Track page view
+  useEffect(() => {
+    trackPage('Upload Page')
+  }, [trackPage])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      trackInteraction('select', 'video_file', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+      })
+
       const videoService = new VideoService()
       const validation = await videoService.validateVideoFile(file)
       if (!validation.isValid) {
+        trackCustomEvent('file_validation_error', 'Upload', validation.error)
         toast({
           variant: 'destructive',
           title: t('upload.invalidFile'),
@@ -59,12 +74,15 @@ export default function UploadPage() {
         })
         return
       }
+
+      trackCustomEvent('file_selected', 'Upload', file.name, Math.round(file.size / (1024 * 1024)))
       dispatch(setSelectedFile(file))
     }
   }
 
   const handleUpload = async () => {
     if (!title || !selectedFile || !category) {
+      trackCustomEvent('upload_validation_error', 'Upload', 'incomplete_fields')
       toast({
         variant: 'destructive',
         title: t('upload.incompleteFields'),
@@ -74,6 +92,7 @@ export default function UploadPage() {
     }
 
     if (!user || !userProfile) {
+      trackCustomEvent('upload_validation_error', 'Upload', 'user_not_authenticated')
       toast({
         variant: 'destructive',
         title: t('upload.userNotAuthenticated'),
@@ -81,6 +100,14 @@ export default function UploadPage() {
       })
       return
     }
+
+    trackUpload('start', Math.round(selectedFile.size / (1024 * 1024)))
+    trackInteraction('click', 'upload_button', {
+      title,
+      category,
+      fileSize: selectedFile.size,
+      fileName: selectedFile.name,
+    })
 
     dispatch(setUploading(true))
     dispatch(setUploadProgress(null))
@@ -118,7 +145,11 @@ export default function UploadPage() {
         await videoService.updateVideo(videoId, { thumbnailURL })
       } catch {
         // Thumbnail generation is optional, continue without it
+        trackCustomEvent('thumbnail_generation_failed', 'Upload', videoId)
       }
+
+      trackUpload('complete', Math.round(selectedFile.size / (1024 * 1024)))
+      trackCustomEvent('video_uploaded', 'Upload', videoId, 1)
 
       toast({
         title: t('upload.uploadSuccess'),
@@ -133,7 +164,11 @@ export default function UploadPage() {
       setTimeout(() => {
         router.push('/')
       }, 1500)
-    } catch {
+    } catch (error: unknown) {
+      trackUpload('error')
+      const errorMessage = error instanceof Error ? error.message : 'unknown_error'
+      trackCustomEvent('upload_error', 'Upload', errorMessage)
+
       // Error will be shown in toast
       toast({
         variant: 'destructive',

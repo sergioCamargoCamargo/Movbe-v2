@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 
 import { ClientLayout } from '@/components/ClientLayout'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { I18nProvider } from '@/components/I18nProvider'
 import { StoreProvider } from '@/components/StoreProvider'
 import { ThemeProvider } from '@/components/theme-provider'

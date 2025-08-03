@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useToast } from '@/lib/hooks/use-toast'
 import { useVideoComments } from '@/lib/hooks/useVideoData'
 import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
@@ -62,6 +63,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
+  const { trackPage, trackVideo, trackInteraction, trackCustomEvent } = useAnalytics()
   const isMobile = useAppSelector(state => state.ui.isMobile)
   const {
     subscriberCounts,
@@ -137,6 +139,10 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   useEffect(() => {
     if (!video) return
 
+    // Track page view
+    trackPage(`Watch: ${video.title}`)
+    trackCustomEvent('video_view', 'Video', video.id, 1)
+
     // Load creator profile
     const loadCreatorProfile = async () => {
       try {
@@ -167,7 +173,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       const videoService = new VideoService()
       videoService.recordVideoView(video.id, user.uid)
     }
-  }, [video, user?.uid, dispatch])
+  }, [video, user?.uid, dispatch, trackPage, trackCustomEvent])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -226,6 +232,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
   const handleSubscribe = async () => {
     // If user is not logged in, redirect to login
     if (!user) {
+      trackInteraction('login_required', 'subscribe_button')
       router.push('/auth/login')
       return
     }
@@ -233,6 +240,8 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
     if (!video || video.uploaderId === user.uid || isSubscriptionLoading) {
       return
     }
+
+    trackInteraction('click', 'subscribe_button', { channelId: video.uploaderId, isSubscribed })
 
     try {
       const result = await dispatch(
@@ -243,6 +252,13 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
         })
       ).unwrap()
 
+      trackCustomEvent(
+        result.isSubscribed ? 'subscribe' : 'unsubscribe',
+        'Subscription',
+        video.uploaderId,
+        1
+      )
+
       toast({
         title: result.isSubscribed ? '¡Suscrito!' : 'Te has desuscrito',
         description: result.isSubscribed
@@ -250,6 +266,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
           : `Ya no seguirás a ${video.uploaderName}`,
       })
     } catch {
+      trackCustomEvent('subscription_error', 'Error', video.uploaderId)
       toast({
         title: 'Error',
         description: 'Hubo un problema al procesar tu suscripción. Inténtalo de nuevo.',
@@ -265,12 +282,18 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
       return
     }
 
+    trackInteraction('submit', 'comment_form', {
+      videoId: video.id,
+      commentLength: newComment.length,
+    })
+
     setIsAddingComment(true)
 
     try {
       const success = await addComment(newComment.trim())
 
       if (success) {
+        trackCustomEvent('comment_added', 'Engagement', video.id, 1)
         setNewComment('')
         toast({
           title: 'Comentario agregado',
@@ -280,6 +303,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
         throw new Error('Failed to add comment')
       }
     } catch {
+      trackCustomEvent('comment_error', 'Error', video.id)
       toast({
         title: 'Error',
         description: 'No se pudo agregar el comentario. Inténtalo de nuevo.',
@@ -328,6 +352,13 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
                   preload='metadata'
                   playsInline
                   controlsList='nodownload'
+                  onPlay={() => trackVideo('play', video.id, video.duration)}
+                  onPause={() => trackVideo('pause', video.id, video.duration)}
+                  onEnded={() => trackVideo('ended', video.id, video.duration)}
+                  onSeeking={e => {
+                    const currentTime = (e.target as HTMLVideoElement).currentTime
+                    trackVideo('seek', video.id, video.duration, currentTime)
+                  }}
                 >
                   Tu navegador no soporta el elemento de video.
                 </video>

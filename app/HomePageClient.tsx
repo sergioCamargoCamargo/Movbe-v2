@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect } from 'react'
 import HeaderDynamic from '@/components/HeaderDynamic'
 import MainContentClient from '@/components/MainContentClient'
 import { PageTransition } from '@/components/PageTransition'
 import Sidebar from '@/components/Sidebar'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { Video } from '@/lib/services/VideoService'
 import { useAppDispatch } from '@/lib/store/hooks'
 import { toggleSidebar } from '@/lib/store/slices/sidebarSlice'
@@ -16,6 +18,12 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ initialVideos, categories }: HomePageClientProps) {
   const dispatch = useAppDispatch()
+  const { trackPage, trackCustomEvent } = useAnalytics()
+
+  useEffect(() => {
+    trackPage('Home Page')
+    trackCustomEvent('page_view', 'Home', 'homepage_loaded', initialVideos.length)
+  }, [trackPage, trackCustomEvent, initialVideos.length])
 
   return (
     <PageTransition>
