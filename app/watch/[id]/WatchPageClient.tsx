@@ -1,10 +1,10 @@
 'use client'
 
+import { ChevronDown, MessageCircle, Play, Send } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { Play, MessageCircle, ChevronDown, Send } from 'lucide-react'
 
 import HeaderDynamic from '@/components/HeaderDynamic'
 import { NavigationLink } from '@/components/NavigationLink'
@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { VideoInteractions } from '@/components/VideoInteractions'
 import { useAuth } from '@/contexts/AuthContext'
-import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useToast } from '@/lib/hooks/use-toast'
+import { useAnalytics } from '@/lib/hooks/useAnalytics'
 import { useVideoComments } from '@/lib/hooks/useVideoData'
 import { EnhancedUserService } from '@/lib/services/EnhancedUserService'
 import { Video, VideoService } from '@/lib/services/VideoService'
@@ -337,7 +337,7 @@ export default function WatchPageClient({ video, recommendedVideos }: WatchPageC
           <div className='p-1 xs:p-2 sm:p-4 space-y-4 pb-safe-area-inset-bottom w-full min-w-0 max-w-full'>
             {/* Video Carousel - Above video (Desktop only) */}
             {!isMobile && recommendedVideos.length > 0 && (
-              <div ref={carouselRef} className='mb-4'>
+              <div ref={carouselRef} className='mb-6'>
                 <VideoCarousel videos={recommendedVideos} onShow={true} />
               </div>
             )}
