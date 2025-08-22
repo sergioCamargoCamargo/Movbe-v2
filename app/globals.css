@@ -145,6 +145,54 @@
     }
   }
 
+  /* Layout asimétrico: video destacado + grid 2x2 */
+  .hero-section {
+    @apply w-full;
+    margin-bottom: 2rem;
+    box-sizing: border-box;
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: auto;
+    min-height: 300px;
+  }
+
+  .featured-video {
+    @apply w-full h-full;
+    grid-area: 1 / 1;
+  }
+
+  .secondary-videos {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-area: 1 / 2;
+  }
+
+  /* Scrollbar personalizada - mejor accesibilidad */
+  .horizontal-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .horizontal-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .horizontal-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
   .video-grid {
     @apply w-full min-w-0 max-w-full grid gap-2 sm:gap-3 md:gap-4;
     grid-template-columns: 1fr;
@@ -152,33 +200,115 @@
   }
 
   @media (min-width: 640px) {
+    .hero-grid {
+      gap: 2rem;
+      min-height: 350px;
+    }
+
+    .secondary-videos {
+      gap: 2rem;
+    }
+
+    .horizontal-video-card {
+      width: 300px;
+    }
+
     .video-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (min-width: 768px) {
+    .hero-grid {
+      gap: 2.5rem;
+      min-height: 400px;
+    }
+
+    .secondary-videos {
+      gap: 3rem;
+    }
+
+    .horizontal-video-card {
+      width: 320px;
+    }
+
     .video-grid {
       grid-template-columns: repeat(3, 1fr);
     }
   }
 
   @media (min-width: 1024px) {
+    .hero-grid {
+      gap: 3rem;
+      min-height: 450px;
+    }
+
+    .secondary-videos {
+      gap: 3.5rem;
+    }
+
+    .horizontal-video-card {
+      width: 340px;
+    }
+
     .video-grid {
       grid-template-columns: repeat(4, 1fr);
     }
   }
 
   @media (min-width: 1280px) {
+    .hero-grid {
+      min-height: 500px;
+    }
+
+    .horizontal-video-card {
+      width: 360px;
+    }
+
     .video-grid {
       grid-template-columns: repeat(5, 1fr);
     }
   }
 
   @media (min-width: 1536px) {
+    .hero-grid {
+      min-height: 550px;
+    }
+
+    .horizontal-video-card {
+      width: 380px;
+    }
+
     .video-grid {
       grid-template-columns: repeat(6, 1fr);
     }
+  }
+}
+
+/* Responsive para móviles: layout stack vertical */
+@media (max-width: 639px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 1rem;
+  }
+
+  .featured-video {
+    grid-area: 1 / 1;
+  }
+
+  .secondary-videos {
+    grid-area: 2 / 1;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .horizontal-video-card {
+    width: 240px;
+  }
+
+  .horizontal-scroll {
+    gap: 4px;
   }
 }
 
@@ -220,6 +350,19 @@
   .aspect-video video {
     width: 100% !important;
     max-width: 100% !important;
+  }
+
+  /* Layout específico para pantallas muy pequeñas */
+  .hero-section,
+  .horizontal-videos {
+    margin-left: -0.75rem !important;
+    margin-right: -0.75rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .horizontal-video-card {
+    width: 220px !important;
   }
 
   /* Fix for main layout containers */

@@ -8,15 +8,21 @@ import Image from 'next/image'
 import { NavigationLink } from '@/components/NavigationLink'
 import StarRating from '@/components/StarRating'
 import { Video } from '@/lib/services/VideoService'
-import { toSafeDate, FirebaseTimestamp } from '@/lib/types/common/firebase'
+import { FirebaseTimestamp, toSafeDate } from '@/lib/types/common/firebase'
 
 interface VideoCardProps {
   video: Video
   className?: string
   priority?: boolean
+  featured?: boolean
 }
 
-export default function VideoCard({ video, className = '', priority = false }: VideoCardProps) {
+export default function VideoCard({
+  video,
+  className = '',
+  priority = false,
+  featured = false,
+}: VideoCardProps) {
   const formatViewCount = (views: number) => {
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`
     if (views >= 1000) return `${(views / 1000).toFixed(1)}K`
@@ -40,7 +46,9 @@ export default function VideoCard({ video, className = '', priority = false }: V
   return (
     <div className={`space-y-2 w-full min-w-0 max-w-full ${className}`}>
       <NavigationLink href={`/watch/${video.id}`} className='space-y-2 block w-full max-w-full'>
-        <div className='aspect-video bg-muted rounded-lg overflow-hidden relative group w-full max-w-full'>
+        <div
+          className={`${featured ? 'aspect-video' : 'aspect-video'} bg-muted rounded-lg overflow-hidden relative group w-full max-w-full`}
+        >
           <Image
             src={video.thumbnailURL || '/placeholder.svg?text=Video'}
             alt={video.title}

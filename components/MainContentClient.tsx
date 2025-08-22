@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AdBanner } from '@/components/AdBanner'
@@ -231,39 +231,73 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
         )}
 
         {!loading && filteredVideos.length > 0 && (
-          <div className='video-grid'>
-            {filteredVideos
-              .map((video, i) => {
-                const items = []
-
-                // Insert ad banner every 4 videos as if it were another video
-                if (i > 0 && i % 4 === 0) {
-                  items.push(
-                    <AdBannerWrapper
-                      key={`ad-${Math.floor(i / 4)}`}
-                      type='banner'
-                      size='medium'
-                      title={t('ads.defaultTitle')}
-                      description={t('ads.defaultDescription')}
-                      ctaText={t('ads.defaultCta')}
-                      sponsor={t('ads.sponsor')}
-                      imageUrl={`/placeholder.svg?text=Ad+${Math.floor(i / 4)}`}
-                    />
-                  )
-                }
-
-                // Add the video
-                items.push(
-                  <div key={video.id} className='w-full min-w-0'>
-                    <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
-                      <VideoCard video={video} priority={i < 4} />
+          <div className='space-y-8'>
+            {/* Hero Section: Video destacado + Grid 2x2 */}
+            {filteredVideos.length > 0 && (
+              <div className='hero-section'>
+                <div className='hero-grid'>
+                  {/* Video destacado (izquierda) */}
+                  <div className='featured-video'>
+                    <div className='transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] h-full'>
+                      <VideoCard video={filteredVideos[0]} priority={true} featured={true} />
                     </div>
                   </div>
-                )
 
-                return items
-              })
-              .flat()}
+                  {/* Grid 2x2 (derecha) */}
+                  {filteredVideos.length > 1 && (
+                    <div className='secondary-videos'>
+                      {filteredVideos.slice(1, 5).map((video, i) => (
+                        <div key={video.id} className='w-full h-full'>
+                          <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 h-full'>
+                            <VideoCard video={video} priority={i < 2} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Grid regular para videos restantes */}
+            {filteredVideos.length > 5 && (
+              <div className='video-grid'>
+                {filteredVideos
+                  .slice(5) // Videos restantes después del hero section
+                  .map((video, i) => {
+                    const items = []
+                    const actualIndex = i + 5 // Ajustar índice para banners
+
+                    // Insert ad banner every 4 videos
+                    if (actualIndex > 5 && (actualIndex - 5) % 4 === 0) {
+                      items.push(
+                        <AdBannerWrapper
+                          key={`ad-${Math.floor((actualIndex - 5) / 4)}`}
+                          type='banner'
+                          size='medium'
+                          title={t('ads.defaultTitle')}
+                          description={t('ads.defaultDescription')}
+                          ctaText={t('ads.defaultCta')}
+                          sponsor={t('ads.sponsor')}
+                          imageUrl={`/placeholder.svg?text=Ad+${Math.floor((actualIndex - 5) / 4)}`}
+                        />
+                      )
+                    }
+
+                    // Add the video
+                    items.push(
+                      <div key={video.id} className='w-full min-w-0'>
+                        <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
+                          <VideoCard video={video} priority={false} />
+                        </div>
+                      </div>
+                    )
+
+                    return items
+                  })
+                  .flat()}
+              </div>
+            )}
           </div>
         )}
       </div>
