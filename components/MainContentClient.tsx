@@ -14,13 +14,11 @@ interface MainContentClientProps {
   categories: Category[]
 }
 
-// Wrapper component para banners en el grid con animaciones suaves
 function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   const [isVisible, setIsVisible] = useState(true)
   const [isClosing, setIsClosing] = useState(false)
   const [hasEntered, setHasEntered] = useState(false)
 
-  // Entry animation
   useEffect(() => {
     const timer = setTimeout(() => setHasEntered(true), 100)
     return () => clearTimeout(timer)
@@ -28,10 +26,9 @@ function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
 
   const handleClose = () => {
     setIsClosing(true)
-    // Wait for animation to finish before completely hiding
     setTimeout(() => {
       setIsVisible(false)
-    }, 300) // Animation duration
+    }, 300)
   }
 
   if (!isVisible) return null
@@ -60,13 +57,11 @@ function AdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   )
 }
 
-// Wrapper component for main banner with smoother animations
 function MainAdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
   const [isVisible, setIsVisible] = useState(true)
   const [isClosing, setIsClosing] = useState(false)
   const [hasEntered, setHasEntered] = useState(false)
 
-  // Slower entry animation for main banner
   useEffect(() => {
     const timer = setTimeout(() => setHasEntered(true), 200)
     return () => clearTimeout(timer)
@@ -74,7 +69,6 @@ function MainAdBannerWrapper(props: Parameters<typeof AdBanner>[0]) {
 
   const handleClose = () => {
     setIsClosing(true)
-    // Slower animation for main banner
     setTimeout(() => {
       setIsVisible(false)
     }, 400)
@@ -112,16 +106,13 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
   const [selectedCategory, setSelectedCategory] = useState<string>('Todo')
   const [loading, setLoading] = useState(false)
 
-  // Combine "Todo" with dynamic categories from Firebase
   const categoryOptions = useMemo(() => {
     if (categories.length === 0) {
-      // If no categories from Firebase, show only "Todo"
       return ['Todo']
     }
     return ['Todo', ...categories.map(cat => cat.name)]
   }, [categories])
 
-  // Create display categories with translations
   const displayCategories = useMemo(() => {
     return categoryOptions.map(cat => ({
       key: cat,
@@ -129,7 +120,6 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
     }))
   }, [categoryOptions, t])
 
-  // Filter videos based on selected category using useMemo for performance
   const filteredVideos = useMemo(() => {
     if (selectedCategory === 'Todo') {
       return videos
@@ -137,16 +127,13 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
     return videos.filter(video => video.category === selectedCategory)
   }, [videos, selectedCategory])
 
-  // Get video count per category for display (use Firebase counts + local video counts)
   const categoryVideoCounts = useMemo(() => {
     const counts: { [key: string]: number } = {}
 
-    // Start with Firebase counts
     categories.forEach(category => {
       counts[category.name] = category.count || 0
     })
 
-    // Add local video counts (for real-time updates)
     videos.forEach(video => {
       if (video.category) {
         counts[video.category] = (counts[video.category] || 0) + 1
@@ -158,8 +145,6 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
 
   const refetch = () => {
     setLoading(true)
-    // Re-fetch logic can be added here if needed
-    // For now, we'll just reset the loading state
     setTimeout(() => {
       setLoading(false)
     }, 1000)
@@ -168,7 +153,6 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
   return (
     <div className='w-full min-w-0'>
       <div className='p-1 xs:p-2 sm:p-4 mobile-container'>
-        {/* Banner publicitario principal */}
         <MainAdBannerWrapper
           type='interactive'
           size='fullwidth'
@@ -181,7 +165,6 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
 
         <div className='categories-container flex space-x-2 pb-4 w-full overflow-x-auto'>
           {displayCategories.length === 0 ? (
-            // Loading state for categories
             <div className='flex space-x-2'>
               {[...Array(6)].map((_, i) => (
                 <div key={i} className='h-8 w-20 bg-muted animate-pulse rounded-md flex-shrink-0' />
@@ -232,18 +215,15 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
 
         {!loading && filteredVideos.length > 0 && (
           <div className='space-y-8'>
-            {/* Hero Section: Video destacado + Grid 2x2 */}
             {filteredVideos.length > 0 && (
-              <div className='hero-section'>
+              <div className='hero-section hidden md:block'>
                 <div className='hero-grid'>
-                  {/* Video destacado (izquierda) */}
                   <div className='featured-video'>
                     <div className='transform transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] h-full'>
                       <VideoCard video={filteredVideos[0]} priority={true} featured={true} />
                     </div>
                   </div>
 
-                  {/* Grid 2x2 (derecha) */}
                   {filteredVideos.length > 1 && (
                     <div className='secondary-videos'>
                       {filteredVideos.slice(1, 5).map((video, i) => (
@@ -259,45 +239,64 @@ export default function MainContentClient({ initialVideos, categories }: MainCon
               </div>
             )}
 
-            {/* Grid regular para videos restantes */}
-            {filteredVideos.length > 5 && (
-              <div className='video-grid'>
-                {filteredVideos
-                  .slice(5) // Videos restantes después del hero section
-                  .map((video, i) => {
-                    const items = []
-                    const actualIndex = i + 5 // Ajustar índice para banners
+            <div className='video-grid'>
+              {filteredVideos
+                .slice(0)
+                .map((video, i) => {
+                  const items = []
+                  const actualIndex = i
+                  const desktopIndex = i >= 5 ? i : -1
 
-                    // Insert ad banner every 4 videos
-                    if (actualIndex > 5 && (actualIndex - 5) % 4 === 0) {
-                      items.push(
+                  if (desktopIndex > 5 && (desktopIndex - 5) % 4 === 0) {
+                    items.push(
+                      <div
+                        key={`ad-${Math.floor((desktopIndex - 5) / 4)}`}
+                        className='hidden md:block w-full min-w-0'
+                      >
                         <AdBannerWrapper
-                          key={`ad-${Math.floor((actualIndex - 5) / 4)}`}
                           type='banner'
                           size='medium'
                           title={t('ads.defaultTitle')}
                           description={t('ads.defaultDescription')}
                           ctaText={t('ads.defaultCta')}
                           sponsor={t('ads.sponsor')}
-                          imageUrl={`/placeholder.svg?text=Ad+${Math.floor((actualIndex - 5) / 4)}`}
+                          imageUrl={`/placeholder.svg?text=Ad+${Math.floor((desktopIndex - 5) / 4)}`}
                         />
-                      )
-                    }
-
-                    // Add the video
-                    items.push(
-                      <div key={video.id} className='w-full min-w-0'>
-                        <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
-                          <VideoCard video={video} priority={false} />
-                        </div>
                       </div>
                     )
+                  }
 
-                    return items
-                  })
-                  .flat()}
-              </div>
-            )}
+                  if (actualIndex > 0 && actualIndex % 4 === 0) {
+                    items.push(
+                      <div
+                        key={`mobile-ad-${Math.floor(actualIndex / 4)}`}
+                        className='md:hidden w-full min-w-0'
+                      >
+                        <AdBannerWrapper
+                          type='banner'
+                          size='medium'
+                          title={t('ads.defaultTitle')}
+                          description={t('ads.defaultDescription')}
+                          ctaText={t('ads.defaultCta')}
+                          sponsor={t('ads.sponsor')}
+                          imageUrl={`/placeholder.svg?text=Ad+${Math.floor(actualIndex / 4)}`}
+                        />
+                      </div>
+                    )
+                  }
+
+                  items.push(
+                    <div key={video.id} className={`w-full min-w-0 ${i < 5 ? 'md:hidden' : ''}`}>
+                      <div className='transform transition-transform duration-200 hover:scale-105 active:scale-95 w-full'>
+                        <VideoCard video={video} priority={i < 4} />
+                      </div>
+                    </div>
+                  )
+
+                  return items
+                })
+                .flat()}
+            </div>
           </div>
         )}
       </div>
